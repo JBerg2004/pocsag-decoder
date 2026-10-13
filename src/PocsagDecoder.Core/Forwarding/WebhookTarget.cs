@@ -169,10 +169,10 @@ public sealed class WebhookTarget : INotifyPropertyChanged
 
     [JsonIgnore] public string HostLabel => _kind switch
     {
-        TargetKinds.Mqtt => "Broker (Server) und Port",
-        TargetKinds.Email => "SMTP-Server und Port",
-        TargetKinds.Tcp => "Lauschen auf Adresse und Port",
-        TargetKinds.BosMon => "Empfänger (Server) und Port, z. B. FE2-Rechner und 5566",
+        TargetKinds.Mqtt => "Broker (Server)",
+        TargetKinds.Email => "SMTP-Server",
+        TargetKinds.Tcp => "Lauschen auf Adresse",
+        TargetKinds.BosMon => "Host",
         _ => "Server",
     };
 

@@ -232,15 +232,20 @@
                         </StackPanel>
 
                         <StackPanel Visibility="{Binding UsesHost, Converter={StaticResource BoolToVis}}">
-                            <TextBlock Text="{Binding HostLabel}" Style="{StaticResource FieldLabel}" Margin="0,0,0,3" />
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="8" />
                                     <ColumnDefinition Width="90" />
                                 </Grid.ColumnDefinitions>
-                                <TextBox Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" />
-                                <TextBox Grid.Column="2" Text="{Binding Port}" ToolTip="Port (0 = Standard)" />
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="{Binding HostLabel}" Style="{StaticResource FieldLabel}" Margin="0,0,0,3" />
+                                <TextBlock Grid.Column="2" Text="Port" Style="{StaticResource FieldLabel}" Margin="0,0,0,3" />
+                                <TextBox Grid.Row="1" Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" />
+                                <TextBox Grid.Row="1" Grid.Column="2" Text="{Binding Port}" ToolTip="Port (0 = Standard)" />
                             </Grid>
                             <CheckBox Style="{StaticResource Switch}" Content="Verschlüsselt (TLS)" IsChecked="{Binding UseTls}" Margin="0,8,0,0"
                                       Visibility="{Binding UsesTls, Converter={StaticResource BoolToVis}}" />
