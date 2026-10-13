@@ -154,6 +154,4 @@ Projektaufbau:
 ## Hinweis
 
 Das Abhören und Weitergeben von Funkmeldungen, die nicht für dich bestimmt sind
-(z. B. BOS-Funk), ist in Deutschland durch das Abhörverbot im Telekommunikationsrecht untersagt. Verwende das Programm
-nur für eigene Meldeempfänger-Netze oder mit Berechtigung (z. B. als Mitglied der alarmierten Einheit
-mit Genehmigung der Leitstelle).
+(z. B. BOS-Funk), ist in Deutschland durch das Abhörverbot im Telekommunikationsrecht untersagt.
