@@ -508,6 +508,27 @@
                         <TextBlock Style="{StaticResource Hint}" VerticalAlignment="Center"
                                    Text="Ausgaben von rtl_fm / multimon-ng, Start/Stopp und Ergebnisse der Schnittstellen." />
                     </StackPanel>
+                    <Border DockPanel.Dock="Top" Background="White" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,0,8">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Netzwerk-Mitschnitt" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0" />
+                            <TextBlock Text="Port" VerticalAlignment="Center" Margin="0,0,4,0" />
+                            <TextBox Width="60" Text="{Binding CapturePort}" IsEnabled="{Binding IsCapturing, Converter={StaticResource Not}}" />
+                            <Button Margin="8,0,0,0" Command="{Binding ToggleCaptureCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                        <Setter Property="Content" Value="Mitschnitt starten" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsCapturing}" Value="True">
+                                                <Setter Property="Content" Value="Mitschnitt beenden" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            <TextBlock Style="{StaticResource Hint}" VerticalAlignment="Center" Margin="10,0,0,0"
+                                       Text="Nimmt Verbindungen an (z. B. BosMon-Netzwerkereignis) und zeigt, was ankommt. Wird auch in logs\mitschnitt.txt gespeichert." />
+                        </StackPanel>
+                    </Border>
                     <ListBox x:Name="LogList" ItemsSource="{Binding LogLines}" FontFamily="Consolas" FontSize="12" />
                 </DockPanel>
             </TabItem>
