@@ -307,7 +307,7 @@ public sealed partial class WebhookSender
     {
         var host = Need(t.Host, "Empfänger");
         var name = Text(t.TitleTemplate, m, rule);
-        var xml = BosMonNetworkEvent.Build(name.Length > 0 ? name : rule, m, Text(t.TextTemplate, m, rule), m.SubRicDescription, m.SubRicDescription);
+        var xml = BosMonNetworkEvent.Build(name.Length > 0 ? name : rule, m, Text(t.TextTemplate, m, rule), m.SubRicDescription, m.SubRicDescription, Text(t.Recipient, m, rule));
         await BosMonNetworkEvent.SendAsync(host, PortOf(t), t.UseTls, xml, ct).ConfigureAwait(false);
         return $"an {host}:{PortOf(t)} gesendet";
     }

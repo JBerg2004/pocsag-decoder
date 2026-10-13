@@ -20,7 +20,7 @@ public static class BosMonNetworkEvent
     /// <summary>Wert des Feldes flags bei POCSAG-Telegrammen im Mitschnitt.</summary>
     public const int FlagsPocsag = 1048576;
 
-    public static string Build(string eventName, PocsagMessage m, string message, string? functionShort, string? functionLong)
+    public static string Build(string eventName, PocsagMessage m, string message, string? functionShort, string? functionLong, string? user = null)
     {
         var sb = new StringBuilder();
         void Line(string s) => sb.Append(s).Append("\r\n");
@@ -28,6 +28,7 @@ public static class BosMonNetworkEvent
         Line("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
         Line("<event format=\"2\">");
         Line($"<name>{Esc(eventName)}</name>");
+        if (!string.IsNullOrWhiteSpace(user)) Line($"<user>{Esc(user.Trim())}</user>"); // BosMon: Feld „Benutzer“, in FE2 der Einheiten-Code
         Line("<telegram>");
         Line($"<function>{char.ToLowerInvariant(m.SubRic)}</function>");
         Line($"<message>{Esc(string.IsNullOrEmpty(message) ? " " : message)}</message>");

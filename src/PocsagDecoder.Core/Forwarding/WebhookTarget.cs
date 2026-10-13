@@ -148,7 +148,7 @@ public sealed class WebhookTarget : INotifyPropertyChanged
     [JsonIgnore] public bool UsesPassword => UsesLogin || _kind == TargetKinds.Fe2;
     [JsonIgnore] public bool UsesTopic => _kind == TargetKinds.Mqtt;
     [JsonIgnore] public bool UsesToken => _kind is TargetKinds.Telegram or TargetKinds.Pushover or TargetKinds.Divera;
-    [JsonIgnore] public bool UsesRecipient => _kind is TargetKinds.Telegram or TargetKinds.Signal or TargetKinds.Pushover or TargetKinds.Email or TargetKinds.Divera or TargetKinds.Fe2;
+    [JsonIgnore] public bool UsesRecipient => _kind is TargetKinds.BosMon or TargetKinds.Telegram or TargetKinds.Signal or TargetKinds.Pushover or TargetKinds.Email or TargetKinds.Divera or TargetKinds.Fe2;
     [JsonIgnore] public bool UsesSender => _kind is TargetKinds.Signal or TargetKinds.Email or TargetKinds.Fe2;
     [JsonIgnore] public bool UsesTitle => _kind is TargetKinds.Pushover or TargetKinds.Email or TargetKinds.Divera or TargetKinds.Fe2 or TargetKinds.BosMon;
     [JsonIgnore] public bool UsesText => _kind is not (TargetKinds.Webhook or TargetKinds.Mqtt or TargetKinds.Sound or TargetKinds.Database or TargetKinds.Program);
@@ -191,6 +191,7 @@ public sealed class WebhookTarget : INotifyPropertyChanged
         TargetKinds.Pushover => "User- oder Gruppen-Key",
         TargetKinds.Email => "Empfänger (mehrere mit Komma)",
         TargetKinds.Divera => "Divera-RIC (optional, legt die alarmierten Gruppen fest)",
+        TargetKinds.BosMon => "Benutzer (wie in BosMon; bei FE2 der Einheiten-Code, z. B. „Staffel 1“; leer = Zuordnung über die RIC)",
         TargetKinds.Fe2 => "Einheiten (Code der Einheit in FE2, mehrere mit Komma; leer = Standard-Einheiten des Alarmeingangs)",
         _ => "Empfänger",
     };

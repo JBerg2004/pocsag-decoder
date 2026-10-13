@@ -306,4 +306,12 @@ public class InterfaceTests
         Assert.Equal("Brand Gebäude", tg.Element("message")!.Value);
         Assert.Equal("3", tg.Element("type")!.Value);
     }
+
+    [Fact]
+    public void BosMonUserFollowsNameLikeBosMon()
+    {
+        var xml = BosMonNetworkEvent.Build("0.0 Test", BosMonSample(), "", "Alarm", "Einsatz", "Testeinheit");
+        Assert.Contains("<name>0.0 Test</name>\r\n<user>Testeinheit</user>\r\n<telegram>", xml);
+        Assert.DoesNotContain("<user>", BosMonNetworkEvent.Build("0.0 Test", BosMonSample(), "", null, null, "  "));
+    }
 }
