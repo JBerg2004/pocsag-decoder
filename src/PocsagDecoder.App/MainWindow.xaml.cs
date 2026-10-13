@@ -172,7 +172,7 @@ public partial class MainWindow : Window
         if (dlg.ShowDialog() == true) MainViewModel.SaveDescriptionTemplate(dlg.FileName);
     }
 
-    // --- Menü „Fenster“ im Reiter Empfang -----------------------------------
+    // --- Menü „Fenster“ im Reiter Telegramme -----------------------------------
 
     private void PaneMenu_Click(object sender, RoutedEventArgs e)
     {

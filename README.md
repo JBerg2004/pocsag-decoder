@@ -25,7 +25,7 @@ RTL-SDR-Stick → rtl_fm.exe → (Audio 22050 Hz) → multimon-ng.exe → POCSAG
 - SubRIC-Buchstaben wahlweise groß (A–D) oder klein (a–d), einstellbar im Reiter „Verarbeitung“; gilt für die Anzeige und `{subric}`. Fest: `{subric_upper}`, `{subric_lower}`
 - Wiederholungs-Sperre: dieselbe Meldung (RIC + SubRIC + Text) wird innerhalb eines Zeitfensters (Standard 60 s) nur einmal weitergeleitet
 - **RIC-Beschreibungen**: zu jeder RIC eine Bezeichnung, eine kurze Bezeichnung (Spalte „Kurz“, Platzhalter `{ric_short}`), einen Ort (Spalte „Ort“, Platzhalter `{ric_location}`) und für SubRIC A, B, C, D je ein eigener Klartext („FF Musterstadt · Vollalarm“), der in der Liste angezeigt und mit `{description}` weitergeleitet wird. Import aus CSV/TXT (z. B. aus Excel), JSON oder direkt aus einer BOSWatch-3-Konfiguration (YAML, descriptor-Modul), Export und Vorlage im Reiter „RIC-Beschreibungen“
-- Reiter **Test**: Testnachricht einspeisen ohne SDR-Stick (zum Ausprobieren von Beschreibungen, Telegrammereignissen und Webhooks)
+- Reiter **Funkempfang**, Abschnitt Testnachricht: Meldung ohne SDR-Stick einspeisen (zum Ausprobieren von Beschreibungen, Telegrammereignissen und Webhooks); vor dem Senden kommt eine Sicherheitsabfrage
 - Fehlerkorrektur einstellbar (Reiter Empfänger, multimon-ng `-b`, Standard 1): weniger Phantom-RICs als die multimon-Voreinstellung 2
 - **Hintergrundbetrieb**: Symbol im Infobereich (unten rechts), Schließen/Minimieren blendet nur aus, Hinweis bei Treffern eines Telegrammereignisses, optional Start mit Windows (`--minimized`), nur eine Instanz gleichzeitig
 - CSV-Tagesprotokoll unter `%APPDATA%\PocsagDecoder\logs`
@@ -38,14 +38,14 @@ RTL-SDR-Stick → rtl_fm.exe → (Audio 22050 Hz) → multimon-ng.exe → POCSAG
 2. **rtl_fm.exe**: Windows-Release von [rtl-sdr-blog](https://github.com/rtlsdrblog/rtl-sdr-blog/releases)
    (Datei `Release.zip`, enthält `rtl_fm.exe` und `rtlsdr.dll`) oder osmocom-Build.
 3. **multimon-ng.exe**: Windows-Build von [multimon-ng](https://github.com/EliasOenal/multimon-ng/releases).
-4. `PocsagDecoder.exe` und die Tools in denselben Ordner legen (oder im Reiter „Empfänger (SDR)“ die Pfade auswählen).
+4. `PocsagDecoder.exe` und die Tools in denselben Ordner legen (oder im Reiter „Funkempfang“ die Pfade auswählen).
 5. `PocsagDecoder.exe` starten. Es wird keine .NET-Installation benötigt (die Exe enthält die Laufzeit).
 
 Test, ob der Stick funktioniert: `rtl_test.exe` in einer Eingabeaufforderung.
 
 ## Bedienung
 
-1. Reiter **Empfänger (SDR)**: Frequenz (z. B. 173,255 MHz), Gain (leer = automatisch), ppm-Korrektur.
+1. Reiter **Funkempfang**: Frequenz (z. B. 173,255 MHz), Gain (leer = automatisch), ppm-Korrektur.
 2. Reiter **Verarbeitung**: Ziel anlegen, URL und Body einstellen, „Testnachricht senden“.
 3. Reiter **Telegrammereignisse**: Ereignis anlegen, RIC/SubRIC eintragen, Ziel auswählen.
 4. **▶ Start**. Treffer werden grün markiert, Fehler beim Senden rot.
@@ -103,11 +103,11 @@ ric={ric}&subric={subric}&text={message}
 
 ## Allgemeine SubRIC-Zuordnung
 
-Im Reiter „RIC-Beschreibungen“ rechts neben der Suche: **SubRICs zuordnen…** – dort einmalig festlegen, was A, B, C und D bedeuten (z. B. A = Vollalarm, B = Kleinalarm). Das gilt für alle RICs und erscheint im Reiter Empfang in der Spalte „SubRIC-Bedeutung“. Weicht eine einzelne RIC ab, kann sie in der Tabelle eigene Texte für A–D bekommen.
+Im Reiter „RIC-Beschreibungen“ rechts neben der Suche: **SubRICs zuordnen…** – dort einmalig festlegen, was A, B, C und D bedeuten (z. B. A = Vollalarm, B = Kleinalarm). Das gilt für alle RICs und erscheint im Reiter Telegramme in der Spalte „SubRIC-Bedeutung“. Weicht eine einzelne RIC ab, kann sie in der Tabelle eigene Texte für A–D bekommen.
 
-## Fenster im Reiter Empfang
+## Fenster im Reiter Telegramme
 
-Der Reiter Empfang lässt sich in mehrere Fenster aufteilen. Jedes Fenster hat nur eine schmale Titelleiste mit seinem Namen. Ein Klick hinein wählt es aus (blau umrandet).
+Der Reiter Telegramme lässt sich in mehrere Fenster aufteilen. Jedes Fenster hat nur eine schmale Titelleiste mit seinem Namen. Ein Klick hinein wählt es aus (blau umrandet).
 
 Neben **Liste leeren** steht das Menü **Fenster ▾**:
 - **Hinzufügen** – neues Fenster
@@ -118,7 +118,7 @@ Neben **Liste leeren** steht das Menü **Fenster ▾**:
 - **Löschen** – Fenster entfernen
 - darunter die Liste aller Fenster zum Auswählen
 
-Filter je Fenster: Ereignis (alle Telegramme oder nur die, die zu einem Telegrammereignis passen), RIC (Teil oder Muster wie `12345*`), SubRIC, Bezeichnung/Ort (sucht in Bezeichnung, Kurzbezeichnung, Ort und SubRIC-Bedeutung; mehrere Begriffe mit `|`), Text und „nur Ereignistreffer“. Spalten lassen sich im Dialog oder per Rechtsklick auf einen Spaltenkopf ein- und ausblenden. Alles wird automatisch gespeichert.
+Filter je Fenster: Ereignis (alle Telegramme oder nur die, die zu einem Telegrammereignis passen), RIC (Teil oder Muster wie `12345*`), SubRIC, Bezeichnung/Ort (sucht in Bezeichnung, Kurzbezeichnung, Ort und SubRIC-Bedeutung; mehrere Begriffe mit `|`), Text, „nur Ereignistreffer“ und „Wiederholungen ausblenden“ (gleiche RIC, SubRIC und gleicher Text innerhalb der Wiederholungs-Sperre, sonst 30 Sekunden). Spalten lassen sich im Dialog oder per Rechtsklick auf einen Spaltenkopf ein- und ausblenden. Alles wird automatisch gespeichert.
 
 ## RIC-Beschreibungen importieren
 

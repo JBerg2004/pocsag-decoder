@@ -9,6 +9,9 @@ public sealed class MessageItem : ObservableObject
     private bool _matched;
     private bool _hasError;
 
+    /// <summary>Gleiche Meldung (RIC, Funktion, Text) kam kurz vorher schon einmal.</summary>
+    public bool IsRepeat { get; set; }
+
     public MessageItem(PocsagMessage message) => Message = message;
 
     public PocsagMessage Message { get; }

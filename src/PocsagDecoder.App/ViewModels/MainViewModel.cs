@@ -17,6 +17,11 @@ public sealed class MainViewModel : ObservableObject
 {
     private readonly WebhookSender _sender = new();
     private readonly DuplicateFilter _duplicates = new();
+
+    /// <summary>Markiert Wiederholungen für die Anzeige (unabhängig von Telegrammereignissen).</summary>
+    private readonly DuplicateFilter _repeatMarker = new();
+
+    private TimeSpan RepeatWindow => TimeSpan.FromSeconds(Settings.DuplicateWindowSeconds > 0 ? Settings.DuplicateWindowSeconds : 30);
     private readonly CsvMessageLog _csv = new();
     private readonly RicDirectory _directory = new();
     private RicEntry? _selectedDescription;
@@ -87,6 +92,7 @@ public sealed class MainViewModel : ObservableObject
         SelectedRule = Rules.FirstOrDefault();
         SelectedTarget = Targets.FirstOrDefault();
         _duplicates.Window = TimeSpan.FromSeconds(Settings.DuplicateWindowSeconds);
+        _repeatMarker.Window = RepeatWindow;
         TemplateRenderer.LowercaseSubRic = Settings.LowercaseSubRic;
     }
 
@@ -236,11 +242,12 @@ public sealed class MainViewModel : ObservableObject
         {
             Settings.DuplicateWindowSeconds = Math.Max(0, value);
             _duplicates.Window = TimeSpan.FromSeconds(Settings.DuplicateWindowSeconds);
+            _repeatMarker.Window = RepeatWindow;
             OnPropertyChanged();
         }
     }
 
-    // --- Fenster im Reiter Empfang ----------------------------------------
+    // --- Fenster im Reiter Telegramme ----------------------------------------
 
     public ObservableCollection<MessagePane> Panes { get; } = new();
     public RelayCommand AddPaneCommand { get; private set; } = null!;
@@ -463,6 +470,9 @@ public sealed class MainViewModel : ObservableObject
             MessageBox.Show("RIC muss eine Zahl zwischen 0 und 2097151 sein.", "Testnachricht");
             return;
         }
+        if (!Confirm($"Testnachricht für RIC {ric:D7} {SimSubRic} wirklich einspeisen?\n\n"
+                     + "Sie läuft durch die Telegrammereignisse und wird an alle passenden Verarbeitungen gesendet (z. B. Home Assistant)."))
+            return;
         PocsagMessage.TryParseSubRic(SimSubRic, out var func);
         OnMessage(new PocsagMessage
         {
@@ -474,6 +484,11 @@ public sealed class MainViewModel : ObservableObject
             Raw = "(Testnachricht)",
         });
     }
+
+    /// <summary>Sicherheitsabfrage, bevor eine Probe nach außen gesendet wird.</summary>
+    private static bool Confirm(string text) =>
+        MessageBox.Show(Application.Current.MainWindow, text, "Probe senden", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No)
+            == MessageBoxResult.Yes;
 
     public string SimRic { get => _simRic; set { if (Set(ref _simRic, value)) OnPropertyChanged(nameof(SimDescription)); } }
     public string SimSubRic { get => _simSubRic; set { if (Set(ref _simSubRic, value)) OnPropertyChanged(nameof(SimDescription)); } }
@@ -498,6 +513,7 @@ public sealed class MainViewModel : ObservableObject
         // Regeln vor dem Einfügen prüfen, damit Fensterfilter wie „nur Regeltreffer“ die Zeile richtig einsortieren.
         var hits = RuleEngine.Match(Rules, message);
         item.Matched = hits.Count > 0;
+        item.IsRepeat = _repeatMarker.IsDuplicate(message);
         Messages.Insert(0, item);
         while (Messages.Count > Math.Max(100, Settings.MaxMessages)) Messages.RemoveAt(Messages.Count - 1);
         ReceivedCount++;
@@ -644,6 +660,7 @@ public sealed class MainViewModel : ObservableObject
     private async Task TestTargetAsync()
     {
         if (SelectedTarget is null) return;
+        if (!Confirm($"Testnachricht wirklich an „{SelectedTarget.Name}“ senden?")) return;
         PocsagMessage.TryParseSubRic(SimSubRic, out var func);
         var message = new PocsagMessage
         {

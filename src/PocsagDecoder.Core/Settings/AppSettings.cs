@@ -7,7 +7,7 @@ using PocsagDecoder.Core.Forwarding;
 
 namespace PocsagDecoder.Core.Settings;
 
-/// <summary>Ein Fenster im Reiter Empfang.</summary>
+/// <summary>Ein Fenster im Reiter Telegramme.</summary>
 public sealed class ReceivePaneSettings
 {
     public string Title { get; set; } = "Alle Meldungen";
@@ -19,6 +19,9 @@ public sealed class ReceivePaneSettings
     public string Description { get; set; } = string.Empty;
 
     public bool OnlyMatched { get; set; }
+
+    /// <summary>Wiederholungen derselben Meldung ausblenden.</summary>
+    public bool HideRepeats { get; set; }
 
     /// <summary>Name eines Telegrammereignisses; leer = alle Meldungen.</summary>
     public string Event { get; set; } = string.Empty;
@@ -36,7 +39,7 @@ public sealed class AppSettings
     /// <summary>Allgemeine Bedeutung der SubRICs A, B, C, D für alle RICs.</summary>
     public List<string> GlobalSubRics { get; set; } = ["", "", "", ""];
 
-    /// <summary>Fenster im Reiter Empfang, jedes mit eigenem Filter und eigenen Spalten.</summary>
+    /// <summary>Fenster im Reiter Telegramme, jedes mit eigenem Filter und eigenen Spalten.</summary>
     public List<ReceivePaneSettings> ReceivePanes { get; set; } = new();
 
     /// <summary>Anordnung der Fenster: Untereinander, Nebeneinander oder Raster.</summary>

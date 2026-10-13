@@ -36,7 +36,11 @@
                      ToolTip="Sucht in Bezeichnung, Bezeichnung kurz, Ort und SubRIC-Bedeutung. Mehrere Begriffe mit | trennen." />
             <TextBlock Grid.Row="5" Text="Text" FontWeight="SemiBold" VerticalAlignment="Center" />
             <TextBox Grid.Row="5" Grid.Column="1" Margin="0,3" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" />
-            <CheckBox Grid.Row="6" Grid.Column="1" Margin="0,6,0,0" Content="nur Ereignistreffer" IsChecked="{Binding OnlyMatched}" />
+            <StackPanel Grid.Row="6" Grid.Column="1" Margin="0,6,0,0">
+                <CheckBox Content="nur Ereignistreffer" IsChecked="{Binding OnlyMatched}" />
+                <CheckBox Content="Wiederholungen ausblenden" IsChecked="{Binding HideRepeats}" Margin="0,4,0,0"
+                          ToolTip="Blendet Meldungen aus, die mit gleicher RIC, SubRIC und gleichem Text kurz vorher schon kamen (Zeitraum wie unter Telegrammereignisse eingestellt, sonst 30 Sekunden)." />
+            </StackPanel>
         </Grid>
 
         <TextBlock Text="Spalten" FontWeight="SemiBold" Margin="0,14,0,4" />

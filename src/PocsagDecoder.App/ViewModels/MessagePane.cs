@@ -6,7 +6,7 @@ using PocsagDecoder.Core.Settings;
 
 namespace PocsagDecoder.App.ViewModels;
 
-/// <summary>Ein Fenster im Reiter Empfang mit eigenem Filter und eigener Spaltenauswahl.</summary>
+/// <summary>Ein Fenster im Reiter Telegramme mit eigenem Filter und eigener Spaltenauswahl.</summary>
 public sealed class MessagePane : ObservableObject
 {
     private readonly MainViewModel _main;
@@ -93,6 +93,8 @@ public sealed class MessagePane : ObservableObject
         Refresh();
     }
 
+    public bool HideRepeats { get => Settings.HideRepeats; set => Change(() => Settings.HideRepeats = value); }
+
     public bool OnlyMatched { get => Settings.OnlyMatched; set => Change(() => Settings.OnlyMatched = value); }
 
     public int VisibleCount => View.Count;
@@ -130,6 +132,7 @@ public sealed class MessagePane : ObservableObject
     {
         if (_clearedAt is { } cleared && item.Timestamp < cleared) return false;
         if (OnlyMatched && !item.Matched) return false;
+        if (HideRepeats && item.IsRepeat) return false;
         if (Settings.Event.Length > 0)
         {
             // Bedingungen des gewählten Telegrammereignisses (auch wenn es gerade deaktiviert ist).
