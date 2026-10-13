@@ -507,10 +507,51 @@
                             </GroupBox>
 
                             <GroupBox Header="Aufzeichnung">
-                                <DockPanel>
-                                    <Button DockPanel.Dock="Right" Content="CSV-Ordner öffnen" Command="{Binding OpenLogFolderCommand}" Margin="6,0,0,0" />
-                                    <CheckBox Content="Empfangene Meldungen als CSV-Tagesdatei speichern" IsChecked="{Binding Settings.LogToCsv}" VerticalAlignment="Center" />
-                                </DockPanel>
+                                <StackPanel>
+                                    <CheckBox Content="Empfangene Meldungen als CSV-Tagesdatei speichern" IsChecked="{Binding Settings.LogToCsv}" />
+                                    <TextBlock Text="Speicherort" Style="{StaticResource FieldLabel}" />
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right" Content="Standard" Click="ResetLogDirectory_Click" Margin="6,0,0,0"
+                                                ToolTip="Zurück zum Standardordner im Benutzerprofil" />
+                                        <Button DockPanel.Dock="Right" Content="…" MinWidth="30" Click="BrowseLogDirectory_Click" Margin="6,0,0,0"
+                                                ToolTip="Ordner auswählen" />
+                                        <TextBox Text="{Binding LogDirectory, UpdateSourceTrigger=LostFocus}" />
+                                    </DockPanel>
+                                    <DockPanel Margin="0,6,0,0">
+                                        <Button DockPanel.Dock="Right" Content="Ordner öffnen" Command="{Binding OpenLogFolderCommand}" Margin="6,0,0,0" />
+                                        <TextBlock Style="{StaticResource Hint}" VerticalAlignment="Center"
+                                                   Text="Pro Tag eine Datei pocsag-JJJJ-MM-TT.csv. Auch ein Netzlaufwerk ist möglich." />
+                                    </DockPanel>
+                                </StackPanel>
+                            </GroupBox>
+
+                            <GroupBox Header="Fehlermeldungen">
+                                <StackPanel>
+                                    <CheckBox x:Name="ErrorNotifyBox" Content="Bei Fehlern benachrichtigen" IsChecked="{Binding Settings.ErrorNotify}" FontWeight="SemiBold" />
+                                    <StackPanel Margin="20,6,0,0" IsEnabled="{Binding IsChecked, ElementName=ErrorNotifyBox}">
+                                        <TextBlock Text="Melden, wenn …" Foreground="{StaticResource MutedBrush}" />
+                                        <CheckBox Content="der Empfang abbricht oder nicht startet (z. B. Stick abgezogen)" IsChecked="{Binding Settings.ErrorOnDecoder}" Margin="0,4,0,0" />
+                                        <CheckBox Content="das Senden an eine Schnittstelle fehlschlägt" IsChecked="{Binding Settings.ErrorOnSend}" Margin="0,4,0,0" />
+                                        <CheckBox Content="die CSV-Datei nicht geschrieben werden kann" IsChecked="{Binding Settings.ErrorOnCsv}" Margin="0,4,0,0" />
+                                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                            <TextBlock Text="keine Meldung empfangen wurde seit" VerticalAlignment="Center" />
+                                            <TextBox Width="45" Margin="6,0" Text="{Binding ErrorSilenceMinutes}" />
+                                            <TextBlock Text="Minuten (0 = aus)" VerticalAlignment="Center" />
+                                        </StackPanel>
+
+                                        <TextBlock Text="Benachrichtigen über …" Foreground="{StaticResource MutedBrush}" Margin="0,10,0,0" />
+                                        <CheckBox Content="Hinweis unten rechts" IsChecked="{Binding Settings.ErrorTray}" Margin="0,4,0,0" />
+                                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                            <TextBlock Text="Schnittstelle" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                            <ComboBox Width="200" ItemsSource="{Binding ErrorTargetChoices}" SelectedItem="{Binding ErrorTarget}"
+                                                      ToolTip="Der Fehler wird mit der Body-Vorlage dieser Schnittstelle gesendet: {message} enthält den Fehlertext, {rule} ist „Systemfehler“, {ric} ist 0000000." />
+                                        </StackPanel>
+                                        <TextBlock Style="{StaticResource Hint}"
+                                                   Text="Gleiche Fehler werden höchstens alle 10 Minuten gemeldet. Alle Fehler stehen zusätzlich im Protokoll." />
+                                    </StackPanel>
+                                    <CheckBox Content="Empfang nach einem Abbruch automatisch neu starten (alle 30 Sekunden versuchen)" IsChecked="{Binding Settings.AutoRestart}" Margin="0,10,0,0" />
+                                    <Button Content="Fehlermeldung testen" Command="{Binding TestErrorCommand}" HorizontalAlignment="Left" Margin="0,10,0,0" />
+                                </StackPanel>
                             </GroupBox>
 
                             <GroupBox Header="Testnachricht">

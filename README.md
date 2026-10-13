@@ -105,6 +105,13 @@ ric={ric}&subric={subric}&text={message}
 
 Im Reiter „RIC-Beschreibungen“ rechts neben der Suche: **SubRICs zuordnen…** – dort einmalig festlegen, was A, B, C und D bedeuten (z. B. A = Vollalarm, B = Kleinalarm). Das gilt für alle RICs und erscheint im Reiter Telegramme in der Spalte „SubRIC-Bedeutung“. Weicht eine einzelne RIC ab, kann sie in der Tabelle eigene Texte für A–D bekommen.
 
+## Fehlermeldungen und Speicherort
+
+Im Reiter **Einstellungen**:
+- **Aufzeichnung**: Speicherort der CSV-Tagesdateien frei wählbar (auch Netzlaufwerk), „Standard“ setzt ihn zurück.
+- **Fehlermeldungen**: Benachrichtigung, wenn der Empfang abbricht oder nicht startet, das Senden an eine Schnittstelle fehlschlägt, die CSV-Datei nicht geschrieben werden kann oder seit X Minuten keine Meldung kam. Wege: Hinweis unten rechts und/oder eine Schnittstelle (z. B. Home Assistant; `{message}` enthält den Fehlertext, `{rule}` ist „Systemfehler“). Gleiche Fehler höchstens alle 10 Minuten.
+- Optional: Empfang nach einem Abbruch automatisch neu starten (alle 30 Sekunden).
+
 ## Fenster im Reiter Telegramme
 
 Der Reiter Telegramme lässt sich in mehrere Fenster aufteilen. Jedes Fenster hat nur eine schmale Titelleiste mit seinem Namen. Ein Klick hinein wählt es aus (blau umrandet).

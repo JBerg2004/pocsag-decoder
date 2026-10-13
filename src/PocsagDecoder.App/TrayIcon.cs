@@ -39,8 +39,8 @@ public sealed class TrayIcon : IDisposable
         _icon.Text = t.Length > 127 ? t[..127] : t;
     }
 
-    public void ShowBalloon(string title, string text) =>
-        _icon.ShowBalloonTip(5000, title, string.IsNullOrWhiteSpace(text) ? " " : text, Forms.ToolTipIcon.Info);
+    public void ShowBalloon(string title, string text, bool warning = false) =>
+        _icon.ShowBalloonTip(5000, title, string.IsNullOrWhiteSpace(text) ? " " : text, warning ? Forms.ToolTipIcon.Warning : Forms.ToolTipIcon.Info);
 
     public void Dispose()
     {

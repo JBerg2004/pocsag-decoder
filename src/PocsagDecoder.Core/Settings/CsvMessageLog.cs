@@ -8,11 +8,20 @@ public sealed class CsvMessageLog
 {
     private readonly object _lock = new();
 
-    public string Directory { get; }
+    public static string DefaultDirectory { get; } = Path.Combine(SettingsStore.DefaultDirectory, "logs");
+
+    private string _directory;
+
+    /// <summary>Zielordner; leer oder null = Standardordner.</summary>
+    public string Directory
+    {
+        get => _directory;
+        set => _directory = string.IsNullOrWhiteSpace(value) ? DefaultDirectory : value.Trim();
+    }
 
     public CsvMessageLog(string? directory = null)
     {
-        Directory = directory ?? Path.Combine(SettingsStore.DefaultDirectory, "logs");
+        _directory = string.IsNullOrWhiteSpace(directory) ? DefaultDirectory : directory;
     }
 
     public void Append(PocsagMessage m, string forwarded)

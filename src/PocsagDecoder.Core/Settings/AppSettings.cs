@@ -60,6 +60,28 @@ public sealed class AppSettings
     /// <summary>Alle empfangenen Nachrichten zusätzlich als CSV-Tagesdatei speichern.</summary>
     public bool LogToCsv { get; set; } = true;
 
+    /// <summary>Ordner für die CSV-Tagesdateien; leer = Standardordner.</summary>
+    public string LogDirectory { get; set; } = string.Empty;
+
+    /// <summary>Bei Systemfehlern benachrichtigen.</summary>
+    public bool ErrorNotify { get; set; } = true;
+
+    /// <summary>Fehler als Hinweis unten rechts anzeigen.</summary>
+    public bool ErrorTray { get; set; } = true;
+
+    /// <summary>Fehler zusätzlich an diese Schnittstelle senden (leer = nicht senden).</summary>
+    public string ErrorTargetName { get; set; } = string.Empty;
+
+    public bool ErrorOnDecoder { get; set; } = true;
+    public bool ErrorOnSend { get; set; } = true;
+    public bool ErrorOnCsv { get; set; } = true;
+
+    /// <summary>Melden, wenn so viele Minuten keine Meldung kam (0 = aus).</summary>
+    public int ErrorSilenceMinutes { get; set; }
+
+    /// <summary>Empfang nach einem Absturz automatisch neu starten.</summary>
+    public bool AutoRestart { get; set; }
+
     public bool AutoStart { get; set; }
 
     /// <summary>Beim Minimieren nur noch als Symbol im Infobereich anzeigen.</summary>

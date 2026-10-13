@@ -13,7 +13,7 @@ using PocsagDecoder.Core.Settings;
 
 namespace PocsagDecoder.App.ViewModels;
 
-public sealed class MainViewModel : ObservableObject
+public sealed partial class MainViewModel : ObservableObject
 {
     private readonly WebhookSender _sender = new();
     private readonly DuplicateFilter _duplicates = new();
@@ -65,6 +65,7 @@ public sealed class MainViewModel : ObservableObject
         RebuildDirectory();
 
         InitPanes();
+        InitErrorHandling();
 
         StartCommand = new RelayCommand(Start, () => !IsRunning);
         StopCommand = new RelayCommand(Stop, () => IsRunning);
@@ -415,40 +416,63 @@ public sealed class MainViewModel : ObservableObject
 
     public void StartIfConfigured()
     {
-        if (Settings.AutoStart) Start();
+        if (!Settings.AutoStart) return;
+        // Beim automatischen Start kein Meldungsfenster, sondern Fehlermeldung (läuft evtl. im Hintergrund).
+        if (!TryStart(out var error))
+        {
+            if (Settings.ErrorOnDecoder) ReportError("decoder", "Empfang konnte beim Programmstart nicht gestartet werden: " + error);
+            if (Settings.AutoRestart) ScheduleRestart();
+        }
     }
 
     private void Start()
     {
         if (IsRunning) return;
+        CancelRestart();
+        if (!TryStart(out var error))
+            MessageBox.Show(error + "\n\nBitte unter „Einstellungen“ die Pfade zu rtl_fm.exe und multimon-ng.exe prüfen.",
+                "Start fehlgeschlagen", MessageBoxButton.OK, MessageBoxImage.Error);
+    }
+
+    /// <summary>Startet den Empfang; bei Fehler steht die Ursache in <paramref name="error"/>.</summary>
+    private bool TryStart(out string error)
+    {
+        error = string.Empty;
+        var pipeline = new DecoderPipeline(Settings.Decoder);
         try
         {
-            _pipeline = new DecoderPipeline(Settings.Decoder);
-            _pipeline.MessageReceived += (_, m) => Application.Current.Dispatcher.BeginInvoke(() => OnMessage(m));
-            _pipeline.Log += (_, line) => Application.Current.Dispatcher.BeginInvoke(() => AddLog(line));
-            _pipeline.Stopped += (_, _) => Application.Current.Dispatcher.BeginInvoke(() =>
+            pipeline.MessageReceived += (_, m) => Application.Current.Dispatcher.BeginInvoke(() => { NoteMessageReceived(); OnMessage(m); });
+            pipeline.Log += (_, line) => Application.Current.Dispatcher.BeginInvoke(() => AddLog(line));
+            pipeline.Stopped += (_, _) => Application.Current.Dispatcher.BeginInvoke(() =>
             {
+                if (_pipeline != pipeline) return;
+                _pipeline = null;
                 IsRunning = false;
                 StatusText = "Decoder unerwartet beendet – siehe Protokoll";
+                OnDecoderCrashed();
             });
-            _pipeline.Start();
+            _pipeline = pipeline;
+            pipeline.Start();
             IsRunning = true;
+            NoteMessageReceived(); // Zeitmessung für „keine Meldung seit …“ beginnt jetzt
             StatusText = Settings.Decoder.Mode == DecoderSourceMode.RtlSdr
                 ? $"Empfange auf {Settings.Decoder.FrequencyMHz:0.000} MHz"
                 : "Empfange (eigener Befehl)";
+            return true;
         }
         catch (Exception ex)
         {
             AddLog("Fehler beim Start: " + ex.Message);
             StatusText = "Start fehlgeschlagen";
-            MessageBox.Show(ex.Message + "\n\nBitte unter \"Empfänger\" die Pfade zu rtl_fm.exe und multimon-ng.exe prüfen.",
-                "Start fehlgeschlagen", MessageBoxButton.OK, MessageBoxImage.Error);
             _pipeline = null;
+            error = ex.Message;
+            return false;
         }
     }
 
     private async void Stop()
     {
+        CancelRestart();
         if (_pipeline is null) return;
         var p = _pipeline;
         _pipeline = null;
@@ -568,7 +592,11 @@ public sealed class MainViewModel : ObservableObject
         var text = $"{target.Name}: {(result.Success ? "✓ " : "✗ ")}{result.Detail}";
         item.Forwarding = item.Forwarding.Replace($"{target.Name}: sende…", text);
         if (result.Success) ForwardedCount++;
-        else item.HasError = true;
+        else
+        {
+            item.HasError = true;
+            OnSendFailed(target, result.Detail);
+        }
         AddLog($"Senden RIC {item.Ric}{item.SubRic} via \"{rule.Name}\" an {target.Name}: {result.Detail} (Versuche: {result.Attempts})");
     }
 
@@ -576,7 +604,11 @@ public sealed class MainViewModel : ObservableObject
     {
         if (!Settings.LogToCsv) return;
         try { _csv.Append(item.Message, item.Forwarding); }
-        catch (Exception ex) { AddLog("CSV-Protokoll fehlgeschlagen: " + ex.Message); }
+        catch (Exception ex)
+        {
+            AddLog("CSV-Protokoll fehlgeschlagen: " + ex.Message);
+            OnCsvFailed(ex.Message);
+        }
     }
 
     private void AddLog(string line)
@@ -861,7 +893,15 @@ public sealed class MainViewModel : ObservableObject
 
     private void OpenLogFolder()
     {
-        Directory.CreateDirectory(_csv.Directory);
-        Process.Start(new ProcessStartInfo { FileName = _csv.Directory, UseShellExecute = true });
+        try
+        {
+            Directory.CreateDirectory(_csv.Directory);
+            Process.Start(new ProcessStartInfo { FileName = _csv.Directory, UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Der Ordner „{_csv.Directory}“ kann nicht geöffnet werden:\n{ex.Message}", "Ordner öffnen",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
     }
 }

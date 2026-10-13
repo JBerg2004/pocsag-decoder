@@ -26,6 +26,7 @@ public partial class MainWindow : Window
         {
             if (e.PropertyName == nameof(MainViewModel.StatusText)) _tray.SetStatus(Vm.StatusText);
         };
+        Vm.SystemError += (_, e) => _tray.ShowBalloon(e.Title, e.Text, warning: true);
         Vm.MessageMatched += (_, item) =>
         {
             if (IsVisible || !Vm.Settings.TrayNotifications) return;
@@ -165,6 +166,14 @@ public partial class MainWindow : Window
         var dlg = new SaveFileDialog { Title = "RIC-Beschreibungen exportieren", Filter = "CSV (*.csv)|*.csv", FileName = "ric-beschreibungen.csv" };
         if (dlg.ShowDialog() == true) Vm.ExportDescriptions(dlg.FileName);
     }
+
+    private void BrowseLogDirectory_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new OpenFolderDialog { Title = "Ordner für die empfangenen Meldungen wählen", InitialDirectory = Vm.LogDirectory };
+        if (dlg.ShowDialog(this) == true) Vm.LogDirectory = dlg.FolderName;
+    }
+
+    private void ResetLogDirectory_Click(object sender, RoutedEventArgs e) => Vm.ResetLogDirectory();
 
     private void SaveTemplate_Click(object sender, RoutedEventArgs e)
     {
