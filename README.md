@@ -19,9 +19,9 @@ RTL-SDR-Stick → rtl_fm.exe → (Audio 22050 Hz) → multimon-ng.exe → POCSAG
   - SubRIC: A, B, C, D einzeln an-/abwählbar (beschriftet mit der allgemeinen SubRIC-Bedeutung)
   - Text: enthält / enthält nicht / regulärer Ausdruck
   - Beschreibung: prüft Bezeichnung der RIC und SubRIC-Bedeutung, z. B. enthält `FF Musterstadt` oder `Vollalarm`; mehrere Begriffe mit `|` trennen
-  - Ziele: ein oder mehrere Webhook-Ziele (anhaken), es wird an alle gesendet; optional „Danach stoppen“ und „Wiederholungen trotzdem senden“ (Wiederholungs-Sperre gilt für dieses Ereignis nicht)
+  - Schnittstellen: eine oder mehrere (anhaken), es wird an alle gesendet; optional „Danach stoppen“ und „Wiederholungen trotzdem senden“ (Wiederholungs-Sperre gilt für dieses Ereignis nicht)
   - Rechtsklick auf eine empfangene Meldung → „Telegrammereignis aus dieser Nachricht erstellen“
-- **Schnittstellen** (Webhook-Ziele): URL, Methode, Content-Type, eigene Header (z. B. `Authorization: Bearer …`), Body-Vorlage mit Platzhaltern, Timeout, Wiederholungen. Button „Testnachricht senden“.
+- **Schnittstellen**: Webhook/REST, MQTT, Telegram, Signal, Pushover, E-Mail, Divera 24/7, FE2, Programm starten, Ton abspielen, Datenbank (SQLite), TCP-Ausgabe (siehe unten). Button „Testnachricht senden“.
 - SubRIC-Buchstaben wahlweise groß (A–D) oder klein (a–d), einstellbar im Reiter „Schnittstellen“; gilt für die Anzeige und `{subric}`. Fest: `{subric_upper}`, `{subric_lower}`
 - Wiederholungs-Sperre: dieselbe Meldung (RIC + SubRIC + Text) wird innerhalb eines Zeitfensters (Standard 60 s) nur einmal weitergeleitet
 - **RIC-Beschreibungen**: zu jeder RIC eine Bezeichnung, eine kurze Bezeichnung (Spalte „Kurz“, Platzhalter `{ric_short}`), einen Ort (Spalte „Ort“, Platzhalter `{ric_location}`) und für SubRIC A, B, C, D je ein eigener Klartext („FF Musterstadt · Vollalarm“), der in der Liste angezeigt und mit `{description}` weitergeleitet wird. Import aus CSV/TXT (z. B. aus Excel), JSON oder direkt aus einer BOSWatch-3-Konfiguration (YAML, descriptor-Modul), Export und Vorlage im Reiter „RIC-Beschreibungen“
@@ -100,6 +100,27 @@ ric={ric}&subric={subric}&text={message}
 **Home Assistant Webhook** – `POST https://homeassistant:8123/api/webhook/<id>` mit JSON-Body wie oben.
 
 **Telegram-Bot** – `GET https://api.telegram.org/bot<TOKEN>/sendMessage?chat_id=<ID>&text={ric}{subric}%20{message}`
+
+## Schnittstellen-Arten
+
+Im Reiter „Schnittstellen“ oben die **Art** wählen; es werden nur die passenden Felder angezeigt. Alle Text-Felder können Platzhalter enthalten.
+
+| Art | Was eintragen | Hinweis |
+|---|---|---|
+| Webhook / REST | Methode, URL, Header, Body | Home Assistant, Node-RED, eigene Server; für alarmiert.de o. Ä. mit HTTP-API ebenfalls diese Art |
+| MQTT | Broker, Port (1883/8883), Benutzer, Passwort, Topic, Nutzlast | MQTT 3.1.1, QoS 1, optional Retain und TLS |
+| Telegram | Bot-Token, Chat-ID, Text | Bot bei @BotFather anlegen |
+| Signal | Adresse der signal-cli-rest-api, eigene Nummer, Empfänger, Text | braucht einen laufenden signal-cli-rest-api-Dienst |
+| Pushover | App-Token, User-Key, Titel, Text, Priorität | Priorität 2 wiederholt sich bis zur Bestätigung |
+| E-Mail (SMTP) | Server, Port, TLS (STARTTLS), Benutzer, Passwort, Absender, Empfänger, Betreff, Text | Port 465 (reines SSL) geht nicht, 587 nehmen |
+| Divera 24/7 | API-Adresse, Accesskey, Stichwort, Text, Divera-RIC, Sonderrechte | |
+| FE2 | Adresse der Externen Schnittstelle, Autorisierung, Absender, Adresse, Stichwort, Text | Adresse Standard `{ric}{subric_upper}` |
+| Programm starten | Programm/Skript, Argumente | `.ps1` wird mit PowerShell gestartet |
+| Ton abspielen | wav- oder mp3-Datei | spielt am PC |
+| Datenbank (SQLite) | Datei (Standard `%APPDATA%\PocsagDecoder\telegramme.db`) | Tabelle `telegramme` |
+| TCP-Ausgabe | Adresse (127.0.0.1 = nur dieser PC, 0.0.0.0 = Netzwerk), Port, Zeile | jedes Telegramm als eine Textzeile an alle verbundenen Programme |
+
+Passwörter und Tokens stehen im Klartext in der `settings.json`. Die Felder für Divera und FE2 sind nach deren öffentlicher Doku gebaut; vor dem Einsatz mit „Testnachricht senden“ prüfen.
 
 ## Allgemeine SubRIC-Zuordnung
 

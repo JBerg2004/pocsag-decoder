@@ -66,6 +66,7 @@ public sealed partial class MainViewModel : ObservableObject
 
         InitPanes();
         InitErrorHandling();
+        InitTargets();
 
         StartCommand = new RelayCommand(Start, () => !IsRunning);
         StopCommand = new RelayCommand(Stop, () => IsRunning);
@@ -216,7 +217,7 @@ public sealed partial class MainViewModel : ObservableObject
     public WebhookTarget? SelectedTarget
     {
         get => _selectedTarget;
-        set { Set(ref _selectedTarget, value); TargetTestResult = string.Empty; }
+        set { Set(ref _selectedTarget, value); TargetTestResult = string.Empty; OnPropertyChanged(nameof(SelectedTargetKind)); }
     }
 
     public string TargetTestResult { get => _targetTestResult; private set => Set(ref _targetTestResult, value); }
@@ -883,6 +884,7 @@ public sealed partial class MainViewModel : ObservableObject
         try
         {
             SettingsStore.Save(Settings);
+            SyncTcpServers();
             if (!quiet) AddLog("Einstellungen gespeichert: " + SettingsStore.DefaultPath);
         }
         catch (Exception ex)

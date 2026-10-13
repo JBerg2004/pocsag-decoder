@@ -114,6 +114,28 @@ public partial class MainWindow : Window
         }
     }
 
+    private void BrowseTargetFile_Click(object sender, RoutedEventArgs e)
+    {
+        if (Vm.SelectedTarget is not { } t) return;
+        string filter = t.Kind switch
+        {
+            Core.Forwarding.TargetKinds.Sound => "Ton-Dateien (*.wav;*.mp3)|*.wav;*.mp3|Alle Dateien|*.*",
+            Core.Forwarding.TargetKinds.Database => "SQLite-Datenbank (*.db;*.sqlite)|*.db;*.sqlite|Alle Dateien|*.*",
+            _ => "Programme und Skripte (*.exe;*.bat;*.cmd;*.ps1)|*.exe;*.bat;*.cmd;*.ps1|Alle Dateien|*.*",
+        };
+        FileDialog dlg = t.Kind == Core.Forwarding.TargetKinds.Database
+            ? new SaveFileDialog { Filter = filter, OverwritePrompt = false, FileName = "telegramme.db" }
+            : new OpenFileDialog { Filter = filter };
+        dlg.Title = t.FileLabel;
+        try
+        {
+            var dir = System.IO.Path.GetDirectoryName(Environment.ExpandEnvironmentVariables(t.FilePath));
+            if (!string.IsNullOrEmpty(dir) && System.IO.Directory.Exists(dir)) dlg.InitialDirectory = dir;
+        }
+        catch (ArgumentException) { }
+        if (dlg.ShowDialog(this) == true) t.FilePath = dlg.FileName;
+    }
+
     private static string? Browse(string fileName, string current)
     {
         var dlg = new OpenFileDialog

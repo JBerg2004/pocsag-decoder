@@ -6,8 +6,8 @@ namespace PocsagDecoder.Core.Forwarding;
 
 public sealed record SendResult(bool Success, int? StatusCode, string Detail, int Attempts);
 
-/// <summary>Sendet Nachrichten per HTTP an ein <see cref="WebhookTarget"/>.</summary>
-public sealed class WebhookSender
+/// <summary>Sendet Telegramme an eine Schnittstelle; HTTP hier, alle anderen Arten in WebhookSender.Kinds.cs.</summary>
+public sealed partial class WebhookSender
 {
     private readonly HttpClient _http;
 
@@ -49,6 +49,7 @@ public sealed class WebhookSender
 
     public async Task<SendResult> SendAsync(WebhookTarget target, PocsagMessage message, string ruleName, CancellationToken ct = default)
     {
+        if (target.Kind != TargetKinds.Webhook) return await SendOtherAsync(target, message, ruleName, ct).ConfigureAwait(false);
         var attempts = 0;
         var maxAttempts = Math.Max(1, target.Retries + 1);
         SendResult last = new(false, null, "nicht gesendet", 0);
