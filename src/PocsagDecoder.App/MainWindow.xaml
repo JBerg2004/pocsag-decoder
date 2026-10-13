@@ -506,6 +506,11 @@
                                   ItemsSource="{Binding DecodeModes}" SelectedItem="{Binding Decoder.DecodeMode}" />
                         <TextBlock Style="{StaticResource Hint}" Text="alpha ist für BOS/Feuerwehr üblich. auto lässt multimon-ng zwischen Text und Ziffern wählen." />
 
+                        <TextBlock Text="Fehlerkorrektur (multimon-ng -b)" Style="{StaticResource FieldLabel}" />
+                        <ComboBox Width="150" HorizontalAlignment="Left" ItemsSource="{Binding ErrorCorrectionLevels}" SelectedItem="{Binding Decoder.ErrorCorrection}" />
+                        <TextBlock Style="{StaticResource Hint}" Text="Wie viele Bitfehler pro Codewort repariert werden. 2 holt bei schlechtem Empfang mehr heraus, erzeugt aber gelegentlich falsche RICs (Phantom-Tonrufe). 1 = empfohlen, 0 = nur fehlerfreie Meldungen." />
+                        <CheckBox Content="Unwahrscheinliche Meldungen aussortieren (multimon-ng -u)" IsChecked="{Binding Decoder.HeuristicPruning}" Margin="0,6,0,0" />
+
                         <TextBlock Text="Zusätzliche Parameter rtl_fm" Style="{StaticResource FieldLabel}" />
                         <TextBox Text="{Binding Decoder.RtlFmExtraArgs}" FontFamily="Consolas" />
                         <TextBlock Text="Zusätzliche Parameter multimon-ng" Style="{StaticResource FieldLabel}" />

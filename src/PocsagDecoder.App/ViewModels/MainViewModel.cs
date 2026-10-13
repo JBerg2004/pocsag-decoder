@@ -106,6 +106,7 @@ public sealed class MainViewModel : ObservableObject
     public ObservableCollection<RicEntry> Descriptions { get; }
     public ListCollectionView DescriptionsView { get; }
 
+    public IReadOnlyList<int> ErrorCorrectionLevels { get; } = [0, 1, 2];
     public IReadOnlyList<string> SubRicChoices { get; } = ["Alle", "A", "B", "C", "D"];
     public IReadOnlyList<string> SimSubRicChoices { get; } = ["A", "B", "C", "D"];
     public IReadOnlyList<string> DecodeModes { get; } = ["alpha", "auto", "numeric", "skyper"];

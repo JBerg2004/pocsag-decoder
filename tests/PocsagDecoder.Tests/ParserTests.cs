@@ -52,6 +52,6 @@ public class ParserTests
     {
         var o = new DecoderOptions { FrequencyMHz = 173.255, Ppm = 42, GainDb = 40 };
         Assert.Equal("-d 0 -f 173.255M -M fm -s 22050 -p 42 -l 0 -g 40.0 -", o.BuildRtlFmArguments());
-        Assert.Equal("-t raw -a POCSAG512 -a POCSAG1200 -a POCSAG2400 -f alpha -", o.BuildMultimonArguments());
+        Assert.Equal("-t raw -a POCSAG512 -a POCSAG1200 -a POCSAG2400 -f alpha -b 1 -", o.BuildMultimonArguments());
     }
 }

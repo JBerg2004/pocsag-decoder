@@ -40,6 +40,15 @@ public sealed class DecoderOptions
     /// <summary>multimon-ng "-f": alpha (Standard bei BOS), numeric, skyper oder auto.</summary>
     public string DecodeMode { get; set; } = "alpha";
 
+    /// <summary>
+    /// multimon-ng "-b": wie viele Bitfehler pro Codewort korrigiert werden (0–2).
+    /// 2 (multimon-Standard) erzeugt bei schwachem Signal gelegentlich Phantom-RICs, 1 ist ein guter Kompromiss.
+    /// </summary>
+    public int ErrorCorrection { get; set; } = 1;
+
+    /// <summary>multimon-ng "-u": unwahrscheinliche Dekodierungen aussortieren.</summary>
+    public bool HeuristicPruning { get; set; }
+
     /// <summary>Zusätzliche Parameter für rtl_fm.</summary>
     public string RtlFmExtraArgs { get; set; } = string.Empty;
 
@@ -79,6 +88,8 @@ public sealed class DecoderOptions
         if (Pocsag2400) args.AddRange(["-a", "POCSAG2400"]);
         var mode = string.IsNullOrWhiteSpace(DecodeMode) ? "alpha" : DecodeMode.Trim().ToLowerInvariant();
         args.AddRange(["-f", mode]);
+        args.AddRange(["-b", Math.Clamp(ErrorCorrection, 0, 2).ToString(System.Globalization.CultureInfo.InvariantCulture)]);
+        if (HeuristicPruning) args.Add("-u");
         var s = string.Join(' ', args);
         if (!string.IsNullOrWhiteSpace(MultimonExtraArgs)) s += " " + MultimonExtraArgs.Trim();
         return s + " -";
