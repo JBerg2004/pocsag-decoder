@@ -15,9 +15,10 @@ public static class TargetKinds
     public const string Sound = "Ton abspielen";
     public const string Database = "Datenbank (SQLite)";
     public const string Tcp = "TCP-Ausgabe";
+    public const string BosMon = "BosMon-Netzwerk";
 
     public static IReadOnlyList<string> All { get; } =
-        [Webhook, Mqtt, Telegram, Signal, Pushover, Email, Divera, Fe2, Program, Sound, Database, Tcp];
+        [Webhook, Mqtt, Telegram, Signal, Pushover, Email, Divera, Fe2, BosMon, Program, Sound, Database, Tcp];
 
     public static string Normalize(string? kind) =>
         All.FirstOrDefault(k => string.Equals(k, kind?.Trim(), StringComparison.OrdinalIgnoreCase)) ?? Webhook;
@@ -27,6 +28,7 @@ public static class TargetKinds
         Mqtt => tls ? 8883 : 1883,
         Email => tls ? 587 : 25,
         Tcp => 9000,
+        BosMon => 5566,
         _ => 0,
     };
 
@@ -43,6 +45,7 @@ public static class TargetKinds
         Program => "Startet ein Programm oder Skript. Argumente mit Platzhaltern, Werte mit Leerzeichen in Anführungszeichen setzen.",
         Sound => "Spielt am PC einen Ton ab (wav oder mp3).",
         Database => "Speichert jedes Telegramm in einer SQLite-Datenbank für eigene Auswertungen (z. B. mit DB Browser for SQLite oder Excel).",
+        BosMon => "Sendet jedes Telegramm genau wie ein BosMon-„Netzwerkereignis“ (Format Erweitert). Damit lassen sich z. B. der BosMon-Eingang von FE2 (Port 5566) oder andere Programme ansprechen, die BosMon-Netzwerkereignisse annehmen. Die Einheiten werden in FE2 über die RIC zugeordnet.",
         Tcp => "Andere Programme können sich per TCP verbinden und bekommen jedes Telegramm als Textzeile. 127.0.0.1 = nur dieser PC, 0.0.0.0 = ganzes Netzwerk.",
         _ => string.Empty,
     };
@@ -62,6 +65,7 @@ public static class TargetKinds
         Sound => "\uE767",     // Lautsprecher
         Database => "\uE8F1",  // Bibliothek
         Tcp => "\uE839",       // Netzwerkkabel
+        BosMon => "BM",
         _ => "\uE774",
     };
 
@@ -80,6 +84,7 @@ public static class TargetKinds
         Sound => "#DB2777",
         Database => "#0D9488",
         Tcp => "#4F46E5",
+        BosMon => "#B45309",
         _ => "#6B7280",
     };
 
@@ -90,7 +95,7 @@ public static class TargetKinds
     {
         Webhook or Mqtt or Tcp => "Netzwerk und Smart Home",
         Telegram or Signal or Pushover or Email => "Nachrichten aufs Handy",
-        Divera or Fe2 => "Alarmierungssysteme",
+        Divera or Fe2 or BosMon => "Alarmierungssysteme",
         _ => "Auf diesem PC",
     };
 
@@ -100,6 +105,7 @@ public static class TargetKinds
         Webhook => "HTTP-Aufruf, z. B. Home Assistant oder Node-RED",
         Mqtt => "An einen MQTT-Broker veröffentlichen",
         Tcp => "Andere Programme per TCP verbinden lassen",
+        BosMon => "Wie BosMons Netzwerkereignis, z. B. an FE2",
         Telegram => "Nachricht über einen eigenen Bot",
         Signal => "Über signal-cli-rest-api",
         Pushover => "Push-Nachricht, auch als Notfall",

@@ -253,4 +253,57 @@ public class InterfaceTests
         Assert.Contains(expected, result.Detail);
         Assert.Contains("\"units\"", received);
     }
+
+    /// <summary>Byte für Byte so, wie BosMon es im Mitschnitt gesendet hat (Netzwerkereignis, Format Erweitert; RIC durch eine Beispiel-RIC ersetzt).</summary>
+    private const string BosMonCapture = "3C3F786D6C2076657273696F6E3D22312E302220656E636F64696E673D225554462D3822207374616E64616C6F6E653D22796573223F3E0D0A3C6576656E7420666F726D61743D2232223E0D0A3C6E616D653E302E3020546573743C2F6E616D653E0D0A3C74656C656772616D3E0D0A3C66756E6374696F6E3E613C2F66756E6374696F6E3E0D0A3C6D6573736167653E203C2F6D6573736167653E0D0A3C747970653E333C2F747970653E0D0A3C616464726573733E313233343536373C2F616464726573733E0D0A3C74696D657374616D703E313739313932303938323530323C2F74696D657374616D703E0D0A3C666C6167733E313034383537363C2F666C6167733E0D0A3C6465736372697074696F6E3E0D0A3C66756E6374696F6E3E0D0A3C73686F72743E416C61726D3C2F73686F72743E0D0A3C6C6F6E673E45696E7361747A3C2F6C6F6E673E0D0A3C2F66756E6374696F6E3E0D0A3C2F6465736372697074696F6E3E0D0A3C2F74656C656772616D3E0D0A3C2F6576656E743E0D0A";
+
+    private static PocsagMessage BosMonSample() => new()
+    {
+        Ric = 1234567, Function = 0, Text = "", Baud = 1200, ContentType = PocsagContentType.Alpha,
+        Timestamp = DateTimeOffset.FromUnixTimeMilliseconds(1791920982502).LocalDateTime,
+    };
+
+    [Fact]
+    public void BosMonEventMatchesCaptureExactly()
+    {
+        var xml = BosMonNetworkEvent.Build("0.0 Test", BosMonSample(), "", "Alarm", "Einsatz");
+        Assert.Equal(BosMonCapture, Convert.ToHexString(Encoding.UTF8.GetBytes(xml)));
+    }
+
+    [Fact]
+    public void BosMonEventEscapesTextAndOmitsEmptyDescription()
+    {
+        var xml = BosMonNetworkEvent.Build("A&B", Sample(), "Brand <3> \"Halle\"", null, null);
+        Assert.Contains("<name>A&amp;B</name>", xml);
+        Assert.Contains("<message>Brand &lt;3&gt; &quot;Halle&quot;</message>", xml);
+        Assert.DoesNotContain("<description>", xml);
+        Assert.NotNull(System.Xml.Linq.XDocument.Parse(xml));
+    }
+
+    [Fact]
+    public async Task BosMonSendsOneEventPerConnection()
+    {
+        var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+        var received = Task.Run(async () =>
+        {
+            using var client = await listener.AcceptTcpClientAsync();
+            using var ms = new MemoryStream();
+            await client.GetStream().CopyToAsync(ms);   // endet, wenn der Sender die Verbindung schließt
+            return Encoding.UTF8.GetString(ms.ToArray());
+        });
+        var t = new WebhookTarget { Kind = TargetKinds.BosMon, Host = "127.0.0.1", Port = port, TitleTemplate = "{rule}", TextTemplate = "{message}", Retries = 0 };
+        var result = await new WebhookSender().SendAsync(t, Sample(), "Probealarm");
+        Assert.True(result.Success, result.Detail);
+        var xml = await received;
+        listener.Stop();
+        var doc = System.Xml.Linq.XDocument.Parse(xml);
+        Assert.Equal("Probealarm", doc.Root!.Element("name")!.Value);
+        var tg = doc.Root.Element("telegram")!;
+        Assert.Equal("1234567", tg.Element("address")!.Value);
+        Assert.Equal("a", tg.Element("function")!.Value);
+        Assert.Equal("Brand Gebäude", tg.Element("message")!.Value);
+        Assert.Equal("3", tg.Element("type")!.Value);
+    }
 }

@@ -142,15 +142,15 @@ public sealed class WebhookTarget : INotifyPropertyChanged
 
     [JsonIgnore] public bool UsesHttp => _kind == TargetKinds.Webhook;
     [JsonIgnore] public bool UsesUrl => _kind is TargetKinds.Webhook or TargetKinds.Signal or TargetKinds.Divera or TargetKinds.Fe2;
-    [JsonIgnore] public bool UsesHost => _kind is TargetKinds.Mqtt or TargetKinds.Email or TargetKinds.Tcp;
-    [JsonIgnore] public bool UsesTls => _kind is TargetKinds.Mqtt or TargetKinds.Email;
+    [JsonIgnore] public bool UsesHost => _kind is TargetKinds.Mqtt or TargetKinds.Email or TargetKinds.Tcp or TargetKinds.BosMon;
+    [JsonIgnore] public bool UsesTls => _kind is TargetKinds.Mqtt or TargetKinds.Email or TargetKinds.BosMon;
     [JsonIgnore] public bool UsesLogin => _kind is TargetKinds.Mqtt or TargetKinds.Email;
     [JsonIgnore] public bool UsesPassword => UsesLogin || _kind == TargetKinds.Fe2;
     [JsonIgnore] public bool UsesTopic => _kind == TargetKinds.Mqtt;
     [JsonIgnore] public bool UsesToken => _kind is TargetKinds.Telegram or TargetKinds.Pushover or TargetKinds.Divera;
     [JsonIgnore] public bool UsesRecipient => _kind is TargetKinds.Telegram or TargetKinds.Signal or TargetKinds.Pushover or TargetKinds.Email or TargetKinds.Divera or TargetKinds.Fe2;
     [JsonIgnore] public bool UsesSender => _kind is TargetKinds.Signal or TargetKinds.Email or TargetKinds.Fe2;
-    [JsonIgnore] public bool UsesTitle => _kind is TargetKinds.Pushover or TargetKinds.Email or TargetKinds.Divera or TargetKinds.Fe2;
+    [JsonIgnore] public bool UsesTitle => _kind is TargetKinds.Pushover or TargetKinds.Email or TargetKinds.Divera or TargetKinds.Fe2 or TargetKinds.BosMon;
     [JsonIgnore] public bool UsesText => _kind is not (TargetKinds.Webhook or TargetKinds.Mqtt or TargetKinds.Sound or TargetKinds.Database or TargetKinds.Program);
     [JsonIgnore] public bool UsesBody => _kind is TargetKinds.Webhook or TargetKinds.Mqtt;
     [JsonIgnore] public bool UsesPriority => _kind is TargetKinds.Pushover or TargetKinds.Divera;
@@ -172,6 +172,7 @@ public sealed class WebhookTarget : INotifyPropertyChanged
         TargetKinds.Mqtt => "Broker (Server) und Port",
         TargetKinds.Email => "SMTP-Server und Port",
         TargetKinds.Tcp => "Lauschen auf Adresse und Port",
+        TargetKinds.BosMon => "Empfänger (Server) und Port, z. B. FE2-Rechner und 5566",
         _ => "Server",
     };
 
@@ -206,6 +207,7 @@ public sealed class WebhookTarget : INotifyPropertyChanged
 
     [JsonIgnore] public string TitleLabel => _kind switch
     {
+        TargetKinds.BosMon => "Ereignisname (Feld name)",
         TargetKinds.Email => "Betreff",
         TargetKinds.Divera or TargetKinds.Fe2 => "Stichwort",
         _ => "Titel",
@@ -214,6 +216,7 @@ public sealed class WebhookTarget : INotifyPropertyChanged
     [JsonIgnore] public string TextLabel => _kind switch
     {
         TargetKinds.Tcp => "Ausgabezeile (eine Zeile pro Telegramm)",
+        TargetKinds.BosMon => "Nachricht (Feld message)",
         TargetKinds.Fe2 => "Alarmtext (jede Zeile wird in FE2 eine eigene Meldungszeile)",
         _ => "Nachrichtentext",
     };
@@ -240,7 +243,7 @@ public sealed class WebhookTarget : INotifyPropertyChanged
     [JsonIgnore] public string Summary => _kind switch
     {
         TargetKinds.Webhook or TargetKinds.Signal or TargetKinds.Divera or TargetKinds.Fe2 => HostOf(Url),
-        TargetKinds.Mqtt or TargetKinds.Email or TargetKinds.Tcp => Port > 0 ? $"{Host}:{Port}" : Host,
+        TargetKinds.Mqtt or TargetKinds.Email or TargetKinds.Tcp or TargetKinds.BosMon => Port > 0 ? $"{Host}:{Port}" : Host,
         TargetKinds.Telegram or TargetKinds.Pushover => Recipient.Length > 0 ? "an " + Recipient : string.Empty,
         TargetKinds.Program or TargetKinds.Sound or TargetKinds.Database => SafeFileName(FilePath),
         _ => string.Empty,

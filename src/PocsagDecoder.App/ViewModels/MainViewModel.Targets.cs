@@ -55,6 +55,7 @@ public sealed partial class MainViewModel
             t.Host = t.Kind switch
             {
                 TargetKinds.Tcp => "127.0.0.1",
+                TargetKinds.BosMon => "localhost",
                 TargetKinds.Mqtt => "homeassistant.local",
                 _ => t.Host,
             };
@@ -62,6 +63,9 @@ public sealed partial class MainViewModel
         if (t.Kind == TargetKinds.Email && t.Port == 0) { t.UseTls = true; t.Port = 587; }
         if (t.Kind == TargetKinds.Mqtt && t.Port == 0) t.Port = 1883;
         if (t.Kind == TargetKinds.Tcp && t.Port == 0) t.Port = 9000;
+        if (t.Kind == TargetKinds.BosMon && t.Port == 0) t.Port = 5566;
+        if (t.Kind == TargetKinds.BosMon && t.TitleTemplate == WebhookTarget.DefaultTitleTemplate) t.TitleTemplate = "{rule}";
+        if (t.Kind == TargetKinds.BosMon && t.TextTemplate == WebhookTarget.DefaultTextTemplate) t.TextTemplate = "{message}";
         if (t.Kind == TargetKinds.Database && string.IsNullOrWhiteSpace(t.FilePath)) t.FilePath = WebhookSender.DefaultDatabasePath;
         if (t.Kind == TargetKinds.Fe2 && string.IsNullOrWhiteSpace(t.Recipient)) t.Recipient = "{ric}{subric_upper}";
         if (t.Kind == TargetKinds.Fe2 && string.IsNullOrWhiteSpace(t.Sender)) t.Sender = "POCSAG Decoder";

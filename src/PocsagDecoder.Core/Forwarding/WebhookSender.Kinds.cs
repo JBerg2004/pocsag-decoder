@@ -78,6 +78,7 @@ public sealed partial class WebhookSender
         TargetKinds.Sound => PlaySoundAsync(t),
         TargetKinds.Database => Task.Run(() => SaveToDatabase(t, m, rule), ct),
         TargetKinds.Tcp => SendTcpAsync(t, m, rule, ct),
+        TargetKinds.BosMon => SendBosMonAsync(t, m, rule, ct),
         _ => throw new ConfigurationException("Unbekannte Art: " + t.Kind),
     };
 
@@ -301,6 +302,15 @@ public sealed partial class WebhookSender
 
     public static string DefaultDatabasePath { get; } =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PocsagDecoder", "telegramme.db");
+
+    private static async Task<string> SendBosMonAsync(WebhookTarget t, PocsagMessage m, string rule, CancellationToken ct)
+    {
+        var host = Need(t.Host, "Empfänger");
+        var name = Text(t.TitleTemplate, m, rule);
+        var xml = BosMonNetworkEvent.Build(name.Length > 0 ? name : rule, m, Text(t.TextTemplate, m, rule), m.SubRicDescription, m.SubRicDescription);
+        await BosMonNetworkEvent.SendAsync(host, PortOf(t), t.UseTls, xml, ct).ConfigureAwait(false);
+        return $"an {host}:{PortOf(t)} gesendet";
+    }
 
     private async Task<string> SendTcpAsync(WebhookTarget t, PocsagMessage m, string rule, CancellationToken ct)
     {
