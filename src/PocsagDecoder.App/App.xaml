@@ -247,6 +247,21 @@
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
 
+        <!-- Symbol einer Schnittstellen-Art: Zeichen oder kurzer Schriftzug (z. B. FE2) -->
+        <Style x:Key="KindIcon" TargetType="TextBlock" BasedOn="{StaticResource IconGlyph}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding KindIconIsText}" Value="True">
+                    <Setter Property="FontFamily" Value="Segoe UI" />
+                    <Setter Property="FontWeight" Value="Bold" />
+                    <Setter Property="LayoutTransform">
+                        <Setter.Value>
+                            <ScaleTransform ScaleX="0.68" ScaleY="0.68" />
+                        </Setter.Value>
+                    </Setter>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
         <!-- ===== Texte ===== -->
         <Style x:Key="FieldLabel" TargetType="TextBlock">
             <Setter Property="Margin" Value="0,8,0,3" />

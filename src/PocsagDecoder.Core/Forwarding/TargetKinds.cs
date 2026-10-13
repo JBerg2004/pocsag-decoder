@@ -39,7 +39,7 @@ public static class TargetKinds
         Pushover => "Push-Nachricht über pushover.net. Priorität 2 = Notfall, wiederholt sich bis zur Bestätigung.",
         Email => "Versand über einen SMTP-Server. TLS = STARTTLS (meist Port 587). Port 465 (reines SSL) wird nicht unterstützt.",
         Divera => "Löst einen Alarm in Divera 24/7 aus (Web-API mit Accesskey).",
-        Fe2 => "Sendet an die Externe Schnittstelle von FE2 (Alamos). In FE2 unter Eingänge eine „Externe Schnittstelle“ anlegen und das Passwort hier eintragen.",
+        Fe2 => "Alarm an FE2 (Alamos) über die Externe Schnittstelle, Datenformat v2. In FE2 einen Alarmeingang „Externe Schnittstelle“ anlegen, „HTTP POST“ aktivieren, Version Datenformat v2 wählen und unter „Gültige Absender“ ein Kennwort eintragen, das hier bei Autorisierung steht. Die Einheiten werden über ihren Code alarmiert.",
         Program => "Startet ein Programm oder Skript. Argumente mit Platzhaltern, Werte mit Leerzeichen in Anführungszeichen setzen.",
         Sound => "Spielt am PC einen Ton ab (wav oder mp3).",
         Database => "Speichert jedes Telegramm in einer SQLite-Datenbank für eigene Auswertungen (z. B. mit DB Browser for SQLite oder Excel).",
@@ -57,7 +57,7 @@ public static class TargetKinds
         Pushover => "\uEA8F",  // Glocke
         Email => "\uE715",     // Brief
         Divera => "\uE7BA",    // Warnung
-        Fe2 => "\uE945",       // Blitz
+        Fe2 => "FE2",           // Schriftzug statt Symbol
         Program => "\uE756",   // Eingabeaufforderung
         Sound => "\uE767",     // Lautsprecher
         Database => "\uE8F1",  // Bibliothek
@@ -75,13 +75,16 @@ public static class TargetKinds
         Pushover => "#0891B2",
         Email => "#475569",
         Divera => "#DC2626",
-        Fe2 => "#EA580C",
+        Fe2 => "#1E3A8A",
         Program => "#334155",
         Sound => "#DB2777",
         Database => "#0D9488",
         Tcp => "#4F46E5",
         _ => "#6B7280",
     };
+
+    /// <summary>true = Icon ist ein kurzer Schriftzug statt eines Symbolzeichens.</summary>
+    public static bool IconIsText(string kind) => Icon(kind).Length > 1;
 
     public static string Category(string kind) => kind switch
     {

@@ -54,7 +54,7 @@
                                                 <ColumnDefinition Width="*" />
                                             </Grid.ColumnDefinitions>
                                             <Border Width="38" Height="38" CornerRadius="9" Background="{Binding Color}" VerticalAlignment="Top">
-                                                <TextBlock Style="{StaticResource IconGlyph}" FontSize="18" Text="{Binding Icon}" />
+                                                <TextBlock Style="{StaticResource KindIcon}" FontSize="18" Text="{Binding KindIcon}" />
                                             </Border>
                                             <StackPanel Grid.Column="1" Margin="10,0,0,0">
                                                 <TextBlock Text="{Binding Kind}" FontWeight="SemiBold" />

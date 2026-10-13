@@ -26,6 +26,7 @@ public sealed class WebhookTarget : INotifyPropertyChanged
     private int _priority;
     private string _filePath = string.Empty;
     private string _arguments = string.Empty;
+    private string _keywordDescription = "{subric_description}";
 
     public const string DefaultTitleTemplate = "{ric_short} {subric_description}";
     public const string DefaultTextTemplate = "{date} {time}\n{ric} {subric} – {ric_description} ({ric_location})\n{subric_description}\n{message}";
@@ -131,6 +132,9 @@ public sealed class WebhookTarget : INotifyPropertyChanged
     /// <summary>Programm, Ton-Datei oder Datenbank-Datei.</summary>
     public string FilePath { get => _filePath; set => Set(ref _filePath, value); }
 
+    /// <summary>FE2: Stichwort-Beschreibung mit Platzhaltern.</summary>
+    public string KeywordDescription { get => _keywordDescription; set => Set(ref _keywordDescription, value); }
+
     /// <summary>Programm-Argumente mit Platzhaltern.</summary>
     public string Arguments { get => _arguments; set => Set(ref _arguments, value); }
 
@@ -152,13 +156,14 @@ public sealed class WebhookTarget : INotifyPropertyChanged
     [JsonIgnore] public bool UsesPriority => _kind is TargetKinds.Pushover or TargetKinds.Divera;
     [JsonIgnore] public bool UsesFile => _kind is TargetKinds.Program or TargetKinds.Sound or TargetKinds.Database;
     [JsonIgnore] public bool UsesArguments => _kind == TargetKinds.Program;
+    [JsonIgnore] public bool UsesKeywordDescription => _kind == TargetKinds.Fe2;
     [JsonIgnore] public bool UsesTimeout => _kind is not (TargetKinds.Program or TargetKinds.Sound or TargetKinds.Database or TargetKinds.Tcp);
 
     [JsonIgnore] public string UrlLabel => _kind switch
     {
         TargetKinds.Signal => "Adresse der signal-cli-rest-api (z. B. http://raspberrypi:8080)",
         TargetKinds.Divera => "API-Adresse",
-        TargetKinds.Fe2 => "Adresse der FE2-Schnittstelle",
+        TargetKinds.Fe2 => "Adresse des FE2-Servers (Port der Weboberfläche, Standard 83)",
         _ => "Methode und URL",
     };
 
@@ -185,7 +190,7 @@ public sealed class WebhookTarget : INotifyPropertyChanged
         TargetKinds.Pushover => "User- oder Gruppen-Key",
         TargetKinds.Email => "Empfänger (mehrere mit Komma)",
         TargetKinds.Divera => "Divera-RIC (optional, legt die alarmierten Gruppen fest)",
-        TargetKinds.Fe2 => "Adresse für FE2 (z. B. {ric}{subric_upper})",
+        TargetKinds.Fe2 => "Einheiten (Code der Einheit in FE2, mehrere mit Komma; leer = Standard-Einheiten des Alarmeingangs)",
         _ => "Empfänger",
     };
 
@@ -193,11 +198,11 @@ public sealed class WebhookTarget : INotifyPropertyChanged
     {
         TargetKinds.Signal => "Eigene Signal-Nummer (z. B. +4917012345678)",
         TargetKinds.Email => "Absender-Adresse",
-        TargetKinds.Fe2 => "Absendername",
+        TargetKinds.Fe2 => "Absender (erscheint in FE2 als Quelle)",
         _ => "Absender",
     };
 
-    [JsonIgnore] public string PasswordLabel => _kind == TargetKinds.Fe2 ? "Autorisierung (Passwort der Externen Schnittstelle in FE2)" : "Passwort";
+    [JsonIgnore] public string PasswordLabel => _kind == TargetKinds.Fe2 ? "Autorisierung (wie unter „Gültige Absender“ im FE2-Alarmeingang)" : "Passwort";
 
     [JsonIgnore] public string TitleLabel => _kind switch
     {
@@ -206,7 +211,12 @@ public sealed class WebhookTarget : INotifyPropertyChanged
         _ => "Titel",
     };
 
-    [JsonIgnore] public string TextLabel => _kind == TargetKinds.Tcp ? "Ausgabezeile (eine Zeile pro Telegramm)" : "Nachrichtentext";
+    [JsonIgnore] public string TextLabel => _kind switch
+    {
+        TargetKinds.Tcp => "Ausgabezeile (eine Zeile pro Telegramm)",
+        TargetKinds.Fe2 => "Alarmtext (jede Zeile wird in FE2 eine eigene Meldungszeile)",
+        _ => "Nachrichtentext",
+    };
     [JsonIgnore] public string BodyLabel => _kind == TargetKinds.Mqtt ? "Nutzlast (Payload)" : "Body-Vorlage (bei GET ohne Bedeutung)";
 
     [JsonIgnore] public string FileLabel => _kind switch
@@ -221,8 +231,9 @@ public sealed class WebhookTarget : INotifyPropertyChanged
 
     [JsonIgnore] public string KindHint => TargetKinds.Hint(_kind);
     [JsonIgnore] public string KindIcon => TargetKinds.Icon(_kind);
+    [JsonIgnore] public bool KindIconIsText => TargetKinds.IconIsText(_kind);
     [JsonIgnore] public string KindColor => TargetKinds.Color(_kind);
-    [JsonIgnore] public bool UsesContent => UsesTitle || UsesText || UsesBody;
+    [JsonIgnore] public bool UsesContent => UsesTitle || UsesText || UsesBody || UsesKeywordDescription;
     [JsonIgnore] public bool UsesAdvanced => UsesTimeout || UsesHttp;
 
     /// <summary>Kurze Angabe, wohin gesendet wird (für die Liste).</summary>

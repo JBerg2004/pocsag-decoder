@@ -14,7 +14,7 @@ public partial class NewTargetDialog : Window
             .Select(g => new
             {
                 Name = g.Key,
-                Kinds = g.Select(k => new { Kind = k, Icon = TargetKinds.Icon(k), Color = TargetKinds.Color(k), Short = TargetKinds.Short(k) }).ToList(),
+                Kinds = g.Select(k => new { Kind = k, KindIcon = TargetKinds.Icon(k), KindIconIsText = TargetKinds.IconIsText(k), Color = TargetKinds.Color(k), Short = TargetKinds.Short(k) }).ToList(),
             })
             .ToList();
     }

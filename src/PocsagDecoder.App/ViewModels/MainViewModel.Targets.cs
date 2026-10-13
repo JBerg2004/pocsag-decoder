@@ -65,6 +65,10 @@ public sealed partial class MainViewModel
         if (t.Kind == TargetKinds.Database && string.IsNullOrWhiteSpace(t.FilePath)) t.FilePath = WebhookSender.DefaultDatabasePath;
         if (t.Kind == TargetKinds.Fe2 && string.IsNullOrWhiteSpace(t.Recipient)) t.Recipient = "{ric}{subric_upper}";
         if (t.Kind == TargetKinds.Fe2 && string.IsNullOrWhiteSpace(t.Sender)) t.Sender = "POCSAG Decoder";
+        if (t.Kind == TargetKinds.Fe2 && t.TextTemplate == WebhookTarget.DefaultTextTemplate)
+            t.TextTemplate = "{ric_description} {subric_description}\n{message}";
+        if (t.Kind == TargetKinds.Fe2 && t.TitleTemplate == WebhookTarget.DefaultTitleTemplate)
+            t.TitleTemplate = "{ric_short}";
         if (t.Kind == TargetKinds.Tcp && t.TextTemplate == WebhookTarget.DefaultTextTemplate)
             t.TextTemplate = "{date};{time};{ric};{subric};{function};{message};{ric_description};{subric_description}";
         if (t.Kind == TargetKinds.Mqtt && t.BodyTemplate.Length == 0) t.BodyTemplate = WebhookTarget.DefaultJsonTemplate;

@@ -196,4 +196,61 @@ public class InterfaceTests
         Assert.Contains("1 erfolgreich, 1 fehlgeschlagen", t.Statistics);
         Assert.DoesNotContain("LastResult", System.Text.Json.JsonSerializer.Serialize(t));
     }
+
+    [Fact]
+    public void Fe2AlarmMatchesDataFormatV2()
+    {
+        var t = new WebhookTarget
+        {
+            Kind = TargetKinds.Fe2, Password = "geheim", Sender = "Decoder",
+            Recipient = "{ric}{subric_upper}, Wache1", TitleTemplate = "B3", KeywordDescription = "Brand",
+            TextTemplate = "Zeile 1\n{message}",
+        };
+        var json = WebhookSender.BuildFe2Alarm(t, Sample(), "Test");
+        Assert.Equal("ALARM", json["type"]!.GetValue<string>());
+        Assert.Equal("geheim", json["authorization"]!.GetValue<string>());
+        Assert.Equal("Decoder", json["sender"]!.GetValue<string>());
+        var data = json["data"]!;
+        Assert.Equal("B3", data["keyword"]!.GetValue<string>());
+        Assert.Equal("Brand", data["keyword_description"]!.GetValue<string>());
+        Assert.Equal(new[] { "Zeile 1", "Brand Gebäude" }, data["message"]!.AsArray().Select(n => n!.GetValue<string>()));
+        Assert.Equal(new[] { "1234567A", "Wache1" }, data["units"]!.AsArray().Select(n => n!["address"]!.GetValue<string>()));
+        Assert.Equal("1234567A-202610131405", data["externalId"]!.GetValue<string>());
+        Assert.StartsWith("2026-10-13T14:05:00.000", json["timestamp"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void Fe2WithoutUnitsUsesDefaultUnits()
+    {
+        var t = new WebhookTarget { Kind = TargetKinds.Fe2, Recipient = "" };
+        Assert.Empty(WebhookSender.BuildFe2Alarm(t, Sample(), "Test")["data"]!["units"]!.AsArray());
+    }
+
+    [Theory]
+    [InlineData(200, "{\"status\":\"OK\"}", true, "1234567A")]
+    [InlineData(200, "{\"status\":\"NOT_OK\",\"error\":\"Kein Absender\"}", false, "Kein Absender")]
+    [InlineData(409, "{\"status\":\"NOT_OK\",\"error\":\"x\"}", false, "Gültige Absender")]
+    public async Task Fe2EvaluatesResponse(int code, string answer, bool ok, string expected)
+    {
+        var port = FreePort();
+        using var listener = new HttpListener();
+        listener.Prefixes.Add($"http://127.0.0.1:{port}/");
+        listener.Start();
+        string? received = null;
+        var server = Task.Run(async () =>
+        {
+            var ctx = await listener.GetContextAsync();
+            using (var r = new StreamReader(ctx.Request.InputStream)) received = await r.ReadToEndAsync();
+            ctx.Response.StatusCode = code;
+            var bytes = Encoding.UTF8.GetBytes(answer);
+            await ctx.Response.OutputStream.WriteAsync(bytes);
+            ctx.Response.Close();
+        });
+        var t = new WebhookTarget { Kind = TargetKinds.Fe2, Url = $"http://127.0.0.1:{port}/rest/external/http/alarm/v2", Recipient = "{ric}{subric_upper}", Retries = 0 };
+        var result = await new WebhookSender().SendAsync(t, Sample(), "Test");
+        await server;
+        Assert.Equal(ok, result.Success);
+        Assert.Contains(expected, result.Detail);
+        Assert.Contains("\"units\"", received);
+    }
 }

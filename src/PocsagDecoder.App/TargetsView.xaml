@@ -8,7 +8,7 @@
         <!-- Farbiges Symbol der Schnittstellen-Art -->
         <DataTemplate x:Key="KindTile">
             <Border Width="34" Height="34" CornerRadius="8" Background="{Binding KindColor}">
-                <TextBlock Style="{StaticResource IconGlyph}" FontSize="16" Text="{Binding KindIcon}" />
+                <TextBlock Style="{StaticResource KindIcon}" FontSize="16" Text="{Binding KindIcon}" />
             </Border>
         </DataTemplate>
 
@@ -152,7 +152,7 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <Border Width="52" Height="52" CornerRadius="12" Background="{Binding KindColor}" VerticalAlignment="Top">
-                                <TextBlock Style="{StaticResource IconGlyph}" FontSize="24" Text="{Binding KindIcon}" />
+                                <TextBlock Style="{StaticResource KindIcon}" FontSize="24" Text="{Binding KindIcon}" />
                             </Border>
                             <StackPanel Grid.Column="1" Margin="14,0,12,0">
                                 <TextBox Text="{Binding Name, UpdateSourceTrigger=LostFocus}" FontSize="18" FontWeight="SemiBold"
@@ -301,7 +301,18 @@
                                 <TextBlock Text="Benutzername" Style="{StaticResource FieldLabel}" Margin="0,0,0,3" />
                                 <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
-                            <StackPanel Grid.Column="2">
+                            <StackPanel>
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Grid.Column" Value="2" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding UsesLogin}" Value="False">
+                                                <Setter Property="Grid.Column" Value="0" />
+                                                <Setter Property="Grid.ColumnSpan" Value="3" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
                                 <TextBlock Text="{Binding PasswordLabel}" Style="{StaticResource FieldLabel}" Margin="0,0,0,3"
                                            TextTrimming="CharacterEllipsis" ToolTip="{Binding PasswordLabel}" />
                                 <TextBox Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}" />
@@ -329,6 +340,10 @@
                         <StackPanel Visibility="{Binding UsesTitle, Converter={StaticResource BoolToVis}}">
                             <TextBlock Text="{Binding TitleLabel}" Style="{StaticResource FieldLabel}" Margin="0,0,0,3" />
                             <TextBox Text="{Binding TitleTemplate, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" />
+                        </StackPanel>
+                        <StackPanel Visibility="{Binding UsesKeywordDescription, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="Stichwort-Beschreibung" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding KeywordDescription, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" />
                         </StackPanel>
                         <StackPanel Visibility="{Binding UsesText, Converter={StaticResource BoolToVis}}">
                             <TextBlock Text="{Binding TextLabel}" Style="{StaticResource FieldLabel}" />

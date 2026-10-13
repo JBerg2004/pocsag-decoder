@@ -187,35 +187,79 @@ public sealed partial class WebhookSender
         return "Alarm in Divera ausgelöst";
     }
 
+    /// <summary>
+    /// FE2 (Alamos), Externe Schnittstelle, Datenformat v2:
+    /// POST http://server:83/rest/external/http/alarm/v2, Antwort {"status":"OK|NOT_OK","error":"…"}.
+    /// </summary>
     private async Task<string> SendFe2Async(WebhookTarget t, PocsagMessage m, string rule, CancellationToken ct)
     {
         var url = Need(t.Url, "Adresse");
-        var address = TemplateRenderer.Render(string.IsNullOrWhiteSpace(t.Recipient) ? "{ric}{subric_upper}" : t.Recipient, m, rule, TemplateEscaping.None).Trim();
-        var json = new JsonObject
+        var json = BuildFe2Alarm(t, m, rule);
+        var units = json["data"]!["units"]!.AsArray().Select(u => u!["address"]!.GetValue<string>()).ToList();
+        using var response = await _http.PostAsync(url, JsonContent(json), ct).ConfigureAwait(false);
+        var body = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+        var (status, error) = ParseFe2Response(body);
+        if (!response.IsSuccessStatusCode || status == "NOT_OK")
+        {
+            var reason = (int)response.StatusCode switch
+            {
+                400 => "Anfrage fehlerhaft",
+                404 => "Adresse falsch (erwartet …/rest/external/http/alarm/v2)",
+                406 => "Alarmeingang in FE2 deaktiviert oder HTTP POST nicht freigeschaltet",
+                409 => "passt nicht zu den FE2-Einstellungen (Autorisierung bzw. „Gültige Absender“ prüfen)",
+                _ => string.Empty,
+            };
+            var detail = string.Join(" – ", new[] { reason, error ?? Shorten(body) }.Where(x => !string.IsNullOrWhiteSpace(x)));
+            throw new IOException($"FE2: {(int)response.StatusCode} {detail}".Trim());
+        }
+        return units.Count == 0 ? "an FE2 gesendet (Standard-Einheiten)" : "an FE2 gesendet (" + string.Join(", ", units) + ")";
+    }
+
+    public static JsonObject BuildFe2Alarm(WebhookTarget t, PocsagMessage m, string rule)
+    {
+        var unitText = TemplateRenderer.Render(t.Recipient, m, rule, TemplateEscaping.None);
+        var units = unitText.Split(new[] { ',', ';', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Distinct().Select(u => (JsonNode)new JsonObject { ["address"] = u }).ToArray();
+        var text = Text(t.TextTemplate, m, rule);
+        return new JsonObject
         {
             ["type"] = "ALARM",
-            ["timestamp"] = m.Timestamp.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'"),
+            ["timestamp"] = new DateTimeOffset(m.Timestamp).ToString("yyyy-MM-dd'T'HH:mm:ss.fffzzz", System.Globalization.CultureInfo.InvariantCulture),
             ["sender"] = string.IsNullOrWhiteSpace(t.Sender) ? "POCSAG Decoder" : t.Sender.Trim(),
             ["authorization"] = t.Password ?? "",
             ["data"] = new JsonObject
             {
+                // Gleiche RIC/SubRIC kurz hintereinander = derselbe Einsatz (FE2 aktualisiert statt neu anzulegen).
+                ["externalId"] = $"{m.RicFormatted}{m.SubRic}-{m.Timestamp:yyyyMMddHHmm}",
                 ["keyword"] = Text(t.TitleTemplate, m, rule),
-                ["message"] = new JsonArray(Text(t.TextTemplate, m, rule)),
-                ["address"] = address,
+                ["keyword_description"] = Text(t.KeywordDescription, m, rule),
+                ["message"] = new JsonArray(text.Split('\n').Select(l => l.TrimEnd('\r')).Where(l => l.Length > 0).Select(l => (JsonNode)l).ToArray()),
+                ["units"] = new JsonArray(units),
                 ["custom"] = new JsonObject
                 {
                     ["ric"] = m.RicFormatted,
                     ["subric"] = m.SubRic.ToString(),
-                    ["function"] = m.Function.ToString(),
-                    ["description"] = m.RicDescription ?? "",
-                    ["location"] = m.RicLocation ?? "",
+                    ["function"] = m.Function.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    ["pocsag_text"] = m.Text ?? "",
+                    ["ric_description"] = m.RicDescription ?? "",
+                    ["ric_short"] = m.RicShortName ?? "",
+                    ["ric_location"] = m.RicLocation ?? "",
+                    ["subric_description"] = m.SubRicDescription ?? "",
+                    ["rule"] = rule,
                 },
             },
         };
-        using var response = await _http.PostAsync(url, JsonContent(json), ct).ConfigureAwait(false);
-        var body = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
-        if (!response.IsSuccessStatusCode) throw new IOException($"FE2: {(int)response.StatusCode} {Shorten(body)}");
-        return "an FE2 gesendet (" + address + ")";
+    }
+
+    private static (string? Status, string? Error) ParseFe2Response(string body)
+    {
+        try
+        {
+            var node = JsonNode.Parse(body);
+            var error = node?["error"]?.GetValue<string>();
+            return (node?["status"]?.GetValue<string>(), string.IsNullOrWhiteSpace(error) ? null : error);
+        }
+        catch { return (null, null); }
     }
 
     // --- Lokal: Programm, Ton, Datenbank, TCP --------------------------------

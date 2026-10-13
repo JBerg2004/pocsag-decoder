@@ -114,7 +114,7 @@ Im Reiter „Schnittstellen“ mit **+ Neu** eine Art aus der Übersicht wählen
 | Pushover | App-Token, User-Key, Titel, Text, Priorität | Priorität 2 wiederholt sich bis zur Bestätigung |
 | E-Mail (SMTP) | Server, Port, TLS (STARTTLS), Benutzer, Passwort, Absender, Empfänger, Betreff, Text | Port 465 (reines SSL) geht nicht, 587 nehmen |
 | Divera 24/7 | API-Adresse, Accesskey, Stichwort, Text, Divera-RIC, Sonderrechte | |
-| FE2 | Adresse der Externen Schnittstelle, Autorisierung, Absender, Adresse, Stichwort, Text | Adresse Standard `{ric}{subric_upper}` |
+| FE2 | Server-Adresse (`http://SERVER:83/rest/external/http/alarm/v2`), Autorisierung, Absender, Einheiten, Stichwort, Stichwort-Beschreibung, Alarmtext | Externe Schnittstelle, Datenformat v2. In FE2: Alarmeingang „Externe Schnittstelle“, HTTP POST an, Version v2, Kennwort unter „Gültige Absender“. Einheiten = Codes der Einheiten in FE2 (Standard `{ric}{subric_upper}`, leer = Standard-Einheiten des Eingangs) |
 | Programm starten | Programm/Skript, Argumente | `.ps1` wird mit PowerShell gestartet |
 | Ton abspielen | wav- oder mp3-Datei | spielt am PC |
 | Datenbank (SQLite) | Datei (Standard `%APPDATA%\PocsagDecoder\telegramme.db`) | Tabelle `telegramme` |
