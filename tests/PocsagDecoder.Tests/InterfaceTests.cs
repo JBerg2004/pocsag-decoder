@@ -170,4 +170,30 @@ public class InterfaceTests
         Assert.False(result.Success);
         Assert.Contains("Bot-Token", result.Detail);
     }
+
+    [Fact]
+    public void EveryKindHasIconColorAndCategory()
+    {
+        foreach (var k in TargetKinds.All)
+        {
+            Assert.NotEmpty(TargetKinds.Icon(k));
+            Assert.StartsWith("#", TargetKinds.Color(k));
+            Assert.NotEmpty(TargetKinds.Short(k));
+            Assert.NotEmpty(TargetKinds.Category(k));
+        }
+    }
+
+    [Fact]
+    public void SummaryAndStatus()
+    {
+        var t = new WebhookTarget { Url = "http://homeassistant:8123/api/webhook/abc" };
+        Assert.Equal("homeassistant:8123", t.Summary);
+        Assert.Null(t.LastSuccess);
+        t.ReportResult(false, "Timeout", new DateTime(2026, 1, 1, 12, 0, 0));
+        t.ReportResult(true, "200 OK", new DateTime(2026, 1, 1, 12, 0, 5));
+        Assert.True(t.LastSuccess);
+        Assert.Equal("12:00:05 · 200 OK", t.LastResult);
+        Assert.Contains("1 erfolgreich, 1 fehlgeschlagen", t.Statistics);
+        Assert.DoesNotContain("LastResult", System.Text.Json.JsonSerializer.Serialize(t));
+    }
 }

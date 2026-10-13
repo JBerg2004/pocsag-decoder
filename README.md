@@ -103,7 +103,7 @@ ric={ric}&subric={subric}&text={message}
 
 ## Schnittstellen-Arten
 
-Im Reiter „Schnittstellen“ oben die **Art** wählen; es werden nur die passenden Felder angezeigt. Alle Text-Felder können Platzhalter enthalten.
+Im Reiter „Schnittstellen“ mit **+ Neu** eine Art aus der Übersicht wählen; es werden nur die passenden Felder angezeigt (Verbindung, Anmeldung, Inhalt, Erweitert). Platzhalter fügt „{ } Platzhalter einfügen“ an der Cursor-Position ein. Jede Schnittstelle zeigt, ob der letzte Versand geklappt hat (grüner/roter Punkt) und welche Telegrammereignisse sie benutzen. Beim Umbenennen werden die Telegrammereignisse mitgezogen, Änderungen werden automatisch gespeichert. Die SubRIC-Schreibweise (groß/klein) steht jetzt im Reiter Einstellungen.
 
 | Art | Was eintragen | Hinweis |
 |---|---|---|

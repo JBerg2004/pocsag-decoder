@@ -254,208 +254,7 @@
 
             <!-- ============================ ZIELE ============================ -->
             <TabItem Header="Schnittstellen">
-                <Grid Margin="12,10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="220" />
-                        <ColumnDefinition Width="10" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="10" />
-                        <ColumnDefinition Width="260" />
-                    </Grid.ColumnDefinitions>
-
-                    <DockPanel>
-                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
-                            <Button Content="+ Neue Schnittstelle" Command="{Binding AddTargetCommand}" />
-                            <Button Content="Löschen" Command="{Binding RemoveTargetCommand}" />
-                        </StackPanel>
-                        <Border DockPanel.Dock="Bottom" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" Background="White" CornerRadius="6" Padding="8" Margin="0,8,0,0">
-                            <StackPanel>
-                                <TextBlock Text="SubRIC-Buchstaben" FontWeight="SemiBold" />
-                                <RadioButton Content="groß (A, B, C, D)" Margin="0,4,0,0"
-                                             IsChecked="{Binding LowercaseSubRic, Converter={StaticResource Not}}" />
-                                <RadioButton Content="klein (a, b, c, d)" Margin="0,2,0,0" IsChecked="{Binding LowercaseSubRic}" />
-                                <TextBlock Style="{StaticResource Hint}" Text="Gilt für die Anzeige im Empfang und für {subric} beim Senden. Fest: {subric_upper} / {subric_lower}." />
-                            </StackPanel>
-                        </Border>
-                        <ListBox ItemsSource="{Binding Targets}" SelectedItem="{Binding SelectedTarget}">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal">
-                                        <CheckBox IsChecked="{Binding Enabled}" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                        <StackPanel>
-                                            <TextBlock Text="{Binding Name}" />
-                                            <TextBlock Text="{Binding Kind}" FontSize="11" Foreground="{StaticResource MutedBrush}" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </DockPanel>
-
-                    <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
-                        <StackPanel DataContext="{Binding SelectedTarget}" Margin="0,0,8,0">
-                            <StackPanel.Style>
-                                <Style TargetType="StackPanel">
-                                    <Style.Triggers>
-                                        <Trigger Property="DataContext" Value="{x:Null}">
-                                            <Setter Property="IsEnabled" Value="False" />
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </StackPanel.Style>
-                            <TextBlock Text="Schnittstelle bearbeiten" FontSize="15" FontWeight="SemiBold" />
-                            <CheckBox Content="Schnittstelle aktiv" IsChecked="{Binding Enabled}" Margin="0,8,0,0" />
-
-                            <TextBlock Text="Name (wird bei den Telegrammereignissen ausgewählt)" Style="{StaticResource FieldLabel}" />
-                            <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
-
-                            <TextBlock Text="Art der Schnittstelle" Style="{StaticResource FieldLabel}" />
-                            <ComboBox ItemsSource="{Binding DataContext.TargetKindChoices, RelativeSource={RelativeSource AncestorType=Window}}"
-                                      SelectedItem="{Binding DataContext.SelectedTargetKind, RelativeSource={RelativeSource AncestorType=Window}}" />
-                            <TextBlock Style="{StaticResource Hint}" Text="{Binding KindHint}" />
-
-                            <!-- URL (Webhook, Signal, Divera, FE2) -->
-                            <StackPanel Visibility="{Binding UsesUrl, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="{Binding UrlLabel}" Style="{StaticResource FieldLabel}" />
-                                <DockPanel>
-                                    <ComboBox DockPanel.Dock="Left" Width="80" Margin="0,0,6,0" Visibility="{Binding UsesHttp, Converter={StaticResource BoolToVis}}"
-                                              ItemsSource="{Binding DataContext.HttpMethods, RelativeSource={RelativeSource AncestorType=Window}}"
-                                              SelectedItem="{Binding Method}" />
-                                    <TextBox Text="{Binding Url, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" />
-                                </DockPanel>
-                                <TextBlock Style="{StaticResource Hint}" Visibility="{Binding UsesHttp, Converter={StaticResource BoolToVis}}"
-                                           Text="Platzhalter sind auch in der URL erlaubt, z.B. https://server/api/alarm?ric={ric}&amp;sub={subric}&amp;text={message} (werden URL-kodiert)." />
-                            </StackPanel>
-
-                            <!-- Server / Port (MQTT, SMTP, TCP) -->
-                            <StackPanel Visibility="{Binding UsesHost, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="{Binding HostLabel}" Style="{StaticResource FieldLabel}" />
-                                <DockPanel>
-                                    <TextBox DockPanel.Dock="Right" Width="70" Margin="6,0,0,0" Text="{Binding Port}" ToolTip="Port (0 = Standard)" />
-                                    <TextBox Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" />
-                                </DockPanel>
-                                <CheckBox Content="Verschlüsselt (TLS)" IsChecked="{Binding UseTls}" Margin="0,6,0,0" Visibility="{Binding UsesTls, Converter={StaticResource BoolToVis}}" />
-                            </StackPanel>
-
-                            <!-- Anmeldung -->
-                            <Grid Visibility="{Binding UsesPassword, Converter={StaticResource BoolToVis}}">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="8" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Visibility="{Binding UsesLogin, Converter={StaticResource BoolToVis}}">
-                                    <TextBlock Text="Benutzername" Style="{StaticResource FieldLabel}" />
-                                    <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock Text="{Binding PasswordLabel}" Style="{StaticResource FieldLabel}" TextTrimming="CharacterEllipsis"
-                                               ToolTip="{Binding PasswordLabel}" />
-                                    <TextBox Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}" />
-                                </StackPanel>
-                            </Grid>
-
-                            <StackPanel Visibility="{Binding UsesToken, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="{Binding TokenLabel}" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding Token, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" />
-                            </StackPanel>
-
-                            <StackPanel Visibility="{Binding UsesSender, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="{Binding SenderLabel}" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding Sender, UpdateSourceTrigger=PropertyChanged}" />
-                            </StackPanel>
-
-                            <StackPanel Visibility="{Binding UsesRecipient, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="{Binding RecipientLabel}" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding Recipient, UpdateSourceTrigger=PropertyChanged}" />
-                            </StackPanel>
-
-                            <StackPanel Visibility="{Binding UsesTopic, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="Topic" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding Topic, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" />
-                                <CheckBox Content="Retain (letzte Meldung bleibt am Broker gespeichert)" IsChecked="{Binding Retain}" Margin="0,6,0,0" />
-                            </StackPanel>
-
-                            <StackPanel Visibility="{Binding UsesFile, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="{Binding FileLabel}" Style="{StaticResource FieldLabel}" />
-                                <DockPanel>
-                                    <Button DockPanel.Dock="Right" Content="…" MinWidth="30" Margin="6,0,0,0" Click="BrowseTargetFile_Click" />
-                                    <TextBox Text="{Binding FilePath, UpdateSourceTrigger=PropertyChanged}" />
-                                </DockPanel>
-                            </StackPanel>
-
-                            <StackPanel Visibility="{Binding UsesArguments, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="Argumente" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding Arguments, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" />
-                                <TextBlock Style="{StaticResource Hint}" Text="z.B. &quot;{ric}&quot; &quot;{subric}&quot; &quot;{message}&quot;" />
-                            </StackPanel>
-
-                            <StackPanel Visibility="{Binding UsesPriority, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="{Binding PriorityLabel}" Style="{StaticResource FieldLabel}" />
-                                <TextBox Width="60" HorizontalAlignment="Left" Text="{Binding Priority}" />
-                            </StackPanel>
-
-                            <StackPanel Visibility="{Binding UsesTitle, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="{Binding TitleLabel}" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding TitleTemplate, UpdateSourceTrigger=PropertyChanged}" />
-                            </StackPanel>
-
-                            <StackPanel Visibility="{Binding UsesText, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="{Binding TextLabel}" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding TextTemplate, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True"
-                                         Height="110" VerticalScrollBarVisibility="Auto" FontFamily="Consolas" VerticalContentAlignment="Top" />
-                            </StackPanel>
-
-                            <!-- HTTP-Details (nur Webhook) -->
-                            <StackPanel Visibility="{Binding UsesHttp, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="Content-Type" Style="{StaticResource FieldLabel}" />
-                                <ComboBox IsEditable="True" Text="{Binding ContentType, UpdateSourceTrigger=PropertyChanged}"
-                                          ItemsSource="{Binding DataContext.ContentTypes, RelativeSource={RelativeSource AncestorType=Window}}" />
-
-                                <TextBlock Text="Zusätzliche Header (eine Zeile je Header, „Name: Wert“)" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding Headers, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="60"
-                                         VerticalScrollBarVisibility="Auto" FontFamily="Consolas" VerticalContentAlignment="Top" />
-                                <TextBlock Style="{StaticResource Hint}" Text="z.B. Authorization: Bearer DEIN_TOKEN" />
-                            </StackPanel>
-
-                            <StackPanel Visibility="{Binding UsesBody, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="{Binding BodyLabel}" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding BodyTemplate, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" AcceptsTab="True"
-                                         Height="190" VerticalScrollBarVisibility="Auto" FontFamily="Consolas" VerticalContentAlignment="Top" />
-                                <TextBlock Style="{StaticResource Hint}"
-                                           Text="Bei JSON werden die Werte automatisch JSON-sicher eingesetzt (Anführungszeichen, Zeilenumbrüche)." />
-                            </StackPanel>
-
-                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0" Visibility="{Binding UsesTimeout, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="Timeout (s)" VerticalAlignment="Center" Margin="0,0,4,0" />
-                                <TextBox Width="45" Text="{Binding TimeoutSeconds}" />
-                                <TextBlock Text="Wiederholungen bei Fehler" VerticalAlignment="Center" Margin="14,0,4,0" />
-                                <TextBox Width="45" Text="{Binding Retries}" />
-                            </StackPanel>
-
-                            <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
-                                <Button Content="Testnachricht senden"
-                                        Command="{Binding DataContext.TestTargetCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
-                                <TextBlock VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="400"
-                                           Text="{Binding DataContext.TargetTestResult, RelativeSource={RelativeSource AncestorType=Window}}" />
-                            </StackPanel>
-                            <TextBlock Style="{StaticResource Hint}" Text="Verwendet RIC, SubRIC und Text der Testnachricht im Reiter Einstellungen." />
-                        </StackPanel>
-                    </ScrollViewer>
-
-                    <DockPanel Grid.Column="4">
-                        <TextBlock DockPanel.Dock="Top" Text="Platzhalter" FontWeight="SemiBold" Margin="0,0,0,4" />
-                        <ListView ItemsSource="{Binding Placeholders}" MouseDoubleClick="Placeholder_DoubleClick"
-                                  ToolTip="Doppelklick kopiert den Platzhalter in die Zwischenablage">
-                            <ListView.View>
-                                <GridView>
-                                    <GridViewColumn Header="Platzhalter" DisplayMemberBinding="{Binding Key}" Width="95" />
-                                    <GridViewColumn Header="Bedeutung" DisplayMemberBinding="{Binding Value}" Width="150" />
-                                </GridView>
-                            </ListView.View>
-                        </ListView>
-                    </DockPanel>
-                </Grid>
+                <local:TargetsView />
             </TabItem>
 
             <!-- ============================ EMPFÄNGER ============================ -->
@@ -646,6 +445,14 @@
                                     </StackPanel>
                                     <CheckBox Content="Empfang nach einem Abbruch automatisch neu starten (alle 30 Sekunden versuchen)" IsChecked="{Binding Settings.AutoRestart}" Margin="0,10,0,0" />
                                     <Button Content="Fehlermeldung testen" Command="{Binding TestErrorCommand}" HorizontalAlignment="Left" Margin="0,10,0,0" />
+                                </StackPanel>
+                            </GroupBox>
+
+                            <GroupBox Header="SubRIC-Schreibweise">
+                                <StackPanel>
+                                    <RadioButton Content="groß (A, B, C, D)" IsChecked="{Binding LowercaseSubRic, Converter={StaticResource Not}}" />
+                                    <RadioButton Content="klein (a, b, c, d)" Margin="0,4,0,0" IsChecked="{Binding LowercaseSubRic}" />
+                                    <TextBlock Style="{StaticResource Hint}" Text="Gilt für die Anzeige unter Telegramme und für {subric} beim Senden. Fest: {subric_upper} / {subric_lower}." />
                                 </StackPanel>
                             </GroupBox>
 

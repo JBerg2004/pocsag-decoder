@@ -70,14 +70,74 @@ public sealed partial class MainViewModel
         if (t.Kind == TargetKinds.Mqtt && t.BodyTemplate.Length == 0) t.BodyTemplate = WebhookTarget.DefaultJsonTemplate;
     }
 
+    /// <summary>Legt eine Schnittstelle der gewählten Art an und wählt sie aus.</summary>
+    public void AddTarget(string kind)
+    {
+        var baseName = kind == TargetKinds.Webhook ? "Webhook" : kind;
+        var name = baseName;
+        for (var i = 2; Targets.Any(t => t.Name == name); i++) name = $"{baseName} {i}";
+        var target = new WebhookTarget { Name = name, Kind = kind };
+        ApplyKindDefaults(target, target.Url);
+        Targets.Add(target);
+        SelectedTarget = target;
+    }
+
+    public void DuplicateTarget()
+    {
+        if (SelectedTarget is not { } src) return;
+        var json = System.Text.Json.JsonSerializer.Serialize(src);
+        var copy = System.Text.Json.JsonSerializer.Deserialize<WebhookTarget>(json)!;
+        copy.Id = Guid.NewGuid();
+        var name = src.Name + " (Kopie)";
+        for (var i = 2; Targets.Any(t => t.Name == name); i++) name = $"{src.Name} (Kopie {i})";
+        copy.Name = name;
+        Targets.Insert(Targets.IndexOf(src) + 1, copy);
+        SelectedTarget = copy;
+    }
+
+    /// <summary>Telegrammereignisse, die die gewählte Schnittstelle benutzen.</summary>
+    public string SelectedTargetUsedBy
+    {
+        get
+        {
+            if (SelectedTarget is not { } t) return string.Empty;
+            var rules = Rules.Where(r => r.TargetNames.Contains(t.Name, StringComparer.OrdinalIgnoreCase)).Select(r => r.Name).ToList();
+            return rules.Count == 0
+                ? "Wird noch von keinem Telegrammereignis benutzt"
+                : "Benutzt von: " + string.Join(", ", rules);
+        }
+    }
+
+    public void RefreshTargetUsage() => OnPropertyChanged(nameof(SelectedTargetUsedBy));
+
+    private readonly Dictionary<Guid, string> _targetNames = new();
+
+    /// <summary>Beim Umbenennen einer Schnittstelle die Telegrammereignisse mitziehen.</summary>
+    private void TrackTargetName(WebhookTarget t)
+    {
+        if (_targetNames.TryGetValue(t.Id, out var old) && old != t.Name && old.Length > 0
+            && Targets.All(o => o == t || o.Name != old))
+        {
+            foreach (var r in Rules.Where(r => r.TargetNames.Contains(old)))
+            {
+                r.SetTarget(old, false);
+                r.SetTarget(t.Name, true);
+            }
+            RequestSave();
+        }
+        _targetNames[t.Id] = t.Name;
+    }
+
     private void InitTargets()
     {
+        foreach (var t in Targets) _targetNames[t.Id] = t.Name;
         _sender.PlaySound = PlaySoundAsync;
         Targets.CollectionChanged += (_, _) => SyncTcpServers();
         foreach (var t in Targets) t.PropertyChanged += OnTargetChanged;
+        Targets.CollectionChanged += (_, _) => { OnPropertyChanged(nameof(SelectedTargetUsedBy)); RequestSave(); };
         Targets.CollectionChanged += (_, e) =>
         {
-            foreach (WebhookTarget t in e.NewItems ?? Array.Empty<WebhookTarget>()) t.PropertyChanged += OnTargetChanged;
+            foreach (WebhookTarget t in e.NewItems ?? Array.Empty<WebhookTarget>()) { t.PropertyChanged += OnTargetChanged; _targetNames[t.Id] = t.Name; }
             foreach (WebhookTarget t in e.OldItems ?? Array.Empty<WebhookTarget>()) t.PropertyChanged -= OnTargetChanged;
         };
         SyncTcpServers();
@@ -87,6 +147,14 @@ public sealed partial class MainViewModel
     {
         if (e.PropertyName is nameof(WebhookTarget.Enabled) or nameof(WebhookTarget.Host) or nameof(WebhookTarget.Port))
             RequestTcpSync();
+        if (e.PropertyName is not (nameof(WebhookTarget.LastResult) or nameof(WebhookTarget.LastSuccess)
+                or nameof(WebhookTarget.Statistics) or nameof(WebhookTarget.Summary)))
+            RequestSave();
+        if (e.PropertyName == nameof(WebhookTarget.Name) && sender is WebhookTarget t)
+        {
+            TrackTargetName(t);
+            OnPropertyChanged(nameof(SelectedTargetUsedBy));
+        }
     }
 
     private System.Windows.Threading.DispatcherTimer? _tcpTimer;

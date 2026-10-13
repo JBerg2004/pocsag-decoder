@@ -46,4 +46,66 @@ public static class TargetKinds
         Tcp => "Andere Programme können sich per TCP verbinden und bekommen jedes Telegramm als Textzeile. 127.0.0.1 = nur dieser PC, 0.0.0.0 = ganzes Netzwerk.",
         _ => string.Empty,
     };
+
+    /// <summary>Symbol aus „Segoe MDL2 Assets“ / „Segoe Fluent Icons“.</summary>
+    public static string Icon(string kind) => kind switch
+    {
+        Webhook => "\uE774",   // Globus
+        Mqtt => "\uE701",      // Funk
+        Telegram => "\uE724",  // Senden
+        Signal => "\uE8BD",    // Nachricht
+        Pushover => "\uEA8F",  // Glocke
+        Email => "\uE715",     // Brief
+        Divera => "\uE7BA",    // Warnung
+        Fe2 => "\uE945",       // Blitz
+        Program => "\uE756",   // Eingabeaufforderung
+        Sound => "\uE767",     // Lautsprecher
+        Database => "\uE8F1",  // Bibliothek
+        Tcp => "\uE839",       // Netzwerkkabel
+        _ => "\uE774",
+    };
+
+    /// <summary>Farbe des Symbols (Hex).</summary>
+    public static string Color(string kind) => kind switch
+    {
+        Webhook => "#2563EB",
+        Mqtt => "#7C3AED",
+        Telegram => "#0EA5E9",
+        Signal => "#3A76F0",
+        Pushover => "#0891B2",
+        Email => "#475569",
+        Divera => "#DC2626",
+        Fe2 => "#EA580C",
+        Program => "#334155",
+        Sound => "#DB2777",
+        Database => "#0D9488",
+        Tcp => "#4F46E5",
+        _ => "#6B7280",
+    };
+
+    public static string Category(string kind) => kind switch
+    {
+        Webhook or Mqtt or Tcp => "Netzwerk und Smart Home",
+        Telegram or Signal or Pushover or Email => "Nachrichten aufs Handy",
+        Divera or Fe2 => "Alarmierungssysteme",
+        _ => "Auf diesem PC",
+    };
+
+    /// <summary>Kurzbeschreibung für die Auswahl beim Anlegen.</summary>
+    public static string Short(string kind) => kind switch
+    {
+        Webhook => "HTTP-Aufruf, z. B. Home Assistant oder Node-RED",
+        Mqtt => "An einen MQTT-Broker veröffentlichen",
+        Tcp => "Andere Programme per TCP verbinden lassen",
+        Telegram => "Nachricht über einen eigenen Bot",
+        Signal => "Über signal-cli-rest-api",
+        Pushover => "Push-Nachricht, auch als Notfall",
+        Email => "E-Mail über einen SMTP-Server",
+        Divera => "Alarm in Divera 24/7 auslösen",
+        Fe2 => "Externe Schnittstelle von FE2 (Alamos)",
+        Program => "Programm oder Skript starten",
+        Sound => "Ton am PC abspielen",
+        Database => "In einer SQLite-Datei speichern",
+        _ => string.Empty,
+    };
 }

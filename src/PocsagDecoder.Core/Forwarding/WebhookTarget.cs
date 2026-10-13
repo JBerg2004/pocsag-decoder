@@ -220,6 +220,54 @@ public sealed class WebhookTarget : INotifyPropertyChanged
     [JsonIgnore] public string PriorityLabel => _kind == TargetKinds.Divera ? "Mit Sonderrechten (1 = ja, 0 = nein)" : "Priorität (−2 leise … 2 Notfall mit Bestätigung)";
 
     [JsonIgnore] public string KindHint => TargetKinds.Hint(_kind);
+    [JsonIgnore] public string KindIcon => TargetKinds.Icon(_kind);
+    [JsonIgnore] public string KindColor => TargetKinds.Color(_kind);
+    [JsonIgnore] public bool UsesContent => UsesTitle || UsesText || UsesBody;
+    [JsonIgnore] public bool UsesAdvanced => UsesTimeout || UsesHttp;
+
+    /// <summary>Kurze Angabe, wohin gesendet wird (für die Liste).</summary>
+    [JsonIgnore] public string Summary => _kind switch
+    {
+        TargetKinds.Webhook or TargetKinds.Signal or TargetKinds.Divera or TargetKinds.Fe2 => HostOf(Url),
+        TargetKinds.Mqtt or TargetKinds.Email or TargetKinds.Tcp => Port > 0 ? $"{Host}:{Port}" : Host,
+        TargetKinds.Telegram or TargetKinds.Pushover => Recipient.Length > 0 ? "an " + Recipient : string.Empty,
+        TargetKinds.Program or TargetKinds.Sound or TargetKinds.Database => SafeFileName(FilePath),
+        _ => string.Empty,
+    };
+
+    private static string HostOf(string url) =>
+        Uri.TryCreate(url, UriKind.Absolute, out var u) ? u.Authority : url;
+
+    private static string SafeFileName(string path)
+    {
+        try { return Path.GetFileName(path); } catch (ArgumentException) { return path; }
+    }
+
+    // --- Laufzeit-Status (nicht gespeichert) ---------------------------------
+
+    private string _lastResult = string.Empty;
+    private bool? _lastSuccess;
+
+    /// <summary>Ergebnis des letzten Versands, z. B. „20:38:51 · 200 OK“.</summary>
+    [JsonIgnore] public string LastResult { get => _lastResult; private set => Set(ref _lastResult, value); }
+
+    /// <summary>null = in dieser Sitzung noch nichts gesendet.</summary>
+    [JsonIgnore] public bool? LastSuccess { get => _lastSuccess; private set => Set(ref _lastSuccess, value); }
+
+    [JsonIgnore] public int SentCount { get; private set; }
+    [JsonIgnore] public int FailedCount { get; private set; }
+
+    public void ReportResult(bool success, string detail, DateTime time)
+    {
+        if (success) SentCount++; else FailedCount++;
+        LastSuccess = success;
+        LastResult = $"{time:HH:mm:ss} · {detail}";
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Statistics)));
+    }
+
+    [JsonIgnore] public string Statistics => SentCount + FailedCount == 0
+        ? "Seit dem Programmstart noch nichts gesendet"
+        : $"Seit dem Programmstart: {SentCount} erfolgreich, {FailedCount} fehlgeschlagen";
 
     public override string ToString() => Name;
 
@@ -230,5 +278,7 @@ public sealed class WebhookTarget : INotifyPropertyChanged
         if (EqualityComparer<T>.Default.Equals(field, value)) return;
         field = value;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        if (name is nameof(Url) or nameof(Host) or nameof(Port) or nameof(Recipient) or nameof(FilePath))
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Summary)));
     }
 }

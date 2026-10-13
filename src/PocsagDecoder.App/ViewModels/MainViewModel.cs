@@ -217,7 +217,7 @@ public sealed partial class MainViewModel : ObservableObject
     public WebhookTarget? SelectedTarget
     {
         get => _selectedTarget;
-        set { Set(ref _selectedTarget, value); TargetTestResult = string.Empty; OnPropertyChanged(nameof(SelectedTargetKind)); }
+        set { Set(ref _selectedTarget, value); TargetTestResult = string.Empty; OnPropertyChanged(nameof(SelectedTargetKind)); OnPropertyChanged(nameof(SelectedTargetUsedBy)); }
     }
 
     public string TargetTestResult { get => _targetTestResult; private set => Set(ref _targetTestResult, value); }
@@ -591,6 +591,7 @@ public sealed partial class MainViewModel : ObservableObject
         item.AppendForwarding($"{target.Name}: sende…");
         var result = await _sender.SendAsync(target, item.Message, rule.Name);
         var text = $"{target.Name}: {(result.Success ? "✓ " : "✗ ")}{result.Detail}";
+        target.ReportResult(result.Success, result.Detail, DateTime.Now);
         item.Forwarding = item.Forwarding.Replace($"{target.Name}: sende…", text);
         if (result.Success) ForwardedCount++;
         else
@@ -683,12 +684,7 @@ public sealed partial class MainViewModel : ObservableObject
 
     // --- Ziele ------------------------------------------------------------
 
-    private void AddTarget()
-    {
-        var target = new WebhookTarget { Name = $"Ziel {Targets.Count + 1}" };
-        Targets.Add(target);
-        SelectedTarget = target;
-    }
+    private void AddTarget() => AddTarget(TargetKinds.Webhook);
 
     private async Task TestTargetAsync()
     {
@@ -708,6 +704,7 @@ public sealed partial class MainViewModel : ObservableObject
         TargetTestResult = "Sende…";
         var result = await _sender.SendAsync(SelectedTarget, message, "Test");
         TargetTestResult = (result.Success ? "✓ Erfolgreich: " : "✗ Fehler: ") + result.Detail;
+        SelectedTarget.ReportResult(result.Success, "Test: " + result.Detail, DateTime.Now);
         AddLog($"Test an {SelectedTarget.Name}: {result.Detail}");
     }
 
