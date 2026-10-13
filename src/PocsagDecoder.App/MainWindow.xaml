@@ -5,7 +5,8 @@
         xmlns:local="clr-namespace:PocsagDecoder.App"
         xmlns:conv="clr-namespace:PocsagDecoder.App.Converters"
         Title="POCSAG Decoder" Height="760" Width="1200" MinHeight="500" MinWidth="900"
-        Icon="app.ico">
+        Icon="app.ico" Background="{StaticResource PageBrush}" FontFamily="Segoe UI" FontSize="12.5"
+        TextOptions.TextFormattingMode="Display">
     <Window.DataContext>
         <vm:MainViewModel />
     </Window.DataContext>
@@ -19,42 +20,48 @@
 
     <DockPanel>
         <!-- Kopfzeile -->
-        <Border DockPanel.Dock="Top" Background="#F3F3F3" BorderBrush="#DDD" BorderThickness="0,0,0,1" Padding="10,8">
+        <Border DockPanel.Dock="Top" Background="{StaticResource HeaderBrush}" Padding="14,9">
             <DockPanel>
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-                    <Button Content="▶ Start" Command="{Binding StartCommand}" FontWeight="SemiBold" />
-                    <Button Content="■ Stopp" Command="{Binding StopCommand}" />
-                    <TextBlock Text="Frequenz (MHz):" VerticalAlignment="Center" Margin="12,0,4,0" />
-                    <TextBox Width="90" Text="{Binding Decoder.FrequencyMHz, Converter={StaticResource Double}, UpdateSourceTrigger=LostFocus}"
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                    <Image Source="app.ico" Width="22" Height="22" Margin="0,0,8,0" />
+                    <TextBlock Text="POCSAG Decoder" Foreground="White" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,22,0" />
+                    <Button Content="▶  Start" Command="{Binding StartCommand}" Style="{StaticResource GoButton}" />
+                    <Button Content="■  Stopp" Command="{Binding StopCommand}" Style="{StaticResource HeaderButton}" />
+                    <TextBlock Text="Frequenz" Foreground="#AEB4BF" VerticalAlignment="Center" Margin="16,0,6,0" />
+                    <TextBox Width="80" Text="{Binding Decoder.FrequencyMHz, Converter={StaticResource Double}, UpdateSourceTrigger=LostFocus}"
                              IsEnabled="{Binding IsRunning, Converter={StaticResource Not}}" />
-                    <Button Content="💾 Speichern" Command="{Binding SaveCommand}" Margin="12,0,6,0" />
+                    <TextBlock Text="MHz" Foreground="#AEB4BF" VerticalAlignment="Center" Margin="6,0,16,0" />
+                    <Button Content="💾  Speichern" Command="{Binding SaveCommand}" Style="{StaticResource HeaderButton}" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <Ellipse Width="10" Height="10" Margin="0,0,6,0">
-                        <Ellipse.Style>
-                            <Style TargetType="Ellipse">
-                                <Setter Property="Fill" Value="#BBB" />
+                    <TextBlock Foreground="#AEB4BF" VerticalAlignment="Center" Margin="0,0,14,0">
+                        <Run Text="Empfangen" /> <Run Text="{Binding ReceivedCount, Mode=OneWay}" Foreground="White" FontWeight="SemiBold" />
+                        <Run Text="   Weitergeleitet" /> <Run Text="{Binding ForwardedCount, Mode=OneWay}" Foreground="White" FontWeight="SemiBold" />
+                    </TextBlock>
+                    <Border CornerRadius="11" Padding="10,3">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="#4A5263" />
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsRunning}" Value="True">
-                                        <Setter Property="Fill" Value="#2DA44E" />
+                                        <Setter Property="Background" Value="#2E7D32" />
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </Ellipse.Style>
-                    </Ellipse>
-                    <TextBlock Text="{Binding StatusText}" />
-                    <TextBlock Margin="16,0,0,0" Foreground="#555">
-                        <Run Text="Empfangen:" /> <Run Text="{Binding ReceivedCount, Mode=OneWay}" />
-                        <Run Text="  Weitergeleitet:" /> <Run Text="{Binding ForwardedCount, Mode=OneWay}" />
-                    </TextBlock>
+                        </Border.Style>
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="8" Height="8" Fill="White" Margin="0,0,6,0" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding StatusText}" Foreground="White" />
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
             </DockPanel>
         </Border>
 
-        <TabControl x:Name="Tabs" Margin="6">
+        <TabControl x:Name="Tabs">
             <!-- ============================ EMPFANG ============================ -->
             <TabItem Header="Telegramme">
-                <DockPanel Margin="6">
+                <DockPanel Margin="12,10">
                     <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,4">
                         <Button Content="Liste leeren" Command="{Binding ClearMessagesCommand}"
                                 ToolTip="Alle empfangenen Meldungen aus allen Fenstern entfernen" />
@@ -78,7 +85,7 @@
 
             <!-- ============================ REGELN ============================ -->
             <TabItem x:Name="RulesTab" Header="Telegrammereignisse">
-                <Grid Margin="6">
+                <Grid Margin="12,10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="3*" />
                         <ColumnDefinition Width="8" />
@@ -173,7 +180,7 @@
                                        Text="Prüft die Beschreibung aus dem Reiter „RIC-Beschreibungen“, z.B. „FF Musterstadt“ oder „Vollalarm“. Mehrere Begriffe mit | trennen: „FF Nord|FF Süd“. Leer = egal." />
 
                             <TextBlock Text="Weiterleiten an" Style="{StaticResource FieldLabel}" />
-                            <Border BorderBrush="#DDD" BorderThickness="1" Padding="6,4">
+                            <Border BorderBrush="{StaticResource LineBrush}" BorderThickness="1" Background="White" CornerRadius="4" Padding="6,4">
                                 <ItemsControl ItemsSource="{Binding DataContext.Targets, RelativeSource={RelativeSource AncestorType=Window}}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
@@ -203,7 +210,7 @@
 
             <!-- ============================ BESCHREIBUNGEN ============================ -->
             <TabItem x:Name="DescriptionsTab" Header="RIC-Beschreibungen">
-                <DockPanel Margin="6">
+                <DockPanel Margin="12,10">
                     <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,6">
                         <Button Content="📂 Datei importieren…" Click="ImportDescriptions_Click" FontWeight="SemiBold" />
                         <Button Content="Exportieren…" Click="ExportDescriptions_Click" />
@@ -218,7 +225,7 @@
                         <TextBlock Text="{Binding DescriptionStatus}" VerticalAlignment="Center" Margin="12,0,0,0" Foreground="#555" />
                     </WrapPanel>
                     <TextBlock DockPanel.Dock="Top" Text="{Binding GlobalSubRicSummary}" Margin="0,0,0,6" Foreground="#8A3B00" FontWeight="SemiBold" />
-                    <Border DockPanel.Dock="Bottom" BorderBrush="#DDD" BorderThickness="1" Background="#FAFAFA" Padding="8" Margin="0,6,0,0">
+                    <Border DockPanel.Dock="Bottom" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" Background="White" CornerRadius="6" Padding="8" Margin="0,6,0,0">
                         <StackPanel>
                             <TextBlock FontWeight="SemiBold" Text="Dateiformat für den Import (CSV/TXT, z.B. aus Excel, oder JSON)" />
                             <TextBlock Style="{StaticResource Hint}" FontFamily="Consolas" FontSize="12"
@@ -247,7 +254,7 @@
 
             <!-- ============================ ZIELE ============================ -->
             <TabItem Header="Schnittstellen">
-                <Grid Margin="6">
+                <Grid Margin="12,10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="220" />
                         <ColumnDefinition Width="10" />
@@ -261,7 +268,7 @@
                             <Button Content="+ Neues Ziel" Command="{Binding AddTargetCommand}" />
                             <Button Content="Löschen" Command="{Binding RemoveTargetCommand}" />
                         </StackPanel>
-                        <Border DockPanel.Dock="Bottom" BorderBrush="#DDD" BorderThickness="1" Background="#FAFAFA" Padding="8" Margin="0,8,0,0">
+                        <Border DockPanel.Dock="Bottom" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" Background="White" CornerRadius="6" Padding="8" Margin="0,8,0,0">
                             <StackPanel>
                                 <TextBlock Text="SubRIC-Buchstaben" FontWeight="SemiBold" />
                                 <RadioButton Content="groß (A, B, C, D)" Margin="0,4,0,0"
@@ -552,7 +559,7 @@
 
             <!-- ============================ PROTOKOLL ============================ -->
             <TabItem Header="Protokoll">
-                <DockPanel Margin="6">
+                <DockPanel Margin="12,10">
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
                         <Button Content="Leeren" Command="{Binding ClearLogCommand}" />
                         <TextBlock Style="{StaticResource Hint}" VerticalAlignment="Center"

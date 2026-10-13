@@ -119,7 +119,8 @@ public partial class MessagePaneView : UserControl
     /// <summary>Rechtsklick auf einen Spaltenkopf öffnet ebenfalls die Spaltenauswahl.</summary>
     private void AttachColumnHeaderMenu()
     {
-        var style = new Style(typeof(DataGridColumnHeader));
+        // Auf dem Design aus App.xaml aufbauen, nur das Rechtsklick-Menü ergänzen.
+        var style = new Style(typeof(DataGridColumnHeader), TryFindResource(typeof(DataGridColumnHeader)) as Style);
         style.Setters.Add(new EventSetter(MouseRightButtonUpEvent, new MouseButtonEventHandler((s, e) =>
         {
             var menu = BuildColumnMenu();
