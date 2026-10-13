@@ -77,6 +77,9 @@ public class FilterTests
         Assert.True(f.IsDuplicate(Msg(1, 0, "x", 10)));
         Assert.False(f.IsDuplicate(Msg(1, 1, "x", 10)));
         Assert.False(f.IsDuplicate(Msg(1, 0, "x", 50)));
+        // Leer-Alarm, zweite Aussendung mit Füllzeichen
+        Assert.False(f.IsDuplicate(Msg(2, 0, "", 100)));
+        Assert.True(f.IsDuplicate(Msg(2, 0, "(", 102)));
     }
 
     [Fact]

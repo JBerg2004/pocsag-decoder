@@ -16,7 +16,7 @@ public sealed class DuplicateFilter
     public bool IsDuplicate(PocsagMessage message)
     {
         if (Window <= TimeSpan.Zero) return false;
-        var key = (message.Ric, message.Function, message.Text);
+        var key = (message.Ric, message.Function, Normalize(message.Text));
         lock (_lock)
         {
             var now = message.Timestamp;
@@ -29,5 +29,15 @@ public sealed class DuplicateFilter
             _seen[key] = now;
             return false;
         }
+    }
+
+    /// <summary>
+    /// Text ohne Buchstaben und Ziffern (z. B. „(“ aus Füllbits bei Ton-/Leer-Alarmen) zählt als leer,
+    /// sonst gilt die zweite Aussendung einer leeren Alarmierung nicht als Wiederholung.
+    /// </summary>
+    private static string Normalize(string? text)
+    {
+        var t = (text ?? string.Empty).Trim();
+        return t.Any(char.IsLetterOrDigit) ? t : string.Empty;
     }
 }
