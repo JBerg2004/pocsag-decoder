@@ -21,7 +21,7 @@ public partial class MainWindow : Window
             if (e.Action == NotifyCollectionChangedAction.Add && LogList.Items.Count > 0)
                 LogList.ScrollIntoView(LogList.Items[^1]);
         };
-        _tray = new TrayIcon(ShowFromTray, ToggleReceive, () => Vm.IsRunning, ExitApplication);
+        _tray = new TrayIcon(ShowFromTray, StartReceive, () => Vm.IsRunning, ExitApplication);
         Vm.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(MainViewModel.StatusText)) _tray.SetStatus(Vm.StatusText);
@@ -59,10 +59,9 @@ public partial class MainWindow : Window
         Activate();
     }
 
-    private void ToggleReceive()
+    private void StartReceive()
     {
-        var cmd = Vm.IsRunning ? Vm.StopCommand : Vm.StartCommand;
-        if (cmd.CanExecute(null)) cmd.Execute(null);
+        if (!Vm.IsRunning && Vm.StartCommand.CanExecute(null)) Vm.StartCommand.Execute(null);
     }
 
     /// <summary>Nächstes Schließen beendet das Programm wirklich (z.B. beim Herunterfahren).</summary>
