@@ -38,11 +38,9 @@ public partial class MainWindow : Window
         };
         Loaded += (_, _) =>
         {
-            ApplyHiddenColumns();
             Vm.StartIfConfigured();
             if (StartHidden || Vm.Settings.StartMinimized) Hide();
         };
-        MessagesGrid.Loaded += (_, _) => AttachColumnHeaderMenu();
     }
 
     private MainViewModel Vm => (MainViewModel)DataContext;
@@ -175,76 +173,6 @@ public partial class MainWindow : Window
         if (dlg.ShowDialog() == true) MainViewModel.SaveDescriptionTemplate(dlg.FileName);
     }
 
-    // --- Spaltenauswahl im Reiter Empfang ------------------------------------
-
-    private static string ColumnName(DataGridColumn c) => c.Header?.ToString() ?? string.Empty;
-
-    private void ApplyHiddenColumns()
-    {
-        foreach (var c in MessagesGrid.Columns)
-            c.Visibility = Vm.Settings.HiddenColumns.Contains(ColumnName(c)) ? Visibility.Collapsed : Visibility.Visible;
-    }
-
-    private ContextMenu BuildColumnMenu()
-    {
-        var menu = new ContextMenu();
-        foreach (var column in MessagesGrid.Columns)
-        {
-            var c = column;
-            var item = new MenuItem
-            {
-                Header = ColumnName(c),
-                IsCheckable = true,
-                IsChecked = c.Visibility == Visibility.Visible,
-                StaysOpenOnClick = true,
-            };
-            item.Click += (_, _) =>
-            {
-                // Mindestens eine Spalte muss sichtbar bleiben.
-                if (!item.IsChecked && MessagesGrid.Columns.Count(x => x.Visibility == Visibility.Visible) <= 1)
-                {
-                    item.IsChecked = true;
-                    return;
-                }
-                c.Visibility = item.IsChecked ? Visibility.Visible : Visibility.Collapsed;
-                Vm.SetHiddenColumns(MessagesGrid.Columns.Where(x => x.Visibility != Visibility.Visible).Select(ColumnName));
-            };
-            menu.Items.Add(item);
-        }
-        menu.Items.Add(new Separator());
-        var all = new MenuItem { Header = "Alle Spalten anzeigen" };
-        all.Click += (_, _) =>
-        {
-            foreach (var c in MessagesGrid.Columns) c.Visibility = Visibility.Visible;
-            Vm.SetHiddenColumns([]);
-        };
-        menu.Items.Add(all);
-        return menu;
-    }
-
-    private void ColumnsButton_Click(object sender, RoutedEventArgs e)
-    {
-        var menu = BuildColumnMenu();
-        menu.PlacementTarget = ColumnsButton;
-        menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
-        menu.IsOpen = true;
-    }
-
-    /// <summary>Rechtsklick auf einen Spaltenkopf öffnet ebenfalls die Spaltenauswahl.</summary>
-    private void AttachColumnHeaderMenu()
-    {
-        var style = new Style(typeof(System.Windows.Controls.Primitives.DataGridColumnHeader));
-        style.Setters.Add(new EventSetter(MouseRightButtonUpEvent, new System.Windows.Input.MouseButtonEventHandler((s, e) =>
-        {
-            var menu = BuildColumnMenu();
-            menu.PlacementTarget = s as UIElement;
-            menu.Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint;
-            menu.IsOpen = true;
-            e.Handled = true;
-        })));
-        MessagesGrid.ColumnHeaderStyle = style;
-    }
-
     // --- Allgemeine SubRIC-Zuordnung -----------------------------------------
 
     private void GlobalSubRics_Click(object sender, RoutedEventArgs e)
@@ -270,12 +198,6 @@ public partial class MainWindow : Window
         }
         var dlg = new RicPickerDialog(Vm.Descriptions, Vm.SelectedRuleSingleRics) { Owner = this };
         if (dlg.ShowDialog() == true) Vm.SetRuleRics(dlg.SelectedRics);
-    }
-
-    private void CopyMessage_Click(object sender, RoutedEventArgs e)
-    {
-        if (Vm.SelectedMessage is { } m)
-            Clipboard.SetText($"{m.Timestamp:dd.MM.yyyy HH:mm:ss}\t{m.Ric}\t{m.SubRic}\t{m.Text}");
     }
 
     private void Placeholder_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)

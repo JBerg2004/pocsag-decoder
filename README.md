@@ -105,9 +105,11 @@ ric={ric}&subric={subric}&text={message}
 
 Im Reiter „RIC-Beschreibungen“ rechts neben der Suche: **SubRICs zuordnen…** – dort einmalig festlegen, was A, B, C und D bedeuten (z. B. A = Vollalarm, B = Kleinalarm). Das gilt für alle RICs und erscheint im Reiter Empfang in der Spalte „SubRIC-Bedeutung“. Weicht eine einzelne RIC ab, kann sie in der Tabelle eigene Texte für A–D bekommen.
 
-## Spalten im Reiter Empfang
+## Fenster im Reiter Empfang
 
-Über **Spalten ▾** (oder Rechtsklick auf einen Spaltenkopf) lassen sich Spalten ein- und ausblenden. Die Auswahl wird gespeichert.
+Der Reiter Empfang lässt sich in mehrere Fenster aufteilen. **+ Fenster** fügt ein weiteres hinzu, **✕** schließt es wieder, unter **Anordnung** wählt man Untereinander, Nebeneinander oder Raster (2 Spalten).
+
+Jedes Fenster hat einen eigenen Namen und eigene Filter: RIC (Teil oder Muster wie `12345*`), SubRIC, Bezeichnung/Ort (sucht in Bezeichnung, Kurzbezeichnung, Ort und SubRIC-Bedeutung; mehrere Begriffe mit `|` trennen), Text und „nur Regeltreffer“. Über **Spalten ▾** (oder Rechtsklick auf einen Spaltenkopf) blendet man Spalten je Fenster ein und aus. Fenster, Filter und Spalten werden automatisch gespeichert.
 
 ## RIC-Beschreibungen importieren
 

@@ -31,10 +31,6 @@ public sealed class MainViewModel : ObservableObject
     private FilterRule? _selectedRule;
     private WebhookTarget? _selectedTarget;
     private MessageItem? _selectedMessage;
-    private string _viewRic = string.Empty;
-    private string _viewSubRic = "Alle";
-    private string _viewText = string.Empty;
-    private bool _viewOnlyMatched;
     private string _ruleError = string.Empty;
     private string _targetTestResult = string.Empty;
     private string _simRic = "1234567";
@@ -63,8 +59,7 @@ public sealed class MainViewModel : ObservableObject
         _directory.SetGlobalSubRics(Settings.GlobalSubRics);
         RebuildDirectory();
 
-        MessagesView = CollectionViewSource.GetDefaultView(Messages);
-        MessagesView.Filter = o => o is MessageItem m && ViewFilter(m);
+        InitPanes();
 
         StartCommand = new RelayCommand(Start, () => !IsRunning);
         StopCommand = new RelayCommand(Stop, () => IsRunning);
@@ -99,7 +94,6 @@ public sealed class MainViewModel : ObservableObject
     public DecoderOptions Decoder => Settings.Decoder;
 
     public ObservableCollection<MessageItem> Messages { get; } = new();
-    public ICollectionView MessagesView { get; }
     public ObservableCollection<FilterRule> Rules { get; }
     public ObservableCollection<WebhookTarget> Targets { get; }
     public ObservableCollection<string> LogLines { get; } = new();
@@ -246,37 +240,79 @@ public sealed class MainViewModel : ObservableObject
         }
     }
 
-    // --- Anzeige-Filter ---------------------------------------------------
+    // --- Fenster im Reiter Empfang ----------------------------------------
 
-    public string ViewRic { get => _viewRic; set { if (Set(ref _viewRic, value)) RefreshView(); } }
-    public string ViewSubRic { get => _viewSubRic; set { if (Set(ref _viewSubRic, value)) RefreshView(); } }
-    public string ViewText { get => _viewText; set { if (Set(ref _viewText, value)) RefreshView(); } }
-    public bool ViewOnlyMatched { get => _viewOnlyMatched; set { if (Set(ref _viewOnlyMatched, value)) RefreshView(); } }
+    public ObservableCollection<MessagePane> Panes { get; } = new();
+    public RelayCommand AddPaneCommand { get; private set; } = null!;
+    public IReadOnlyList<string> PaneLayouts { get; } = ["Untereinander", "Nebeneinander", "Raster"];
 
-    public int VisibleCount => MessagesView.Cast<object>().Count();
-
-    private void RefreshView()
+    public string PaneLayout
     {
-        MessagesView.Refresh();
-        OnPropertyChanged(nameof(VisibleCount));
+        get => Settings.PaneLayout;
+        set
+        {
+            if (Settings.PaneLayout == value) return;
+            Settings.PaneLayout = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(PaneColumns));
+            RequestSave();
+        }
     }
 
-    private bool ViewFilter(MessageItem item)
+    /// <summary>Spalten für das UniformGrid der Fenster.</summary>
+    public int PaneColumns => PaneLayout switch
     {
-        if (ViewOnlyMatched && !item.Matched) return false;
-        if (ViewSubRic is "A" or "B" or "C" or "D" && item.Message.SubRic != ViewSubRic[0]) return false;
-        if (!string.IsNullOrWhiteSpace(ViewText)
-            && !item.Text.Contains(ViewText.Trim(), StringComparison.OrdinalIgnoreCase)
-            && !item.Description.Contains(ViewText.Trim(), StringComparison.OrdinalIgnoreCase)) return false;
-        if (!string.IsNullOrWhiteSpace(ViewRic))
+        "Nebeneinander" => Math.Max(1, Panes.Count),
+        "Raster" => Panes.Count <= 1 ? 1 : 2,
+        _ => 1,
+    };
+
+    private void InitPanes()
+    {
+        if (Settings.ReceivePanes.Count == 0)
+            Settings.ReceivePanes.Add(new ReceivePaneSettings { HiddenColumns = Settings.HiddenColumns.ToList() });
+        foreach (var p in Settings.ReceivePanes) Panes.Add(new MessagePane(this, p));
+        Panes.CollectionChanged += (_, _) =>
         {
-            // Teileingabe wie "12345" soll auch ohne * funktionieren.
-            var pattern = ViewRic.Trim();
-            if (!pattern.Contains('*') && !pattern.Contains('-') && !pattern.Contains(',') && !pattern.Contains('?'))
-                return item.Ric.Contains(pattern) || item.Message.Ric.ToString().Contains(pattern);
-            if (!RicPattern.TryParse(pattern, out var p, out _) || !p.IsMatch(item.Message.Ric)) return false;
+            OnPropertyChanged(nameof(PaneColumns));
+            System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+        };
+        AddPaneCommand = new RelayCommand(AddPane);
+    }
+
+    private void AddPane()
+    {
+        var s = new ReceivePaneSettings { Title = $"Fenster {Panes.Count + 1}", HiddenColumns = Panes.LastOrDefault()?.Settings.HiddenColumns.ToList() ?? new() };
+        Settings.ReceivePanes.Add(s);
+        Panes.Add(new MessagePane(this, s));
+        RequestSave();
+    }
+
+    public void RemovePane(MessagePane pane)
+    {
+        if (Panes.Count <= 1) return;
+        Panes.Remove(pane);
+        Settings.ReceivePanes.Remove(pane.Settings);
+        RequestSave();
+    }
+
+    private void RefreshPanes()
+    {
+        foreach (var p in Panes) p.Refresh();
+    }
+
+    private System.Windows.Threading.DispatcherTimer? _saveTimer;
+
+    /// <summary>Speichert kurz verzögert (z.B. während im Filterfeld getippt wird).</summary>
+    public void RequestSave()
+    {
+        if (_saveTimer is null)
+        {
+            _saveTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1.5) };
+            _saveTimer.Tick += (_, _) => { _saveTimer.Stop(); Save(quiet: true); };
         }
-        return true;
+        _saveTimer.Stop();
+        _saveTimer.Start();
     }
 
     // --- Decoder ----------------------------------------------------------
@@ -370,13 +406,12 @@ public sealed class MainViewModel : ObservableObject
     {
         _directory.Annotate(message);
         var item = new MessageItem(message);
+        // Regeln vor dem Einfügen prüfen, damit Fensterfilter wie „nur Regeltreffer“ die Zeile richtig einsortieren.
+        var hits = RuleEngine.Match(Rules, message);
+        item.Matched = hits.Count > 0;
         Messages.Insert(0, item);
         while (Messages.Count > Math.Max(100, Settings.MaxMessages)) Messages.RemoveAt(Messages.Count - 1);
         ReceivedCount++;
-        OnPropertyChanged(nameof(VisibleCount));
-
-        var hits = RuleEngine.Match(Rules, message);
-        item.Matched = hits.Count > 0;
         if (item.Matched) MessageMatched?.Invoke(this, item);
 
         if (hits.Count > 0 && _duplicates.IsDuplicate(message))
@@ -583,13 +618,6 @@ public sealed class MainViewModel : ObservableObject
         Save();
     }
 
-    /// <summary>Ausgeblendete Spalten im Reiter Empfang speichern.</summary>
-    public void SetHiddenColumns(IEnumerable<string> headers)
-    {
-        Settings.HiddenColumns = headers.ToList();
-        Save();
-    }
-
     private void RebuildDirectory()
     {
         _directory.Rebuild(Descriptions);
@@ -598,6 +626,7 @@ public sealed class MainViewModel : ObservableObject
             _directory.Annotate(item.Message);
             item.RefreshDescription();
         }
+        RefreshPanes();
         var subs = Descriptions.Sum(d => new[] { d.A, d.B, d.C, d.D }.Count(t => t.Length > 0));
         DescriptionStatus = $"{Descriptions.Count} RICs, {subs} SubRIC-Beschreibungen";
         OnPropertyChanged(nameof(SimDescription));
@@ -706,7 +735,9 @@ public sealed class MainViewModel : ObservableObject
         }
     }
 
-    private void Save()
+    private void Save() => Save(quiet: false);
+
+    private void Save(bool quiet)
     {
         Settings.Rules = Rules.ToList();
         Settings.Targets = Targets.ToList();
@@ -714,7 +745,7 @@ public sealed class MainViewModel : ObservableObject
         try
         {
             SettingsStore.Save(Settings);
-            AddLog("Einstellungen gespeichert: " + SettingsStore.DefaultPath);
+            if (!quiet) AddLog("Einstellungen gespeichert: " + SettingsStore.DefaultPath);
         }
         catch (Exception ex)
         {

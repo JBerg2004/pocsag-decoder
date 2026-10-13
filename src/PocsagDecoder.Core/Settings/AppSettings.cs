@@ -7,6 +7,21 @@ using PocsagDecoder.Core.Forwarding;
 
 namespace PocsagDecoder.Core.Settings;
 
+/// <summary>Ein Fenster im Reiter Empfang.</summary>
+public sealed class ReceivePaneSettings
+{
+    public string Title { get; set; } = "Alle Meldungen";
+    public string Ric { get; set; } = string.Empty;
+    public string SubRic { get; set; } = "Alle";
+    public string Text { get; set; } = string.Empty;
+
+    /// <summary>Sucht in Bezeichnung, Kurzbezeichnung, Ort und SubRIC-Bedeutung.</summary>
+    public string Description { get; set; } = string.Empty;
+
+    public bool OnlyMatched { get; set; }
+    public List<string> HiddenColumns { get; set; } = new();
+}
+
 public sealed class AppSettings
 {
     public DecoderOptions Decoder { get; set; } = new();
@@ -18,7 +33,13 @@ public sealed class AppSettings
     /// <summary>Allgemeine Bedeutung der SubRICs A, B, C, D für alle RICs.</summary>
     public List<string> GlobalSubRics { get; set; } = ["", "", "", ""];
 
-    /// <summary>Im Reiter Empfang ausgeblendete Spalten (Spaltenüberschriften).</summary>
+    /// <summary>Fenster im Reiter Empfang, jedes mit eigenem Filter und eigenen Spalten.</summary>
+    public List<ReceivePaneSettings> ReceivePanes { get; set; } = new();
+
+    /// <summary>Anordnung der Fenster: Untereinander, Nebeneinander oder Raster.</summary>
+    public string PaneLayout { get; set; } = "Untereinander";
+
+    /// <summary>Älteres Format (ein Fenster), wird in das erste Fenster übernommen.</summary>
     public List<string> HiddenColumns { get; set; } = new();
 
     /// <summary>Älteres Format, wird beim Laden in <see cref="RicEntries"/> übernommen.</summary>
