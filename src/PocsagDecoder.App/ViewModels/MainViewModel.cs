@@ -377,6 +377,7 @@ public sealed class MainViewModel : ObservableObject
 
         var hits = RuleEngine.Match(Rules, message);
         item.Matched = hits.Count > 0;
+        if (item.Matched) MessageMatched?.Invoke(this, item);
 
         if (hits.Count > 0 && _duplicates.IsDuplicate(message))
         {
@@ -470,6 +471,21 @@ public sealed class MainViewModel : ObservableObject
         Rules.Add(rule);
         SelectedRule = rule;
         RuleCreated?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>Eine empfangene Nachricht hat mindestens eine Regel getroffen.</summary>
+    public event EventHandler<MessageItem>? MessageMatched;
+
+    /// <summary>Mit Windows starten (Eintrag unter HKCU\...\Run, startet im Infobereich).</summary>
+    public bool StartWithWindows
+    {
+        get => WindowsAutostart.IsEnabled();
+        set
+        {
+            try { WindowsAutostart.Set(value); }
+            catch (Exception ex) { AddLog("Autostart konnte nicht geändert werden: " + ex.Message); }
+            OnPropertyChanged();
+        }
     }
 
     /// <summary>Damit die Oberfläche zum Regel-Reiter wechseln kann.</summary>

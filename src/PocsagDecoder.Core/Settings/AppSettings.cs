@@ -35,6 +35,18 @@ public sealed class AppSettings
 
     public bool AutoStart { get; set; }
 
+    /// <summary>Beim Minimieren nur noch als Symbol im Infobereich anzeigen.</summary>
+    public bool MinimizeToTray { get; set; } = true;
+
+    /// <summary>Schließen (X) blendet das Fenster nur aus, der Empfang läuft weiter.</summary>
+    public bool CloseToTray { get; set; } = true;
+
+    /// <summary>Beim Programmstart direkt im Infobereich starten.</summary>
+    public bool StartMinimized { get; set; }
+
+    /// <summary>Hinweis im Infobereich bei Regeltreffern, solange das Fenster ausgeblendet ist.</summary>
+    public bool TrayNotifications { get; set; } = true;
+
     /// <summary>SubRIC-Buchstaben klein (a–d) anzeigen und in {subric} senden.</summary>
     public bool LowercaseSubRic { get; set; }
 

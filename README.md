@@ -27,6 +27,7 @@ RTL-SDR-Stick → rtl_fm.exe → (Audio 22050 Hz) → multimon-ng.exe → POCSAG
 - **RIC-Beschreibungen**: zu jeder RIC eine Bezeichnung, eine kurze Bezeichnung (Spalte „Kurz“, Platzhalter `{ric_short}`), einen Ort (Spalte „Ort“, Platzhalter `{ric_location}`) und für SubRIC A, B, C, D je ein eigener Klartext („FF Musterstadt · Vollalarm“), der in der Liste angezeigt und mit `{description}` weitergeleitet wird. Import aus CSV/TXT (z. B. aus Excel), JSON oder direkt aus einer BOSWatch-3-Konfiguration (YAML, descriptor-Modul), Export und Vorlage im Reiter „RIC-Beschreibungen“
 - Reiter **Test**: Testnachricht einspeisen ohne SDR-Stick (zum Ausprobieren von Beschreibungen, Regeln und Webhooks)
 - Fehlerkorrektur einstellbar (Reiter Empfänger, multimon-ng `-b`, Standard 1): weniger Phantom-RICs als die multimon-Voreinstellung 2
+- **Hintergrundbetrieb**: Symbol im Infobereich (unten rechts), Schließen/Minimieren blendet nur aus, Hinweis bei Regeltreffern, optional Start mit Windows (`--minimized`), nur eine Instanz gleichzeitig
 - CSV-Tagesprotokoll unter `%APPDATA%\PocsagDecoder\logs`
 - Einstellungen unter `%APPDATA%\PocsagDecoder\settings.json`
 

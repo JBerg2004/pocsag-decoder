@@ -21,19 +21,76 @@ public partial class MainWindow : Window
             if (e.Action == NotifyCollectionChangedAction.Add && LogList.Items.Count > 0)
                 LogList.ScrollIntoView(LogList.Items[^1]);
         };
+        _tray = new TrayIcon(ShowFromTray, ToggleReceive, () => Vm.IsRunning, ExitApplication);
+        Vm.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(MainViewModel.StatusText)) _tray.SetStatus(Vm.StatusText);
+        };
+        Vm.MessageMatched += (_, item) =>
+        {
+            if (IsVisible || !Vm.Settings.TrayNotifications) return;
+            var head = $"RIC {item.Ric} {item.SubRic}" + (item.RicDescription.Length > 0 ? " – " + item.RicDescription : "");
+            _tray.ShowBalloon(head, item.Text);
+        };
+        StateChanged += (_, _) =>
+        {
+            if (WindowState == WindowState.Minimized && Vm.Settings.MinimizeToTray) Hide();
+        };
         Loaded += (_, _) =>
         {
             ApplyHiddenColumns();
             Vm.StartIfConfigured();
+            if (StartHidden || Vm.Settings.StartMinimized) Hide();
         };
         MessagesGrid.Loaded += (_, _) => AttachColumnHeaderMenu();
     }
 
     private MainViewModel Vm => (MainViewModel)DataContext;
 
+    private readonly TrayIcon _tray;
+    private bool _exitRequested;
+    private bool _hiddenHintShown;
+
+    /// <summary>Per Kommandozeile "--minimized": direkt im Infobereich starten.</summary>
+    public bool StartHidden { get; init; }
+
+    public void ShowFromTray()
+    {
+        Show();
+        if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
+        Activate();
+    }
+
+    private void ToggleReceive()
+    {
+        var cmd = Vm.IsRunning ? Vm.StopCommand : Vm.StartCommand;
+        if (cmd.CanExecute(null)) cmd.Execute(null);
+    }
+
+    /// <summary>Nächstes Schließen beendet das Programm wirklich (z.B. beim Herunterfahren).</summary>
+    public void AllowExit() => _exitRequested = true;
+
+    private void ExitApplication()
+    {
+        _exitRequested = true;
+        Close();
+    }
+
     protected override async void OnClosing(CancelEventArgs e)
     {
-        if (_closingHandled) return;
+        if (!_exitRequested && !_closingHandled && Vm.Settings.CloseToTray)
+        {
+            e.Cancel = true;
+            Hide();
+            if (!_hiddenHintShown)
+            {
+                _hiddenHintShown = true;
+                _tray.ShowBalloon("POCSAG Decoder läuft weiter",
+                    "Der Empfang läuft im Hintergrund. Öffnen per Klick auf das Symbol, Beenden per Rechtsklick → Beenden.");
+            }
+            return;
+        }
+        if (_closingHandled) { _tray.Dispose(); return; }
         e.Cancel = true;
         _closingHandled = true;
         await Task.Yield(); // Close() darf nicht während OnClosing aufgerufen werden

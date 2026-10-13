@@ -525,6 +525,14 @@
                         <CheckBox Content="Deutsche Umlaute umwandeln ( [ \ ] { | } ~  →  Ä Ö Ü ä ö ü ß )" IsChecked="{Binding Decoder.GermanUmlauts}" />
                         <CheckBox Content="Empfangene Nachrichten als CSV-Tagesdatei speichern" IsChecked="{Binding Settings.LogToCsv}" Margin="0,4,0,0" />
                         <CheckBox Content="Decoder beim Programmstart automatisch starten" IsChecked="{Binding Settings.AutoStart}" Margin="0,4,0,0" />
+
+                        <TextBlock Text="Hintergrundbetrieb" Style="{StaticResource FieldLabel}" />
+                        <CheckBox Content="Mit Windows starten (läuft dann im Hintergrund, Symbol unten rechts)" IsChecked="{Binding StartWithWindows}" />
+                        <CheckBox Content="Beim Schließen (X) im Hintergrund weiterlaufen" IsChecked="{Binding Settings.CloseToTray}" Margin="0,4,0,0" />
+                        <CheckBox Content="Beim Minimieren nur als Symbol unten rechts anzeigen" IsChecked="{Binding Settings.MinimizeToTray}" Margin="0,4,0,0" />
+                        <CheckBox Content="Programm immer im Hintergrund starten" IsChecked="{Binding Settings.StartMinimized}" Margin="0,4,0,0" />
+                        <CheckBox Content="Hinweis unten rechts bei Regeltreffern, solange das Fenster ausgeblendet ist" IsChecked="{Binding Settings.TrayNotifications}" Margin="0,4,0,0" />
+                        <TextBlock Style="{StaticResource Hint}" Text="Fenster wieder öffnen: Klick auf das Symbol unten rechts (ggf. unter dem Pfeil ^). Ganz beenden: Rechtsklick auf das Symbol → Beenden." />
                         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                             <Button Content="CSV-Ordner öffnen" Command="{Binding OpenLogFolderCommand}" />
                             <Button Content="💾 Einstellungen speichern" Command="{Binding SaveCommand}" />
