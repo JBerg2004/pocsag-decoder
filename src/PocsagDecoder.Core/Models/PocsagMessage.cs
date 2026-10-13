@@ -46,6 +46,9 @@ public sealed class PocsagMessage
     /// <summary>Kurze Bezeichnung der RIC.</summary>
     public string RicShortName { get; set; } = string.Empty;
 
+    /// <summary>BosMon-Benutzer der RIC (aus den RIC-Beschreibungen).</summary>
+    public string RicBosMonUser { get; set; } = string.Empty;
+
     /// <summary>Beschreibung der SubRIC allein.</summary>
     public string SubRicDescription { get; set; } = string.Empty;
 

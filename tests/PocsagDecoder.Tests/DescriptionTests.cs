@@ -199,4 +199,89 @@ public class DescriptionTests
         new RicDirectory(r.Entries).Annotate(m);
         Assert.Equal("Musterdorf", TemplateRenderer.Render("{ric_location}", m, "", TemplateEscaping.None));
     }
+
+    private const string BosMonEvents =
+        """
+        <section name="events">
+          <item name="items">3</item>
+          <section name="item0">
+            <item name="enabled">True</item>
+            <item name="description">1.0 FF Musterstadt</item>
+            <section name="filters">
+              <item name="items">1</item>
+              <section name="item0">
+                <item name="type">pocsag</item>
+                <item name="address">1234567</item>
+                <item name="function">*</item>
+              </section>
+            </section>
+            <section name="action0">
+              <item name="actionId">2</item>
+              <item name="networkHost">192.0.2.10</item>
+              <item name="networkUser">Musterstadt Staffel</item>
+              <item name="networkPort">5555</item>
+            </section>
+          </section>
+          <section name="item1">
+            <item name="enabled">False</item>
+            <item name="description">0.0 Test</item>
+            <section name="filters">
+              <section name="item0">
+                <item name="type">pocsag</item>
+                <item name="address">1234568</item>
+              </section>
+            </section>
+            <section name="action0">
+              <item name="actionId">2</item>
+              <item name="networkHost">127.0.0.1</item>
+              <item name="networkUser">Testeinheit</item>
+            </section>
+          </section>
+          <section name="item2">
+            <item name="enabled">True</item>
+            <item name="description">2.0 Beispieldorf</item>
+            <section name="filters">
+              <section name="item0">
+                <item name="type">pocsag</item>
+                <item name="address">0012345</item>
+              </section>
+            </section>
+          </section>
+        </section>
+        """;
+
+    [Fact]
+    public void ImportsBosMonEventUsers()
+    {
+        var r = RicDirectory.Parse(BosMonEvents);
+        Assert.Empty(r.Errors);
+        Assert.True(r.FillEmptyOnly);
+        Assert.Equal(2, r.Entries.Count);
+        var a = r.Entries.Single(e => e.Ric == 1234567);
+        Assert.Equal("Musterstadt Staffel", a.BosMonUser);
+        Assert.Equal("1.0 FF Musterstadt", a.Name);
+        Assert.Equal("", r.Entries.Single(e => e.Ric == 12345).BosMonUser);
+        Assert.DoesNotContain(r.Entries, e => e.Ric == 1234568); // deaktiviertes Testereignis
+    }
+
+    [Fact]
+    public void BosMonImportKeepsExistingNames()
+    {
+        var existing = new RicEntry { Ric = 1234567, Name = "FF Musterstadt" };
+        existing.FillEmptyFrom(RicDirectory.Parse(BosMonEvents).Entries.Single(e => e.Ric == 1234567));
+        Assert.Equal("FF Musterstadt", existing.Name);
+        Assert.Equal("Musterstadt Staffel", existing.BosMonUser);
+    }
+
+    [Fact]
+    public void BosMonUserColumnRoundTripsAndRenders()
+    {
+        var csv = RicDirectory.ToCsv([new RicEntry { Ric = 1234567, Name = "FF Musterstadt", BosMonUser = "Staffel 1" }]);
+        var back = RicDirectory.Parse(csv).Entries.Single();
+        Assert.Equal("Staffel 1", back.BosMonUser);
+        Assert.Equal("FF Musterstadt", back.Name);
+        var m = new PocsagMessage { Ric = 1234567, Function = 0 };
+        new RicDirectory([back]).Annotate(m);
+        Assert.Equal("Staffel 1", TemplateRenderer.Render("{bosmon_user}", m, "", TemplateEscaping.None));
+    }
 }

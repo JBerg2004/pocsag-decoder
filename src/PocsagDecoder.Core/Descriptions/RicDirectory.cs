@@ -5,7 +5,11 @@ using PocsagDecoder.Core.Models;
 
 namespace PocsagDecoder.Core.Descriptions;
 
-public sealed record ImportResult(IReadOnlyList<RicEntry> Entries, IReadOnlyList<string> Errors);
+public sealed record ImportResult(IReadOnlyList<RicEntry> Entries, IReadOnlyList<string> Errors)
+{
+    /// <summary>Nur leere Felder vorhandener Einträge füllen (z.B. BosMon-Ereignisse: Name nicht überschreiben).</summary>
+    public bool FillEmptyOnly { get; init; }
+}
 
 /// <summary>
 /// Nachschlagen von Beschreibungen zu RIC/SubRIC und Import aus Dateien.
@@ -51,6 +55,9 @@ public sealed partial class RicDirectory
 
     public string? GetRicLocation(int ric) =>
         _map.TryGetValue(ric, out var e) && !string.IsNullOrWhiteSpace(e.Location) ? e.Location.Trim() : null;
+
+    public string? GetRicBosMonUser(int ric) =>
+        _map.TryGetValue(ric, out var e) && !string.IsNullOrWhiteSpace(e.BosMonUser) ? e.BosMonUser.Trim() : null;
 
     public string? GetRicShortName(int ric) =>
         _map.TryGetValue(ric, out var e) && !string.IsNullOrWhiteSpace(e.ShortName) ? e.ShortName.Trim() : null;
@@ -114,6 +121,7 @@ public sealed partial class RicDirectory
     {
         content = content.TrimStart('﻿');
         if (content.TrimStart().StartsWith('[')) return ParseJson(content);
+        if (content.Contains("<section name=\"events\"", StringComparison.OrdinalIgnoreCase)) return ParseBosMonEvents(content);
         if (BosWatchFor().IsMatch(content) && BosWatchAdd().IsMatch(content)) return ParseBosWatch(content);
         return ParseText(content);
     }
@@ -150,7 +158,7 @@ public sealed partial class RicDirectory
     private static ImportResult ParseText(string content)
     {
         var col = new Collector();
-        int nameCol = -1, shortCol = -1, locCol = -1;
+        int nameCol = -1, shortCol = -1, locCol = -1, userCol = -1;
         int[]? subCols = null; // Spaltenindex für A..D aus der Kopfzeile
         var seenData = false;
         var lines = content.Replace("\r\n", "\n").Split('\n');
@@ -171,7 +179,7 @@ public sealed partial class RicDirectory
             // Kopfzeile: erste Spalte ohne Ziffer
             if (!parts[0].Any(char.IsDigit))
             {
-                if (!seenData && TryReadHeader(parts, out var n, out var k, out var o, out var s)) { nameCol = n; shortCol = k; locCol = o; subCols = s; }
+                if (!seenData && TryReadHeader(parts, out var n, out var k, out var o, out var u, out var s)) { nameCol = n; shortCol = k; locCol = o; userCol = u; subCols = s; }
                 else if (seenData) col.Errors.Add($"Zeile {i + 1}: \"{parts[0]}\" ist keine RIC");
                 continue;
             }
@@ -203,6 +211,7 @@ public sealed partial class RicDirectory
                     if (nameCol >= 0 && nameCol < parts.Length) entry.Name = parts[nameCol];
                     if (shortCol >= 0 && shortCol < parts.Length) entry.ShortName = parts[shortCol];
                     if (locCol >= 0 && locCol < parts.Length) entry.Location = parts[locCol];
+                    if (userCol >= 0 && userCol < parts.Length) entry.BosMonUser = parts[userCol];
                     for (var f = 0; f < 4; f++)
                         if (subCols[f] >= 0 && subCols[f] < parts.Length) entry.SetSub(f, parts[subCols[f]]);
                 }
@@ -239,8 +248,9 @@ public sealed partial class RicDirectory
         return col.Result();
     }
 
-    private static bool TryReadHeader(string[] parts, out int nameCol, out int shortCol, out int locCol, out int[] subCols)
+    private static bool TryReadHeader(string[] parts, out int nameCol, out int shortCol, out int locCol, out int userCol, out int[] subCols)
     {
+        userCol = -1;
         nameCol = -1;
         shortCol = -1;
         locCol = -1;
@@ -248,13 +258,14 @@ public sealed partial class RicDirectory
         for (var c = 1; c < parts.Length; c++)
         {
             var h = parts[c].ToUpperInvariant().Replace("SUBRIC", "").Replace("SUB-RIC", "").Replace("SUB", "").Trim(' ', '_', '-', ':');
-            if (shortCol < 0 && (h.Contains("KURZ") || h.Contains("SHORT"))) shortCol = c;
+            if (userCol < 0 && (h.Contains("BOSMON") || h.Contains("BENUTZER"))) userCol = c;
+            else if (shortCol < 0 && (h.Contains("KURZ") || h.Contains("SHORT"))) shortCol = c;
             else if (locCol < 0 && (h is "ORT" or "ORTSCHAFT" or "STANDORT" or "GEMEINDE" or "LOCATION")) locCol = c;
             else if (h.Length == 1 && h[0] is >= 'A' and <= 'D') subCols[h[0] - 'A'] = c;
             else if (h.Length == 1 && h[0] is >= '1' and <= '4') subCols[h[0] - '1'] = c;
             else if (nameCol < 0 && h.Length > 1) nameCol = c;
         }
-        return subCols.Any(x => x >= 0) || shortCol >= 0 || locCol >= 0;
+        return subCols.Any(x => x >= 0) || shortCol >= 0 || locCol >= 0 || userCol >= 0;
     }
 
     private static bool IsSubRic(string s)
@@ -322,6 +333,7 @@ public sealed partial class RicDirectory
                         Name = Str(el, "name") ?? Str(el, "bezeichnung") ?? string.Empty,
                         Location = Str(el, "location") ?? Str(el, "ort") ?? string.Empty,
                         ShortName = Str(el, "shortName") ?? Str(el, "kurz") ?? Str(el, "short") ?? string.Empty,
+                        BosMonUser = Str(el, "bosMonUser") ?? Str(el, "bosmon") ?? string.Empty,
                         A = Str(el, "a") ?? string.Empty,
                         B = Str(el, "b") ?? string.Empty,
                         C = Str(el, "c") ?? string.Empty,
@@ -362,13 +374,74 @@ public sealed partial class RicDirectory
             Get(el, name) is { ValueKind: JsonValueKind.String } v ? v.GetString() : null;
     }
 
+    /// <summary>
+    /// Liest die Ereignisse einer BosMon-Konfiguration (Abschnitt &lt;section name="events"&gt;):
+    /// je POCSAG-Filter die Adresse, als Bezeichnung die Ereignis-Beschreibung und als
+    /// BosMon-Benutzer den Benutzer der Netzwerk-Aktion. Deaktivierte Ereignisse und
+    /// Netzwerk-Aktionen an den eigenen Rechner (127.0.0.1/localhost) werden übersprungen.
+    /// </summary>
+    private static ImportResult ParseBosMonEvents(string content)
+    {
+        var col = new Collector();
+        System.Xml.Linq.XElement root;
+        try
+        {
+            var start = content.IndexOf("<section name=\"events\"", StringComparison.OrdinalIgnoreCase);
+            root = System.Xml.Linq.XElement.Parse("<root>" + content[start..] + "</root>");
+        }
+        catch (System.Xml.XmlException ex)
+        {
+            col.Errors.Add("BosMon-Datei nicht lesbar: " + ex.Message);
+            return col.Result() with { FillEmptyOnly = true };
+        }
+
+        var events = root.Elements("section").FirstOrDefault(e => (string?)e.Attribute("name") == "events");
+        foreach (var ev in events?.Elements("section") ?? [])
+        {
+            var name = Item(ev, "description").Trim();
+            if (!Item(ev, "enabled").Equals("True", StringComparison.OrdinalIgnoreCase)) continue;
+
+            var users = ev.Elements("section")
+                .Where(a => ((string?)a.Attribute("name") ?? "").StartsWith("action", StringComparison.Ordinal) && Item(a, "actionId") == "2")
+                .Where(a => Item(a, "networkHost").Trim() is not ("127.0.0.1" or "localhost" or "::1"))
+                .Select(a => Item(a, "networkUser").Trim())
+                .Where(u => u.Length > 0)
+                .Distinct()
+                .ToList();
+
+            var filters = ev.Elements("section").FirstOrDefault(s => (string?)s.Attribute("name") == "filters")?.Elements("section") ?? [];
+            foreach (var f in filters)
+            {
+                if (!Item(f, "type").Equals("pocsag", StringComparison.OrdinalIgnoreCase)) continue;
+                if (!int.TryParse(Item(f, "address").Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out var ric) || ric > 2097151)
+                {
+                    col.Errors.Add($"Ereignis \"{name}\": ungültige Adresse \"{Item(f, "address")}\"");
+                    continue;
+                }
+                var entry = col.Get(ric);
+                if (entry.Name.Length == 0) entry.Name = name;
+                if (users.Count > 0)
+                {
+                    var joined = string.Join(", ", users);
+                    if (entry.BosMonUser.Length > 0 && entry.BosMonUser != joined)
+                        col.Errors.Add($"RIC {ric:D7}: mehrere Benutzer ({entry.BosMonUser} / {joined}), erster wird verwendet");
+                    else entry.BosMonUser = joined;
+                }
+            }
+        }
+        return col.Result() with { FillEmptyOnly = true };
+
+        static string Item(System.Xml.Linq.XElement section, string name) =>
+            section.Elements("item").FirstOrDefault(i => (string?)i.Attribute("name") == name)?.Value ?? string.Empty;
+    }
+
     /// <summary>Exportiert im Spaltenformat (Semikolon, für Excel geeignet).</summary>
     public static string ToCsv(IEnumerable<RicEntry> entries)
     {
         var sb = new StringBuilder();
-        sb.AppendLine("RIC;Bezeichnung;Kurz;Ort;A;B;C;D");
+        sb.AppendLine("RIC;Bezeichnung;Kurz;Ort;A;B;C;D;BosMon-Benutzer");
         foreach (var e in entries.OrderBy(e => e.Ric))
-            sb.AppendLine(string.Join(';', e.RicFormatted, Clean(e.Name), Clean(e.ShortName), Clean(e.Location), Clean(e.A), Clean(e.B), Clean(e.C), Clean(e.D)));
+            sb.AppendLine(string.Join(';', e.RicFormatted, Clean(e.Name), Clean(e.ShortName), Clean(e.Location), Clean(e.A), Clean(e.B), Clean(e.C), Clean(e.D), Clean(e.BosMonUser)));
         return sb.ToString();
 
         static string Clean(string s) => s.Trim().Replace(";", ",");
@@ -395,6 +468,7 @@ public static class RicDirectoryExtensions
         message.RicDescription = directory.GetRicDescription(message.Ric) ?? string.Empty;
         message.RicShortName = directory.GetRicShortName(message.Ric) ?? string.Empty;
         message.RicLocation = directory.GetRicLocation(message.Ric) ?? string.Empty;
+        message.RicBosMonUser = directory.GetRicBosMonUser(message.Ric) ?? string.Empty;
         message.SubRicDescription = directory.GetSubRicDescription(message.Ric, message.Function) ?? string.Empty;
         message.Description = directory.Describe(message.Ric, message.Function);
     }

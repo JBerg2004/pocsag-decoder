@@ -144,7 +144,7 @@ public partial class MainWindow : Window
         var dlg = new OpenFileDialog
         {
             Title = "RIC-Beschreibungen importieren",
-            Filter = "RIC-Listen (*.csv;*.txt;*.json;*.yaml;*.yml)|*.csv;*.txt;*.json;*.yaml;*.yml|Alle Dateien (*.*)|*.*",
+            Filter = "RIC-Listen (*.csv;*.txt;*.json;*.yaml;*.yml;*.ini)|*.csv;*.txt;*.json;*.yaml;*.yml;*.ini|BosMon-Konfiguration (*.ini)|*.ini|Alle Dateien (*.*)|*.*",
         };
         if (dlg.ShowDialog() != true) return;
 

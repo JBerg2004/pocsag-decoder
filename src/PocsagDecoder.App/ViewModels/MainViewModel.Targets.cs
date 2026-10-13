@@ -66,6 +66,7 @@ public sealed partial class MainViewModel
         if (t.Kind == TargetKinds.BosMon && t.Port == 0) t.Port = 5566;
         if (t.Kind == TargetKinds.BosMon && t.TitleTemplate == WebhookTarget.DefaultTitleTemplate) t.TitleTemplate = "{rule}";
         if (t.Kind == TargetKinds.BosMon && t.TextTemplate == WebhookTarget.DefaultTextTemplate) t.TextTemplate = "{message}";
+        if (t.Kind == TargetKinds.BosMon && string.IsNullOrWhiteSpace(t.Recipient)) t.Recipient = "{bosmon_user}";
         if (t.Kind == TargetKinds.Database && string.IsNullOrWhiteSpace(t.FilePath)) t.FilePath = WebhookSender.DefaultDatabasePath;
         if (t.Kind == TargetKinds.Fe2 && string.IsNullOrWhiteSpace(t.Recipient)) t.Recipient = "{ric}{subric_upper}";
         if (t.Kind == TargetKinds.Fe2 && string.IsNullOrWhiteSpace(t.Sender)) t.Sender = "POCSAG Decoder";

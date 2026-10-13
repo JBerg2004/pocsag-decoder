@@ -191,7 +191,7 @@ public sealed class WebhookTarget : INotifyPropertyChanged
         TargetKinds.Pushover => "User- oder Gruppen-Key",
         TargetKinds.Email => "Empfänger (mehrere mit Komma)",
         TargetKinds.Divera => "Divera-RIC (optional, legt die alarmierten Gruppen fest)",
-        TargetKinds.BosMon => "Benutzer (wie in BosMon; bei FE2 der Einheiten-Code, z. B. „Staffel 1“; leer = Zuordnung über die RIC)",
+        TargetKinds.BosMon => "Benutzer (wie in BosMon; bei FE2 der Einheiten-Code, z. B. „Staffel 1“; {bosmon_user} = Spalte „BosMon-Benutzer“ der RIC; leer = Zuordnung über die RIC)",
         TargetKinds.Fe2 => "Einheiten (Code der Einheit in FE2, mehrere mit Komma; leer = Standard-Einheiten des Alarmeingangs)",
         _ => "Empfänger",
     };

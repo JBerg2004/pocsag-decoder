@@ -231,7 +231,7 @@
                             <TextBlock Style="{StaticResource Hint}" FontFamily="Consolas" FontSize="12"
                                        Text="RIC;Bezeichnung;Kurz;Ort;A;B;C;D&#10;1234567;FF Musterstadt;Musterst.;Musterstadt;Vollalarm;Kleinalarm;Probealarm;Info&#10;1234568;FF Beispieldorf;Beispield.;Beispieldorf;Einsatz;Atemschutz;;Sirene" />
                             <TextBlock Style="{StaticResource Hint}"
-                                       Text="Eine Zeile pro RIC, leere Felder sind erlaubt. Trennzeichen ; Tab , oder |. Die Spalten werden anhand der Kopfzeile erkannt (A–D bzw. 1–4), die Reihenfolge ist egal. Ältere Dateien mit einer Zeile pro SubRIC (RIC;SubRIC;Beschreibung) werden ebenfalls gelesen. Die Spalten A–D hier sind nur nötig, wenn eine RIC von der allgemeinen SubRIC-Zuordnung abweicht – sonst leer lassen. Doppelklick auf ein Feld zum Bearbeiten. Spalte „Kurz“ (oder „Bezeichnung kurz“) = kurze Bezeichnung, Spalte „Ort“ = Ort. In Webhooks: {description}, {ric_description}, {ric_short}, {ric_location}, {subric_description}." />
+                                       Text="Eine Zeile pro RIC, leere Felder sind erlaubt. Trennzeichen ; Tab , oder |. Die Spalten werden anhand der Kopfzeile erkannt (A–D bzw. 1–4), die Reihenfolge ist egal. Ältere Dateien mit einer Zeile pro SubRIC (RIC;SubRIC;Beschreibung) werden ebenfalls gelesen. Die Spalten A–D hier sind nur nötig, wenn eine RIC von der allgemeinen SubRIC-Zuordnung abweicht – sonst leer lassen. Doppelklick auf ein Feld zum Bearbeiten. Spalte „Kurz“ (oder „Bezeichnung kurz“) = kurze Bezeichnung, Spalte „Ort“ = Ort. In Webhooks: {description}, {ric_description}, {ric_short}, {ric_location}, {subric_description}, {bosmon_user}. Spalte „BosMon-Benutzer“ = Benutzer des BosMon-Netzwerkereignisses; eine BosMon-Konfiguration (.ini mit den Ereignissen) kann direkt importiert werden und füllt diese Spalte." />
                         </StackPanel>
                     </Border>
                     <DataGrid ItemsSource="{Binding DescriptionsView}" SelectedItem="{Binding SelectedDescription}"
@@ -243,6 +243,7 @@
                             <DataGridTextColumn Header="Bezeichnung (RIC)" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="1.3*" FontWeight="SemiBold" />
                             <DataGridTextColumn Header="Bezeichnung kurz" Binding="{Binding ShortName, UpdateSourceTrigger=PropertyChanged}" Width="*" />
                             <DataGridTextColumn Header="Ort" Binding="{Binding Location, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                            <DataGridTextColumn Header="BosMon-Benutzer" Binding="{Binding BosMonUser, UpdateSourceTrigger=PropertyChanged}" Width="*" />
                             <DataGridTextColumn Header="A (nur diese RIC)" Binding="{Binding A, UpdateSourceTrigger=PropertyChanged}" Width="*" />
                             <DataGridTextColumn Header="B (nur diese RIC)" Binding="{Binding B, UpdateSourceTrigger=PropertyChanged}" Width="*" />
                             <DataGridTextColumn Header="C (nur diese RIC)" Binding="{Binding C, UpdateSourceTrigger=PropertyChanged}" Width="*" />

@@ -725,7 +725,7 @@ public sealed partial class MainViewModel : ObservableObject
         var q = DescriptionSearch?.Trim();
         if (string.IsNullOrEmpty(q)) return true;
         return d.RicFormatted.Contains(q) || d.Ric.ToString().Contains(q)
-            || new[] { d.Name, d.ShortName, d.Location, d.A, d.B, d.C, d.D }.Any(t => t.Contains(q, StringComparison.OrdinalIgnoreCase));
+            || new[] { d.Name, d.ShortName, d.Location, d.BosMonUser, d.A, d.B, d.C, d.D }.Any(t => t.Contains(q, StringComparison.OrdinalIgnoreCase));
     }
 
     private void OnDescriptionChanged(object? sender, PropertyChangedEventArgs e) => RebuildDirectory();
@@ -830,7 +830,8 @@ public sealed partial class MainViewModel : ObservableObject
             else
             {
                 var before = RicDirectory.ToCsv([existing]);
-                existing.MergeFrom(e);
+                if (result.FillEmptyOnly) existing.FillEmptyFrom(e);
+                else existing.MergeFrom(e);
                 if (RicDirectory.ToCsv([existing]) != before) updated++;
             }
         }
