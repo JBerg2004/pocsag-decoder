@@ -172,6 +172,64 @@ public partial class MainWindow : Window
         if (dlg.ShowDialog() == true) MainViewModel.SaveDescriptionTemplate(dlg.FileName);
     }
 
+    // --- Menü „Fenster“ im Reiter Empfang -----------------------------------
+
+    private void PaneMenu_Click(object sender, RoutedEventArgs e)
+    {
+        var menu = BuildPaneMenu();
+        menu.PlacementTarget = PaneMenuButton;
+        menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+        menu.IsOpen = true;
+    }
+
+    private ContextMenu BuildPaneMenu()
+    {
+        var menu = new ContextMenu();
+        MenuItem Item(string header, Action action, bool enabled = true)
+        {
+            var item = new MenuItem { Header = header, IsEnabled = enabled };
+            item.Click += (_, _) => action();
+            return item;
+        }
+
+        var active = Vm.ActivePane;
+        var index = active is null ? -1 : Vm.Panes.IndexOf(active);
+
+        menu.Items.Add(Item("Hinzufügen", () => Vm.AddPaneCommand.Execute(null)));
+        var arrange = new MenuItem { Header = "Autom. Anordnen" };
+        foreach (var layout in Vm.PaneLayouts)
+        {
+            var l = layout;
+            var item = Item(l, () => Vm.PaneLayout = l);
+            item.IsChecked = Vm.PaneLayout == l;
+            arrange.Items.Add(item);
+        }
+        menu.Items.Add(arrange);
+        menu.Items.Add(Item("Konfigurieren…", () =>
+        {
+            if (Vm.ActivePane is { } p) new PaneConfigDialog(p) { Owner = this }.ShowDialog();
+        }, active is not null));
+        menu.Items.Add(Item("Nach vorne verschieben", () => Vm.MovePane(active!, index - 1), index > 0));
+        menu.Items.Add(Item("Nach hinten verschieben", () => Vm.MovePane(active!, index + 1), index >= 0 && index < Vm.Panes.Count - 1));
+        menu.Items.Add(Item("Leeren", () => active?.Clear(), active is not null));
+        menu.Items.Add(Item("Löschen", () =>
+        {
+            if (active is null) return;
+            if (MessageBox.Show(this, $"Fenster „{active.Title}“ löschen?", "Fenster löschen",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                Vm.RemovePane(active);
+        }, active is not null && Vm.Panes.Count > 1));
+        menu.Items.Add(new Separator());
+        for (var i = 0; i < Vm.Panes.Count; i++)
+        {
+            var p = Vm.Panes[i];
+            var item = Item($"{i + 1} {p.Title}", () => Vm.ActivePane = p);
+            item.IsChecked = p == active;
+            menu.Items.Add(item);
+        }
+        return menu;
+    }
+
     // --- Allgemeine SubRIC-Zuordnung -----------------------------------------
 
     private void GlobalSubRics_Click(object sender, RoutedEventArgs e)

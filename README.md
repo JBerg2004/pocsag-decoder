@@ -107,9 +107,18 @@ Im Reiter „RIC-Beschreibungen“ rechts neben der Suche: **SubRICs zuordnen…
 
 ## Fenster im Reiter Empfang
 
-Der Reiter Empfang lässt sich in mehrere Fenster aufteilen. **+ Fenster** fügt ein weiteres hinzu, **✕** schließt es wieder, unter **Anordnung** wählt man Untereinander, Nebeneinander oder Raster (2 Spalten).
+Der Reiter Empfang lässt sich in mehrere Fenster aufteilen. Jedes Fenster hat nur eine schmale Titelleiste mit seinem Namen. Ein Klick hinein wählt es aus (blau umrandet).
 
-Jedes Fenster hat einen eigenen Namen und eigene Filter: Ereignis (alle Telegramme oder nur die, die zu einem Telegrammereignis passen), RIC (Teil oder Muster wie `12345*`), SubRIC, Bezeichnung/Ort (sucht in Bezeichnung, Kurzbezeichnung, Ort und SubRIC-Bedeutung; mehrere Begriffe mit `|` trennen), Text und „nur Ereignistreffer“. Per Rechtsklick auf einen Spaltenkopf blendet man Spalten je Fenster ein und aus. Fenster, Filter und Spalten werden automatisch gespeichert.
+Neben **Liste leeren** steht das Menü **Fenster ▾**:
+- **Hinzufügen** – neues Fenster
+- **Autom. Anordnen** – Untereinander, Nebeneinander oder Raster (2 Spalten)
+- **Konfigurieren…** – Name, Filter und Spalten des ausgewählten Fensters (auch per Doppelklick auf die Titelleiste)
+- **Nach vorne / Nach hinten verschieben** – Reihenfolge ändern; alternativ die Titelleiste auf ein anderes Fenster ziehen
+- **Leeren** – nur dieses Fenster leeren
+- **Löschen** – Fenster entfernen
+- darunter die Liste aller Fenster zum Auswählen
+
+Filter je Fenster: Ereignis (alle Telegramme oder nur die, die zu einem Telegrammereignis passen), RIC (Teil oder Muster wie `12345*`), SubRIC, Bezeichnung/Ort (sucht in Bezeichnung, Kurzbezeichnung, Ort und SubRIC-Bedeutung; mehrere Begriffe mit `|`), Text und „nur Ereignistreffer“. Spalten lassen sich im Dialog oder per Rechtsklick auf einen Spaltenkopf ein- und ausblenden. Alles wird automatisch gespeichert.
 
 ## RIC-Beschreibungen importieren
 

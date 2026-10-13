@@ -244,6 +244,35 @@ public sealed class MainViewModel : ObservableObject
 
     public ObservableCollection<MessagePane> Panes { get; } = new();
     public RelayCommand AddPaneCommand { get; private set; } = null!;
+
+    private MessagePane? _activePane;
+
+    /// <summary>Ausgewähltes Fenster (Klick hinein); darauf wirkt das Menü „Fenster“.</summary>
+    public MessagePane? ActivePane
+    {
+        get => _activePane;
+        set
+        {
+            if (value is null || _activePane == value) return;
+            if (_activePane is not null) _activePane.IsActive = false;
+            _activePane = value;
+            _activePane.IsActive = true;
+            OnPropertyChanged();
+        }
+    }
+
+    /// <summary>Fenster an eine andere Stelle verschieben (Reihenfolge wird gespeichert).</summary>
+    public void MovePane(MessagePane pane, int newIndex)
+    {
+        var old = Panes.IndexOf(pane);
+        if (old < 0) return;
+        newIndex = Math.Clamp(newIndex, 0, Panes.Count - 1);
+        if (old == newIndex) return;
+        Panes.Move(old, newIndex);
+        Settings.ReceivePanes.Remove(pane.Settings);
+        Settings.ReceivePanes.Insert(newIndex, pane.Settings);
+        RequestSave();
+    }
     public IReadOnlyList<string> PaneLayouts { get; } = ["Untereinander", "Nebeneinander", "Raster"];
 
     public string PaneLayout
@@ -328,6 +357,7 @@ public sealed class MainViewModel : ObservableObject
             System.Windows.Input.CommandManager.InvalidateRequerySuggested();
         };
         AddPaneCommand = new RelayCommand(AddPane);
+        ActivePane = Panes.FirstOrDefault();
         TrackRules();
     }
 
@@ -335,15 +365,23 @@ public sealed class MainViewModel : ObservableObject
     {
         var s = new ReceivePaneSettings { Title = $"Fenster {Panes.Count + 1}", HiddenColumns = Panes.LastOrDefault()?.Settings.HiddenColumns.ToList() ?? new() };
         Settings.ReceivePanes.Add(s);
-        Panes.Add(new MessagePane(this, s));
+        var pane = new MessagePane(this, s);
+        Panes.Add(pane);
+        ActivePane = pane;
         RequestSave();
     }
 
     public void RemovePane(MessagePane pane)
     {
         if (Panes.Count <= 1) return;
+        var index = Panes.IndexOf(pane);
         Panes.Remove(pane);
         Settings.ReceivePanes.Remove(pane.Settings);
+        if (pane == _activePane)
+        {
+            _activePane = null;
+            ActivePane = Panes[Math.Min(index, Panes.Count - 1)];
+        }
         RequestSave();
     }
 

@@ -12,8 +12,57 @@ public partial class MessagePaneView : UserControl
     public MessagePaneView()
     {
         InitializeComponent();
-        DataContextChanged += (_, _) => ApplyHiddenColumns();
+        DataContextChanged += (_, e) =>
+        {
+            if (e.OldValue is MessagePane old) old.ColumnsChanged -= OnColumnsChanged;
+            if (e.NewValue is MessagePane pane) pane.ColumnsChanged += OnColumnsChanged;
+            ApplyHiddenColumns();
+        };
         Grid.Loaded += (_, _) => AttachColumnHeaderMenu();
+        // Klick irgendwo ins Fenster wählt es aus.
+        PreviewMouseDown += (_, _) => { if (Pane is { } p) p.Main.ActivePane = p; };
+    }
+
+    private void OnColumnsChanged(object? sender, EventArgs e) => ApplyHiddenColumns();
+
+    // --- Titelleiste: Doppelklick konfiguriert, Ziehen vertauscht -------------
+
+    private Point _dragStart;
+
+    private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _dragStart = e.GetPosition(this);
+        if (e.ClickCount == 2) OpenConfiguration();
+    }
+
+    private void TitleBar_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed || Pane is null) return;
+        var d = e.GetPosition(this) - _dragStart;
+        if (Math.Abs(d.X) < SystemParameters.MinimumHorizontalDragDistance
+            && Math.Abs(d.Y) < SystemParameters.MinimumVerticalDragDistance) return;
+        DragDrop.DoDragDrop(TitleBar, new DataObject(typeof(MessagePane), Pane), DragDropEffects.Move);
+    }
+
+    private void Pane_DragOver(object sender, DragEventArgs e)
+    {
+        e.Effects = e.Data.GetData(typeof(MessagePane)) is MessagePane src && src != Pane ? DragDropEffects.Move : DragDropEffects.None;
+        e.Handled = true;
+    }
+
+    private void Pane_Drop(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetData(typeof(MessagePane)) is not MessagePane src || Pane is not { } target || src == target) return;
+        target.Main.MovePane(src, target.Main.Panes.IndexOf(target));
+        target.Main.ActivePane = src;
+    }
+
+    private void Configure_Click(object sender, RoutedEventArgs e) => OpenConfiguration();
+
+    public void OpenConfiguration()
+    {
+        if (Pane is null) return;
+        new PaneConfigDialog(Pane) { Owner = Window.GetWindow(this) }.ShowDialog();
     }
 
     private MessagePane? Pane => DataContext as MessagePane;

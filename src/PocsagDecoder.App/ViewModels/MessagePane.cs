@@ -11,6 +11,37 @@ public sealed class MessagePane : ObservableObject
 {
     private readonly MainViewModel _main;
     private MessageItem? _selected;
+    private bool _isActive;
+    private DateTime? _clearedAt;
+
+    /// <summary>Spaltenköpfe der Tabelle (gleiche Texte wie in MessagePaneView.xaml).</summary>
+    public static IReadOnlyList<string> ColumnNames { get; } =
+        ["Zeit", "RIC", "SubRIC", "Bezeichnung", "Ort", "Bezeichnung kurz", "SubRIC-Bedeutung", "Fkt.", "Baud", "Typ", "Text", "Verarbeitung"];
+
+    /// <summary>Spaltenauswahl wurde geändert (z.B. im Dialog „Konfigurieren“).</summary>
+    public event EventHandler? ColumnsChanged;
+
+    /// <summary>Dieses Fenster ist ausgewählt (Menü „Fenster“ bezieht sich darauf).</summary>
+    public bool IsActive { get => _isActive; set => Set(ref _isActive, value); }
+
+    /// <summary>Nur dieses Fenster leeren: ältere Meldungen werden hier ausgeblendet.</summary>
+    public void Clear()
+    {
+        _clearedAt = DateTime.Now;
+        Refresh();
+    }
+
+    public bool IsColumnVisible(string name) => !Settings.HiddenColumns.Contains(name);
+
+    public void SetColumnVisible(string name, bool visible)
+    {
+        var hidden = Settings.HiddenColumns.Where(h => h != name).ToList();
+        if (!visible) hidden.Add(name);
+        if (hidden.Count >= ColumnNames.Count) return; // mindestens eine Spalte bleibt sichtbar
+        Settings.HiddenColumns = hidden;
+        ColumnsChanged?.Invoke(this, EventArgs.Empty);
+        _main.RequestSave();
+    }
 
     public MessagePane(MainViewModel main, ReceivePaneSettings settings)
     {
@@ -97,6 +128,7 @@ public sealed class MessagePane : ObservableObject
 
     private bool Matches(MessageItem item)
     {
+        if (_clearedAt is { } cleared && item.Timestamp < cleared) return false;
         if (OnlyMatched && !item.Matched) return false;
         if (Settings.Event.Length > 0)
         {

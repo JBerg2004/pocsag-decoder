@@ -56,11 +56,10 @@
             <TabItem Header="Empfang">
                 <DockPanel Margin="6">
                     <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,4">
-                        <Button Content="+ Fenster" Command="{Binding AddPaneCommand}"
-                                ToolTip="Weiteres Empfangsfenster mit eigenem Filter und eigenen Spalten hinzufügen" />
-                        <TextBlock Text="Anordnung:" VerticalAlignment="Center" Margin="12,0,4,0" />
-                        <ComboBox Width="130" ItemsSource="{Binding PaneLayouts}" SelectedItem="{Binding PaneLayout}" />
-                        <Button Content="Liste leeren" Command="{Binding ClearMessagesCommand}" Margin="16,0,6,0" />
+                        <Button Content="Liste leeren" Command="{Binding ClearMessagesCommand}"
+                                ToolTip="Alle empfangenen Meldungen aus allen Fenstern entfernen" />
+                        <Button x:Name="PaneMenuButton" Content="Fenster ▾" Click="PaneMenu_Click"
+                                ToolTip="Fenster hinzufügen, anordnen, konfigurieren, verschieben oder löschen" />
                     </WrapPanel>
                     <ItemsControl ItemsSource="{Binding Panes}">
                         <ItemsControl.ItemsPanel>
