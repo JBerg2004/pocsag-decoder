@@ -471,7 +471,7 @@ public sealed class MainViewModel : ObservableObject
             return;
         }
         if (!Confirm($"Testnachricht für RIC {ric:D7} {SimSubRic} wirklich einspeisen?\n\n"
-                     + "Sie läuft durch die Telegrammereignisse und wird an alle passenden Verarbeitungen gesendet (z. B. Home Assistant)."))
+                     + "Sie läuft durch die Telegrammereignisse und wird an alle passenden Schnittstellen gesendet (z. B. Home Assistant)."))
             return;
         PocsagMessage.TryParseSubRic(SimSubRic, out var func);
         OnMessage(new PocsagMessage
@@ -569,7 +569,7 @@ public sealed class MainViewModel : ObservableObject
         item.Forwarding = item.Forwarding.Replace($"{target.Name}: sende…", text);
         if (result.Success) ForwardedCount++;
         else item.HasError = true;
-        AddLog($"Verarbeitung RIC {item.Ric}{item.SubRic} via \"{rule.Name}\" an {target.Name}: {result.Detail} (Versuche: {result.Attempts})");
+        AddLog($"Senden RIC {item.Ric}{item.SubRic} via \"{rule.Name}\" an {target.Name}: {result.Detail} (Versuche: {result.Attempts})");
     }
 
     private void WriteCsv(MessageItem item)

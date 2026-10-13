@@ -11,6 +11,17 @@
             <Setter Property="Padding" Value="3,2" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
+        <Style TargetType="GroupBox">
+            <Setter Property="Padding" Value="8,6" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+            <Setter Property="HeaderTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" FontWeight="SemiBold" Foreground="#1A4D8F" />
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style x:Key="FieldLabel" TargetType="TextBlock">
             <Setter Property="Margin" Value="0,8,0,2" />
             <Setter Property="FontWeight" Value="SemiBold" />

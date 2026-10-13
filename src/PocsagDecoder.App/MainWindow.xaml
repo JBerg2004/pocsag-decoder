@@ -98,7 +98,7 @@
                             <TextBlock Text="Sekunden (0 = aus)" VerticalAlignment="Center" />
                         </StackPanel>
                         <TextBlock DockPanel.Dock="Bottom" Style="{StaticResource Hint}" Margin="0,6,0,0"
-                                   Text="Die Telegrammereignisse werden von oben nach unten geprüft. Jedes passende Ereignis wird an seine Verarbeitungen gesendet. Mit „Danach stoppen“ werden die folgenden Ereignisse übersprungen. Tipp: Rechtsklick auf eine empfangene Nachricht → „Telegrammereignis aus dieser Nachricht erstellen“." />
+                                   Text="Die Telegrammereignisse werden von oben nach unten geprüft. Jedes passende Ereignis wird an seine Schnittstellen gesendet. Mit „Danach stoppen“ werden die folgenden Ereignisse übersprungen. Tipp: Rechtsklick auf eine empfangene Nachricht → „Telegrammereignis aus dieser Nachricht erstellen“." />
                         <DataGrid ItemsSource="{Binding Rules}" SelectedItem="{Binding SelectedRule}" AutoGenerateColumns="False"
                                   CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column" SelectionMode="Single"
                                   GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#EEE">
@@ -246,7 +246,7 @@
             </TabItem>
 
             <!-- ============================ ZIELE ============================ -->
-            <TabItem Header="Verarbeitung">
+            <TabItem Header="Schnittstellen">
                 <Grid Margin="6">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="220" />
@@ -337,7 +337,7 @@
                                 <TextBlock VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="400"
                                            Text="{Binding DataContext.TargetTestResult, RelativeSource={RelativeSource AncestorType=Window}}" />
                             </StackPanel>
-                            <TextBlock Style="{StaticResource Hint}" Text="Verwendet RIC, SubRIC und Text der Testnachricht im Reiter Funkempfang." />
+                            <TextBlock Style="{StaticResource Hint}" Text="Verwendet RIC, SubRIC und Text der Testnachricht im Reiter Einstellungen." />
                         </StackPanel>
                     </ScrollViewer>
 
@@ -357,150 +357,196 @@
             </TabItem>
 
             <!-- ============================ EMPFÄNGER ============================ -->
-            <TabItem Header="Funkempfang">
+            <TabItem Header="Einstellungen">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="10" MaxWidth="760" HorizontalAlignment="Left">
-                    <StackPanel IsEnabled="{Binding IsRunning, Converter={StaticResource Not}}">
-                        <TextBlock Style="{StaticResource Hint}" FontSize="12" Margin="0,0,0,6"
-                                   Text="Änderungen werden beim nächsten Start übernommen. Der Decoder muss dafür gestoppt sein." />
+                    <Grid Margin="10" MaxWidth="1250" HorizontalAlignment="Left">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" MinWidth="420" />
+                            <ColumnDefinition Width="14" />
+                            <ColumnDefinition Width="*" MinWidth="380" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
 
-                        <TextBlock Text="Quelle" Style="{StaticResource FieldLabel}" />
-                        <RadioButton Content="RTL-SDR-Stick (rtl__fm → multimon-ng)" GroupName="mode"
-                                     IsChecked="{Binding Decoder.Mode, Converter={StaticResource EnumEquals}, ConverterParameter=RtlSdr}" />
-                        <RadioButton Content="Eigener Befehl (Ausgabe im multimon-ng-Format)" GroupName="mode" Margin="0,4,0,0"
-                                     IsChecked="{Binding Decoder.Mode, Converter={StaticResource EnumEquals}, ConverterParameter=CustomCommand}" />
+                        <!-- Hinweis, solange der Empfang läuft -->
+                        <Border Grid.ColumnSpan="3" Background="#FFF4CE" BorderBrush="#E6C65C" BorderThickness="1" Padding="8,5" Margin="0,0,0,10"
+                                Visibility="{Binding IsRunning, Converter={StaticResource BoolToVis}}">
+                            <TextBlock TextWrapping="Wrap"
+                                       Text="Der Empfang läuft. Die Empfangseinstellungen links lassen sich erst nach „■ Stopp“ ändern. Alles rechts geht jederzeit." />
+                        </Border>
 
-                        <TextBlock Text="Pfad zu rtl_fm.exe" Style="{StaticResource FieldLabel}" />
-                        <DockPanel>
-                            <Button DockPanel.Dock="Right" Content="…" MinWidth="30" Margin="6,0,0,0" Click="BrowseRtlFm_Click" />
-                            <TextBox Text="{Binding Decoder.RtlFmPath}" />
-                        </DockPanel>
+                        <!-- ===== Links: alles, was den Empfang selbst betrifft ===== -->
+                        <StackPanel Grid.Row="1" IsEnabled="{Binding IsRunning, Converter={StaticResource Not}}">
+                            <GroupBox Header="Empfangsquelle">
+                                <StackPanel>
+                                    <RadioButton Content="RTL-SDR-Stick (rtl__fm → multimon-ng)" GroupName="mode"
+                                                 IsChecked="{Binding Decoder.Mode, Converter={StaticResource EnumEquals}, ConverterParameter=RtlSdr}" />
+                                    <RadioButton Content="Eigener Befehl (Ausgabe im multimon-ng-Format)" GroupName="mode" Margin="0,4,0,0"
+                                                 IsChecked="{Binding Decoder.Mode, Converter={StaticResource EnumEquals}, ConverterParameter=CustomCommand}" />
 
-                        <TextBlock Text="Pfad zu multimon-ng.exe" Style="{StaticResource FieldLabel}" />
-                        <DockPanel>
-                            <Button DockPanel.Dock="Right" Content="…" MinWidth="30" Margin="6,0,0,0" Click="BrowseMultimon_Click" />
-                            <TextBox Text="{Binding Decoder.MultimonPath}" />
-                        </DockPanel>
+                                    <TextBlock Text="Pfad zu rtl_fm.exe" Style="{StaticResource FieldLabel}" />
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right" Content="…" MinWidth="30" Margin="6,0,0,0" Click="BrowseRtlFm_Click" />
+                                        <TextBox Text="{Binding Decoder.RtlFmPath}" />
+                                    </DockPanel>
+                                    <TextBlock Text="Pfad zu multimon-ng.exe" Style="{StaticResource FieldLabel}" />
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right" Content="…" MinWidth="30" Margin="6,0,0,0" Click="BrowseMultimon_Click" />
+                                        <TextBox Text="{Binding Decoder.MultimonPath}" />
+                                    </DockPanel>
+                                </StackPanel>
+                            </GroupBox>
 
-                        <Grid Margin="0,8,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="12" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="12" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="12" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="12" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <StackPanel>
-                                <TextBlock Text="Frequenz (MHz)" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding Decoder.FrequencyMHz, Converter={StaticResource Double}}" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="2">
-                                <TextBlock Text="Gain (dB)" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding Decoder.GainDb, Converter={StaticResource Double}, TargetNullValue=''}"
-                                         ToolTip="Leer = automatische Verstärkung" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="4">
-                                <TextBlock Text="Korrektur (ppm)" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding Decoder.Ppm}" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="6">
-                                <TextBlock Text="Squelch" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding Decoder.Squelch}" ToolTip="0 = aus (empfohlen für POCSAG)" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="8">
-                                <TextBlock Text="Stick-Nr." Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding Decoder.DeviceIndex}" ToolTip="0 = erster Stick" />
-                            </StackPanel>
-                        </Grid>
-                        <TextBlock Style="{StaticResource Hint}"
-                                   Text="Gain leer lassen für automatische Verstärkung. Die ppm-Korrektur des Sticks lässt sich z.B. mit rtl_test -p oder kalibrate ermitteln." />
+                            <GroupBox Header="SDR-Stick">
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="10" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="10" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="10" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="10" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="Frequenz (MHz)" Style="{StaticResource FieldLabel}" Margin="0,0,0,2" />
+                                            <TextBox Text="{Binding Decoder.FrequencyMHz, Converter={StaticResource Double}}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Gain (dB)" Style="{StaticResource FieldLabel}" Margin="0,0,0,2" />
+                                            <TextBox Text="{Binding Decoder.GainDb, Converter={StaticResource Double}, TargetNullValue=''}"
+                                                     ToolTip="Leer = automatische Verstärkung" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="4">
+                                            <TextBlock Text="Korrektur (ppm)" Style="{StaticResource FieldLabel}" Margin="0,0,0,2" />
+                                            <TextBox Text="{Binding Decoder.Ppm}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="6">
+                                            <TextBlock Text="Squelch" Style="{StaticResource FieldLabel}" Margin="0,0,0,2" />
+                                            <TextBox Text="{Binding Decoder.Squelch}" ToolTip="0 = aus (empfohlen für POCSAG)" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="8">
+                                            <TextBlock Text="Stick-Nr." Style="{StaticResource FieldLabel}" Margin="0,0,0,2" />
+                                            <TextBox Text="{Binding Decoder.DeviceIndex}" ToolTip="0 = erster Stick" />
+                                        </StackPanel>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource Hint}" Margin="0,6,0,0"
+                                               Text="Gain leer lassen für automatische Verstärkung. Die ppm-Korrektur des Sticks lässt sich z.B. mit rtl_test -p oder kalibrate ermitteln." />
+                                </StackPanel>
+                            </GroupBox>
 
-                        <TextBlock Text="Baudraten" Style="{StaticResource FieldLabel}" />
-                        <StackPanel Orientation="Horizontal">
-                            <CheckBox Content="POCSAG 512" IsChecked="{Binding Decoder.Pocsag512}" Margin="0,0,14,0" />
-                            <CheckBox Content="POCSAG 1200" IsChecked="{Binding Decoder.Pocsag1200}" Margin="0,0,14,0" />
-                            <CheckBox Content="POCSAG 2400" IsChecked="{Binding Decoder.Pocsag2400}" />
+                            <GroupBox Header="Decodierung (multimon-ng)">
+                                <StackPanel>
+                                    <TextBlock Text="Baudraten" Style="{StaticResource FieldLabel}" Margin="0,0,0,2" />
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox Content="POCSAG 512" IsChecked="{Binding Decoder.Pocsag512}" Margin="0,0,14,0" />
+                                        <CheckBox Content="POCSAG 1200" IsChecked="{Binding Decoder.Pocsag1200}" Margin="0,0,14,0" />
+                                        <CheckBox Content="POCSAG 2400" IsChecked="{Binding Decoder.Pocsag2400}" />
+                                    </StackPanel>
+                                    <Grid Margin="0,4,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="14" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="Dekodierung (-f)" Style="{StaticResource FieldLabel}" />
+                                            <ComboBox ItemsSource="{Binding DecodeModes}" SelectedItem="{Binding Decoder.DecodeMode}" />
+                                            <TextBlock Style="{StaticResource Hint}" Text="alpha ist für BOS/Feuerwehr üblich." />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Fehlerkorrektur (-b)" Style="{StaticResource FieldLabel}" />
+                                            <ComboBox ItemsSource="{Binding ErrorCorrectionLevels}" SelectedItem="{Binding Decoder.ErrorCorrection}" />
+                                            <TextBlock Style="{StaticResource Hint}" Text="1 = empfohlen. 2 holt mehr heraus, erzeugt aber gelegentlich falsche RICs. 0 = nur fehlerfreie." />
+                                        </StackPanel>
+                                    </Grid>
+                                    <CheckBox Content="Unwahrscheinliche Meldungen aussortieren (-u)" IsChecked="{Binding Decoder.HeuristicPruning}" Margin="0,8,0,0" />
+                                    <CheckBox Content="Deutsche Umlaute umwandeln ( [ \ ] { | } ~  →  Ä Ö Ü ä ö ü ß )" IsChecked="{Binding Decoder.GermanUmlauts}" Margin="0,4,0,0" />
+                                </StackPanel>
+                            </GroupBox>
+
+                            <Expander Header="Erweitert (zusätzliche Parameter, eigener Befehl)" Margin="0,0,0,10">
+                                <StackPanel Margin="4,4,0,0">
+                                    <TextBlock Text="Zusätzliche Parameter rtl_fm" Style="{StaticResource FieldLabel}" />
+                                    <TextBox Text="{Binding Decoder.RtlFmExtraArgs}" FontFamily="Consolas" />
+                                    <TextBlock Text="Zusätzliche Parameter multimon-ng" Style="{StaticResource FieldLabel}" />
+                                    <TextBox Text="{Binding Decoder.MultimonExtraArgs}" FontFamily="Consolas" />
+                                    <TextBlock Text="Eigener Befehl (wird mit cmd.exe /c ausgeführt)" Style="{StaticResource FieldLabel}" />
+                                    <TextBox Text="{Binding Decoder.CustomCommand}" FontFamily="Consolas" TextWrapping="Wrap" Height="50" VerticalContentAlignment="Top" />
+                                    <TextBlock Style="{StaticResource Hint}"
+                                               Text="Nur für die Quelle „Eigener Befehl“, z.B. multimon-ng mit Audioeingang einer anderen SDR-Software (virtuelles Audiokabel)." />
+                                </StackPanel>
+                            </Expander>
                         </StackPanel>
 
-                        <TextBlock Text="Dekodierung (multimon-ng -f)" Style="{StaticResource FieldLabel}" />
-                        <ComboBox Width="150" HorizontalAlignment="Left" IsEditable="False"
-                                  ItemsSource="{Binding DecodeModes}" SelectedItem="{Binding Decoder.DecodeMode}" />
-                        <TextBlock Style="{StaticResource Hint}" Text="alpha ist für BOS/Feuerwehr üblich. auto lässt multimon-ng zwischen Text und Ziffern wählen." />
+                        <!-- ===== Rechts: Programm und Test, jederzeit änderbar ===== -->
+                        <StackPanel Grid.Row="1" Grid.Column="2">
+                            <GroupBox Header="Programmstart und Hintergrund">
+                                <StackPanel>
+                                    <CheckBox Content="Empfang beim Programmstart automatisch starten" IsChecked="{Binding Settings.AutoStart}" />
+                                    <CheckBox Content="Mit Windows starten (läuft dann im Hintergrund)" IsChecked="{Binding StartWithWindows}" Margin="0,4,0,0" />
+                                    <CheckBox Content="Programm immer im Hintergrund starten" IsChecked="{Binding Settings.StartMinimized}" Margin="0,4,0,0" />
+                                    <CheckBox Content="Beim Schließen (X) im Hintergrund weiterlaufen" IsChecked="{Binding Settings.CloseToTray}" Margin="0,4,0,0" />
+                                    <CheckBox Content="Beim Minimieren nur als Symbol unten rechts anzeigen" IsChecked="{Binding Settings.MinimizeToTray}" Margin="0,4,0,0" />
+                                    <CheckBox Content="Hinweis unten rechts bei Telegrammereignissen, solange das Fenster ausgeblendet ist" IsChecked="{Binding Settings.TrayNotifications}" Margin="0,4,0,0" />
+                                    <TextBlock Style="{StaticResource Hint}" Margin="0,6,0,0"
+                                               Text="Fenster wieder öffnen: Klick auf das Symbol unten rechts (ggf. unter dem Pfeil ^). Ganz beenden: Rechtsklick auf das Symbol → Beenden." />
+                                </StackPanel>
+                            </GroupBox>
 
-                        <TextBlock Text="Fehlerkorrektur (multimon-ng -b)" Style="{StaticResource FieldLabel}" />
-                        <ComboBox Width="150" HorizontalAlignment="Left" ItemsSource="{Binding ErrorCorrectionLevels}" SelectedItem="{Binding Decoder.ErrorCorrection}" />
-                        <TextBlock Style="{StaticResource Hint}" Text="Wie viele Bitfehler pro Codewort repariert werden. 2 holt bei schlechtem Empfang mehr heraus, erzeugt aber gelegentlich falsche RICs (Phantom-Tonrufe). 1 = empfohlen, 0 = nur fehlerfreie Meldungen." />
-                        <CheckBox Content="Unwahrscheinliche Meldungen aussortieren (multimon-ng -u)" IsChecked="{Binding Decoder.HeuristicPruning}" Margin="0,6,0,0" />
+                            <GroupBox Header="Aufzeichnung">
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Right" Content="CSV-Ordner öffnen" Command="{Binding OpenLogFolderCommand}" Margin="6,0,0,0" />
+                                    <CheckBox Content="Empfangene Meldungen als CSV-Tagesdatei speichern" IsChecked="{Binding Settings.LogToCsv}" VerticalAlignment="Center" />
+                                </DockPanel>
+                            </GroupBox>
 
-                        <TextBlock Text="Zusätzliche Parameter rtl_fm" Style="{StaticResource FieldLabel}" />
-                        <TextBox Text="{Binding Decoder.RtlFmExtraArgs}" FontFamily="Consolas" />
-                        <TextBlock Text="Zusätzliche Parameter multimon-ng" Style="{StaticResource FieldLabel}" />
-                        <TextBox Text="{Binding Decoder.MultimonExtraArgs}" FontFamily="Consolas" />
+                            <GroupBox Header="Testnachricht">
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,6"
+                                               Text="Erzeugt eine Meldung wie vom Funk, ohne SDR-Stick. Sie erscheint unter Telegramme und läuft durch Beschreibungen, Telegrammereignisse und Schnittstellen wie eine echte Meldung. Vor dem Senden kommt eine Sicherheitsabfrage." />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="95" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="RIC" VerticalAlignment="Center" FontWeight="SemiBold" />
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                            <TextBox Width="110" FontFamily="Consolas" Text="{Binding SimRic, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock Text="SubRIC" VerticalAlignment="Center" FontWeight="SemiBold" Margin="14,0,6,0" />
+                                            <ComboBox Width="60" ItemsSource="{Binding SimSubRicChoices}" SelectedItem="{Binding SimSubRic}" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Row="1" Text="Beschreibung" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,8,0,0" />
+                                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SimDescription}" Foreground="#1A4D8F" Margin="0,8,0,0" TextWrapping="Wrap" />
+                                        <TextBlock Grid.Row="2" Text="Text" VerticalAlignment="Top" FontWeight="SemiBold" Margin="0,12,0,0" />
+                                        <TextBox Grid.Row="2" Grid.Column="1" Margin="0,8,0,0" Height="50" TextWrapping="Wrap" AcceptsReturn="False"
+                                                 VerticalContentAlignment="Top" Text="{Binding SimText, UpdateSourceTrigger=PropertyChanged}" />
+                                        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0">
+                                            <Button Content="Einspeisen" Command="{Binding SimulateCommand}" FontWeight="SemiBold" />
+                                            <TextBlock Style="{StaticResource Hint}" VerticalAlignment="Center" Text="Text leer = reiner Ton-Alarm." />
+                                        </StackPanel>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
+                                               Text="Dieselben Werte nutzt auch „Testnachricht senden“ im Reiter Schnittstellen." />
+                                </StackPanel>
+                            </GroupBox>
 
-                        <TextBlock Text="Eigener Befehl (wird mit cmd.exe /c ausgeführt)" Style="{StaticResource FieldLabel}" />
-                        <TextBox Text="{Binding Decoder.CustomCommand}" FontFamily="Consolas" TextWrapping="Wrap" Height="50" VerticalContentAlignment="Top" />
-                        <TextBlock Style="{StaticResource Hint}"
-                                   Text="Nur für die Quelle „Eigener Befehl“, z.B. multimon-ng mit Audioeingang einer anderen SDR-Software (virtuelles Audiokabel)." />
-
-                        <TextBlock Text="Sonstiges" Style="{StaticResource FieldLabel}" />
-                        <CheckBox Content="Deutsche Umlaute umwandeln ( [ \ ] { | } ~  →  Ä Ö Ü ä ö ü ß )" IsChecked="{Binding Decoder.GermanUmlauts}" />
-                        <CheckBox Content="Empfangene Nachrichten als CSV-Tagesdatei speichern" IsChecked="{Binding Settings.LogToCsv}" Margin="0,4,0,0" />
-                        <CheckBox Content="Decoder beim Programmstart automatisch starten" IsChecked="{Binding Settings.AutoStart}" Margin="0,4,0,0" />
-                    </StackPanel>
-                        <TextBlock Style="{StaticResource Hint}" Margin="0,4,0,0"
-                                   Text="Die Einstellungen oben lassen sich nur ändern, solange der Empfang gestoppt ist. Alles darunter geht jederzeit." />
-
-                        <TextBlock Text="Hintergrundbetrieb" Style="{StaticResource FieldLabel}" />
-                        <CheckBox Content="Mit Windows starten (läuft dann im Hintergrund, Symbol unten rechts)" IsChecked="{Binding StartWithWindows}" />
-                        <CheckBox Content="Beim Schließen (X) im Hintergrund weiterlaufen" IsChecked="{Binding Settings.CloseToTray}" Margin="0,4,0,0" />
-                        <CheckBox Content="Beim Minimieren nur als Symbol unten rechts anzeigen" IsChecked="{Binding Settings.MinimizeToTray}" Margin="0,4,0,0" />
-                        <CheckBox Content="Programm immer im Hintergrund starten" IsChecked="{Binding Settings.StartMinimized}" Margin="0,4,0,0" />
-                        <CheckBox Content="Hinweis unten rechts bei Treffern eines Telegrammereignisses, solange das Fenster ausgeblendet ist" IsChecked="{Binding Settings.TrayNotifications}" Margin="0,4,0,0" />
-                        <TextBlock Style="{StaticResource Hint}" Text="Fenster wieder öffnen: Klick auf das Symbol unten rechts (ggf. unter dem Pfeil ^). Ganz beenden: Rechtsklick auf das Symbol → Beenden." />
-                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                            <Button Content="CSV-Ordner öffnen" Command="{Binding OpenLogFolderCommand}" />
-                            <Button Content="💾 Einstellungen speichern" Command="{Binding SaveCommand}" />
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Content="💾 Einstellungen speichern" Command="{Binding SaveCommand}" Margin="0" />
+                            </StackPanel>
                         </StackPanel>
-
-                        <TextBlock Text="Testnachricht" Style="{StaticResource FieldLabel}" />
-                        <TextBlock Style="{StaticResource Hint}"
-                                   Text="Erzeugt eine Nachricht wie vom Funk, ohne SDR-Stick. Sie erscheint im Reiter Telegramme und durchläuft Beschreibungen, Telegrammereignisse und Verarbeitung genau wie eine echte Meldung." />
-
-                        <Grid Margin="0,10,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="110" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-                            <TextBlock Text="RIC" VerticalAlignment="Center" FontWeight="SemiBold" />
-                            <TextBox Grid.Column="1" Width="120" HorizontalAlignment="Left" FontFamily="Consolas"
-                                     Text="{Binding SimRic, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBlock Grid.Row="1" Text="SubRIC" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,8,0,0" />
-                            <ComboBox Grid.Row="1" Grid.Column="1" Width="60" HorizontalAlignment="Left" Margin="0,8,0,0"
-                                      ItemsSource="{Binding SimSubRicChoices}" SelectedItem="{Binding SimSubRic}" />
-                            <TextBlock Grid.Row="2" Text="Beschreibung" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,8,0,0" />
-                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SimDescription}" Foreground="#1A4D8F" Margin="0,8,0,0" />
-                            <TextBlock Grid.Row="3" Text="Text" VerticalAlignment="Top" FontWeight="SemiBold" Margin="0,12,0,0" />
-                            <TextBox Grid.Row="3" Grid.Column="1" Margin="0,8,0,0" Height="60" TextWrapping="Wrap" AcceptsReturn="False"
-                                     VerticalContentAlignment="Top" Text="{Binding SimText, UpdateSourceTrigger=PropertyChanged}" />
-                        </Grid>
-                        <StackPanel Orientation="Horizontal" Margin="110,10,0,0">
-                            <Button Content="Einspeisen" Command="{Binding SimulateCommand}" FontWeight="SemiBold" />
-                            <TextBlock Style="{StaticResource Hint}" VerticalAlignment="Center"
-                                       Text="Text leer lassen = reiner Ton-Alarm." />
-                        </StackPanel>
-                        <TextBlock Style="{StaticResource Hint}" Margin="0,16,0,0"
-                                   Text="Dieselben Werte nutzt auch „Testnachricht senden“ im Reiter Verarbeitung." />
-                    </StackPanel>
+                    </Grid>
                 </ScrollViewer>
             </TabItem>
 
@@ -510,7 +556,7 @@
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
                         <Button Content="Leeren" Command="{Binding ClearLogCommand}" />
                         <TextBlock Style="{StaticResource Hint}" VerticalAlignment="Center"
-                                   Text="Ausgaben von rtl_fm / multimon-ng, Start/Stopp und Ergebnisse der Verarbeitung." />
+                                   Text="Ausgaben von rtl_fm / multimon-ng, Start/Stopp und Ergebnisse der Schnittstellen." />
                     </StackPanel>
                     <ListBox x:Name="LogList" ItemsSource="{Binding LogLines}" FontFamily="Consolas" FontSize="12" />
                 </DockPanel>
