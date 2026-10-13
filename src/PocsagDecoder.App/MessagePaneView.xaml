@@ -6,14 +6,15 @@
         <Border DockPanel.Dock="Top" Background="#F7F7F7" BorderBrush="#DDD" BorderThickness="0,0,0,1" Padding="6,4">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                    <Button x:Name="ColumnsButton" Content="Spalten ▾" Click="ColumnsButton_Click"
-                            ToolTip="Spalten dieses Fensters ein- oder ausblenden (auch per Rechtsklick auf die Spaltenköpfe)" />
                     <Button Content="✕" MinWidth="28" Command="{Binding RemoveCommand}" ToolTip="Dieses Fenster schließen" />
                 </StackPanel>
                 <WrapPanel>
                     <TextBox Width="140" FontWeight="SemiBold" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}"
                              ToolTip="Name dieses Fensters" Margin="0,2,8,2" />
-                    <TextBlock Text="RIC:" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    <TextBlock Text="Ereignis:" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    <ComboBox Width="150" ItemsSource="{Binding EventChoices}" SelectedItem="{Binding Event}" Margin="0,2"
+                              ToolTip="Nur Telegramme anzeigen, die zu diesem Telegrammereignis passen (wie unter Telegrammereignisse eingestellt)" />
+                    <TextBlock Text="RIC:" VerticalAlignment="Center" Margin="8,0,4,0" />
                     <TextBox Width="110" Text="{Binding Ric, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
                              ToolTip="Teil einer RIC, oder Muster wie 12345*, 1000000-1000999, 111,222" />
                     <TextBlock Text="SubRIC:" VerticalAlignment="Center" Margin="8,0,4,0" />
@@ -24,7 +25,7 @@
                     <TextBlock Text="Text:" VerticalAlignment="Center" Margin="8,0,4,0" />
                     <TextBox Width="140" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
                              ToolTip="Sucht im Nachrichtentext" />
-                    <CheckBox Content="nur Regeltreffer" IsChecked="{Binding OnlyMatched}" VerticalAlignment="Center" Margin="8,0,0,0" />
+                    <CheckBox Content="nur Ereignistreffer" IsChecked="{Binding OnlyMatched}" VerticalAlignment="Center" Margin="8,0,0,0" />
                     <TextBlock VerticalAlignment="Center" Margin="8,0,0,0" Foreground="#555">
                         <Run Text="{Binding VisibleCount, Mode=OneWay}" /><Run Text=" angezeigt" />
                     </TextBlock>
@@ -49,7 +50,7 @@
             </DataGrid.RowStyle>
             <DataGrid.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Regel aus dieser Nachricht erstellen" Command="{Binding Main.RuleFromMessageCommand}" />
+                    <MenuItem Header="Telegrammereignis aus dieser Nachricht erstellen" Command="{Binding Main.RuleFromMessageCommand}" />
                     <MenuItem Header="Beschreibung für diese RIC bearbeiten" Command="{Binding Main.DescriptionFromMessageCommand}" />
                     <MenuItem Header="Zeile kopieren" Click="CopyMessage_Click" />
                 </ContextMenu>
@@ -95,7 +96,7 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTextColumn Header="Weiterleitung" Binding="{Binding Forwarding}" Width="260">
+                <DataGridTextColumn Header="Verarbeitung" Binding="{Binding Forwarding}" Width="260">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="TextWrapping" Value="Wrap" />

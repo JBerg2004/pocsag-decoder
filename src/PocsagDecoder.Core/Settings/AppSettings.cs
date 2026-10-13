@@ -19,6 +19,9 @@ public sealed class ReceivePaneSettings
     public string Description { get; set; } = string.Empty;
 
     public bool OnlyMatched { get; set; }
+
+    /// <summary>Name eines Telegrammereignisses; leer = alle Meldungen.</summary>
+    public string Event { get; set; } = string.Empty;
     public List<string> HiddenColumns { get; set; } = new();
 }
 

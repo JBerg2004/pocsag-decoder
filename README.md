@@ -1,33 +1,33 @@
 # POCSAG Decoder für Windows
 
 Empfängt POCSAG-Funkmeldungen (z. B. BOS-Alarmierung) mit einem RTL-SDR-Stick,
-zeigt **RIC** und **SubRIC** (A–D, Funktionsbits 0–3) an, filtert nach Regeln
+zeigt **RIC** und **SubRIC** (A–D, Funktionsbits 0–3) an, filtert nach Telegrammereignissen
 und leitet passende Meldungen per **REST-API / Webaufruf / Webhook** weiter.
 
 ```
-RTL-SDR-Stick → rtl_fm.exe → (Audio 22050 Hz) → multimon-ng.exe → POCSAG Decoder → Filterregeln → HTTP (POST/PUT/PATCH/GET)
+RTL-SDR-Stick → rtl_fm.exe → (Audio 22050 Hz) → multimon-ng.exe → POCSAG Decoder → Telegrammereignisse → HTTP (POST/PUT/PATCH/GET)
 ```
 
 ## Was das Programm kann
 
 - Empfang über `rtl_fm` + `multimon-ng`, POCSAG 512 / 1200 / 2400 Baud
-- Anzeige: Zeit, RIC (7-stellig), SubRIC (A–D), Funktion (0–3), Baud, Typ, Text, Ergebnis der Weiterleitung
+- Anzeige: Zeit, RIC (7-stellig), SubRIC (A–D), Funktion (0–3), Baud, Typ, Text, Ergebnis der Verarbeitung
 - Deutsche Umlaute (`[ \ ] { | } ~` → `Ä Ö Ü ä ö ü ß`)
-- Anzeige-Filter nach RIC, SubRIC und Text
-- **Filterregeln** (von oben nach unten geprüft):
-  - RIC: einzeln `1234567`, Liste `111,222`, Bereich `1000000-1000999`, Platzhalter `12345*` / `12?4567`, leer = alle. Button „Nach Bezeichnung auswählen…“ öffnet die Liste der RIC-Beschreibungen mit Suche und Haken; darunter steht, welche bekannten RICs die Regel erfasst
+- Empfang in mehrere Fenster aufteilbar, je Fenster eigene Filter (Telegrammereignis, RIC, SubRIC, Bezeichnung/Ort, Text) und Spalten
+- **Telegrammereignisse** (von oben nach unten geprüft):
+  - RIC: einzeln `1234567`, Liste `111,222`, Bereich `1000000-1000999`, Platzhalter `12345*` / `12?4567`, leer = alle. Button „Nach Bezeichnung auswählen…“ öffnet die Liste der RIC-Beschreibungen mit Suche und Haken; darunter steht, welche bekannten RICs das Ereignis erfasst
   - SubRIC: A, B, C, D einzeln an-/abwählbar (beschriftet mit der allgemeinen SubRIC-Bedeutung)
   - Text: enthält / enthält nicht / regulärer Ausdruck
   - Beschreibung: prüft Bezeichnung der RIC und SubRIC-Bedeutung, z. B. enthält `FF Musterstadt` oder `Vollalarm`; mehrere Begriffe mit `|` trennen
-  - Ziele: ein oder mehrere Webhook-Ziele (anhaken), es wird an alle gesendet; optional „Danach stoppen“ und „Wiederholungen trotzdem senden“ (Wiederholungs-Sperre gilt für diese Regel nicht)
-  - Rechtsklick auf eine empfangene Meldung → „Regel aus dieser Nachricht erstellen“
-- **Weiterleitungsziele**: URL, Methode, Content-Type, eigene Header (z. B. `Authorization: Bearer …`), Body-Vorlage mit Platzhaltern, Timeout, Wiederholungen. Button „Testnachricht senden“.
-- SubRIC-Buchstaben wahlweise groß (A–D) oder klein (a–d), einstellbar im Reiter „Weiterleitung“; gilt für die Anzeige und `{subric}`. Fest: `{subric_upper}`, `{subric_lower}`
+  - Ziele: ein oder mehrere Webhook-Ziele (anhaken), es wird an alle gesendet; optional „Danach stoppen“ und „Wiederholungen trotzdem senden“ (Wiederholungs-Sperre gilt für dieses Ereignis nicht)
+  - Rechtsklick auf eine empfangene Meldung → „Telegrammereignis aus dieser Nachricht erstellen“
+- **Verarbeitung** (Webhook-Ziele): URL, Methode, Content-Type, eigene Header (z. B. `Authorization: Bearer …`), Body-Vorlage mit Platzhaltern, Timeout, Wiederholungen. Button „Testnachricht senden“.
+- SubRIC-Buchstaben wahlweise groß (A–D) oder klein (a–d), einstellbar im Reiter „Verarbeitung“; gilt für die Anzeige und `{subric}`. Fest: `{subric_upper}`, `{subric_lower}`
 - Wiederholungs-Sperre: dieselbe Meldung (RIC + SubRIC + Text) wird innerhalb eines Zeitfensters (Standard 60 s) nur einmal weitergeleitet
 - **RIC-Beschreibungen**: zu jeder RIC eine Bezeichnung, eine kurze Bezeichnung (Spalte „Kurz“, Platzhalter `{ric_short}`), einen Ort (Spalte „Ort“, Platzhalter `{ric_location}`) und für SubRIC A, B, C, D je ein eigener Klartext („FF Musterstadt · Vollalarm“), der in der Liste angezeigt und mit `{description}` weitergeleitet wird. Import aus CSV/TXT (z. B. aus Excel), JSON oder direkt aus einer BOSWatch-3-Konfiguration (YAML, descriptor-Modul), Export und Vorlage im Reiter „RIC-Beschreibungen“
-- Reiter **Test**: Testnachricht einspeisen ohne SDR-Stick (zum Ausprobieren von Beschreibungen, Regeln und Webhooks)
+- Reiter **Test**: Testnachricht einspeisen ohne SDR-Stick (zum Ausprobieren von Beschreibungen, Telegrammereignissen und Webhooks)
 - Fehlerkorrektur einstellbar (Reiter Empfänger, multimon-ng `-b`, Standard 1): weniger Phantom-RICs als die multimon-Voreinstellung 2
-- **Hintergrundbetrieb**: Symbol im Infobereich (unten rechts), Schließen/Minimieren blendet nur aus, Hinweis bei Regeltreffern, optional Start mit Windows (`--minimized`), nur eine Instanz gleichzeitig
+- **Hintergrundbetrieb**: Symbol im Infobereich (unten rechts), Schließen/Minimieren blendet nur aus, Hinweis bei Treffern eines Telegrammereignisses, optional Start mit Windows (`--minimized`), nur eine Instanz gleichzeitig
 - CSV-Tagesprotokoll unter `%APPDATA%\PocsagDecoder\logs`
 - Einstellungen unter `%APPDATA%\PocsagDecoder\settings.json`
 
@@ -46,8 +46,8 @@ Test, ob der Stick funktioniert: `rtl_test.exe` in einer Eingabeaufforderung.
 ## Bedienung
 
 1. Reiter **Empfänger (SDR)**: Frequenz (z. B. 173,255 MHz), Gain (leer = automatisch), ppm-Korrektur.
-2. Reiter **Weiterleitung**: Ziel anlegen, URL und Body einstellen, „Testnachricht senden“.
-3. Reiter **Filterregeln**: Regel anlegen, RIC/SubRIC eintragen, Ziel auswählen.
+2. Reiter **Verarbeitung**: Ziel anlegen, URL und Body einstellen, „Testnachricht senden“.
+3. Reiter **Telegrammereignisse**: Ereignis anlegen, RIC/SubRIC eintragen, Ziel auswählen.
 4. **▶ Start**. Treffer werden grün markiert, Fehler beim Senden rot.
 5. **💾 Speichern** (wird beim Beenden auch automatisch gespeichert).
 
@@ -68,7 +68,7 @@ Test, ob der Stick funktioniert: `rtl_test.exe` in einer Eingabeaufforderung.
 | `{date}` / `{time}` | `13.10.2026` / `14:05:00` |
 | `{description}` | Beschreibung aus der RIC-Liste (RIC + SubRIC) |
 | `{ric_description}` / `{subric_description}` | nur RIC- bzw. nur SubRIC-Beschreibung |
-| `{rule}` | Name der auslösenden Regel |
+| `{rule}` | Name des auslösenden Telegrammereignisses |
 | `{raw}` | Originalzeile von multimon-ng |
 
 Bei `application/json` werden die Werte JSON-sicher eingesetzt, in der URL und bei
@@ -109,7 +109,7 @@ Im Reiter „RIC-Beschreibungen“ rechts neben der Suche: **SubRICs zuordnen…
 
 Der Reiter Empfang lässt sich in mehrere Fenster aufteilen. **+ Fenster** fügt ein weiteres hinzu, **✕** schließt es wieder, unter **Anordnung** wählt man Untereinander, Nebeneinander oder Raster (2 Spalten).
 
-Jedes Fenster hat einen eigenen Namen und eigene Filter: RIC (Teil oder Muster wie `12345*`), SubRIC, Bezeichnung/Ort (sucht in Bezeichnung, Kurzbezeichnung, Ort und SubRIC-Bedeutung; mehrere Begriffe mit `|` trennen), Text und „nur Regeltreffer“. Über **Spalten ▾** (oder Rechtsklick auf einen Spaltenkopf) blendet man Spalten je Fenster ein und aus. Fenster, Filter und Spalten werden automatisch gespeichert.
+Jedes Fenster hat einen eigenen Namen und eigene Filter: Ereignis (alle Telegramme oder nur die, die zu einem Telegrammereignis passen), RIC (Teil oder Muster wie `12345*`), SubRIC, Bezeichnung/Ort (sucht in Bezeichnung, Kurzbezeichnung, Ort und SubRIC-Bedeutung; mehrere Begriffe mit `|` trennen), Text und „nur Ereignistreffer“. Per Rechtsklick auf einen Spaltenkopf blendet man Spalten je Fenster ein und aus. Fenster, Filter und Spalten werden automatisch gespeichert.
 
 ## RIC-Beschreibungen importieren
 
@@ -150,7 +150,7 @@ dotnet publish src/PocsagDecoder.App -c Release -r win-x64 --self-contained true
 
 Projektaufbau:
 
-- `src/PocsagDecoder.Core` – Parser, Filterregeln, Webhook-Versand, Prozess-Pipeline (plattformunabhängig, getestet)
+- `src/PocsagDecoder.Core` – Parser, Telegrammereignisse, Webhook-Versand, Prozess-Pipeline (plattformunabhängig, getestet)
 - `src/PocsagDecoder.App` – WPF-Oberfläche
 - `tests/PocsagDecoder.Tests` – Unit-Tests und ein Ende-zu-Ende-Test mit echtem multimon-ng (unter Linux)
 - `tools/pocsag_gen.py` – erzeugt ein synthetisches POCSAG-Signal zum Testen ohne Funk

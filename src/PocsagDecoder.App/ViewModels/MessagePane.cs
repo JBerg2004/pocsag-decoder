@@ -33,6 +33,35 @@ public sealed class MessagePane : ObservableObject
     public string SubRic { get => Settings.SubRic; set => Change(() => Settings.SubRic = value ?? "Alle"); }
     public string Text { get => Settings.Text; set => Change(() => Settings.Text = value ?? ""); }
     public string Description { get => Settings.Description; set => Change(() => Settings.Description = value ?? ""); }
+    public const string AllEvents = "Alle Telegramme";
+
+    /// <summary>Auswahl im Fenster: alle Telegramme oder ein Telegrammereignis.</summary>
+    public IReadOnlyList<string> EventChoices => _main.EventNames;
+
+    public string Event
+    {
+        get => Settings.Event.Length == 0 ? AllEvents : Settings.Event;
+        set
+        {
+            if (value is null) return; // ComboBox setzt null, wenn die Liste neu aufgebaut wird
+            Change(() => Settings.Event = value == AllEvents ? "" : value);
+        }
+    }
+
+    /// <summary>Nach Umbenennen eines Ereignisses die Auswahl mitziehen.</summary>
+    public void RenameEvent(string oldName, string newName)
+    {
+        if (Settings.Event.Length == 0 || Settings.Event != oldName) return;
+        Settings.Event = newName;
+        OnPropertyChanged(nameof(Event));
+    }
+
+    public void NotifyEventsChanged()
+    {
+        OnPropertyChanged(nameof(Event));
+        Refresh();
+    }
+
     public bool OnlyMatched { get => Settings.OnlyMatched; set => Change(() => Settings.OnlyMatched = value); }
 
     public int VisibleCount => View.Count;
@@ -69,6 +98,12 @@ public sealed class MessagePane : ObservableObject
     private bool Matches(MessageItem item)
     {
         if (OnlyMatched && !item.Matched) return false;
+        if (Settings.Event.Length > 0)
+        {
+            // Bedingungen des gewählten Telegrammereignisses (auch wenn es gerade deaktiviert ist).
+            var rule = _main.Rules.FirstOrDefault(r => r.Name == Settings.Event);
+            if (rule is null || !rule.MatchesConditions(item.Message)) return false;
+        }
         if (SubRic is "A" or "B" or "C" or "D" && item.Message.SubRic != SubRic[0]) return false;
         if (!string.IsNullOrWhiteSpace(Text)
             && !item.Text.Contains(Text.Trim(), StringComparison.OrdinalIgnoreCase)) return false;

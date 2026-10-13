@@ -67,14 +67,6 @@ public partial class MessagePaneView : UserControl
         return menu;
     }
 
-    private void ColumnsButton_Click(object sender, RoutedEventArgs e)
-    {
-        var menu = BuildColumnMenu();
-        menu.PlacementTarget = ColumnsButton;
-        menu.Placement = PlacementMode.Bottom;
-        menu.IsOpen = true;
-    }
-
     /// <summary>Rechtsklick auf einen Spaltenkopf öffnet ebenfalls die Spaltenauswahl.</summary>
     private void AttachColumnHeaderMenu()
     {

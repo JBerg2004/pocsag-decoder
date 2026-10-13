@@ -20,7 +20,7 @@ public enum TextMatchMode
 public sealed class FilterRule : INotifyPropertyChanged
 {
     private bool _enabled = true;
-    private string _name = "Neue Regel";
+    private string _name = "Neues Ereignis";
     private string _ricPattern = string.Empty;
     private bool _subRicA = true, _subRicB = true, _subRicC = true, _subRicD = true;
     private string _text = string.Empty;
@@ -119,9 +119,11 @@ public sealed class FilterRule : INotifyPropertyChanged
         return null;
     }
 
-    public bool IsMatch(PocsagMessage message)
+    public bool IsMatch(PocsagMessage message) => Enabled && MatchesConditions(message);
+
+    /// <summary>Prüft nur die Bedingungen (RIC, SubRIC, Text, Beschreibung), unabhängig davon, ob das Ereignis aktiv ist.</summary>
+    public bool MatchesConditions(PocsagMessage message)
     {
-        if (!Enabled) return false;
         if (!AcceptsFunction(message.Function)) return false;
         if (!Filtering.RicPattern.TryParse(RicPattern, out var ric, out _) || !ric.IsMatch(message.Ric)) return false;
 

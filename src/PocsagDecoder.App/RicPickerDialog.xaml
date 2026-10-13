@@ -1,11 +1,11 @@
 <Window x:Class="PocsagDecoder.App.RicPickerDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="RICs für die Regel auswählen" Width="560" Height="600" MinWidth="420" MinHeight="300"
+        Title="RICs für das Telegrammereignis auswählen" Width="560" Height="600" MinWidth="420" MinHeight="300"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
     <DockPanel Margin="12">
         <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Margin="0,0,0,8"
-                   Text="Haken bei den RICs setzen, auf die die Regel reagieren soll. Mit der Suche z.B. „FF“ eingeben und dann „Alle sichtbaren anhaken“." />
+                   Text="Haken bei den RICs setzen, auf die das Telegrammereignis reagieren soll. Mit der Suche z.B. „FF“ eingeben und dann „Alle sichtbaren anhaken“." />
         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
             <TextBlock Text="Suchen:" VerticalAlignment="Center" Margin="0,0,6,0" />
             <Button DockPanel.Dock="Right" Content="Sichtbare abhaken" Click="NoneVisible_Click" Margin="6,0,0,0" />

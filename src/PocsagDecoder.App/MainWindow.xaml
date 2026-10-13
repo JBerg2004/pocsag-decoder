@@ -78,7 +78,7 @@
             </TabItem>
 
             <!-- ============================ REGELN ============================ -->
-            <TabItem x:Name="RulesTab" Header="Filterregeln">
+            <TabItem x:Name="RulesTab" Header="Telegrammereignisse">
                 <Grid Margin="6">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="3*" />
@@ -88,7 +88,7 @@
 
                     <DockPanel>
                         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
-                            <Button Content="+ Neue Regel" Command="{Binding AddRuleCommand}" />
+                            <Button Content="+ Neues Ereignis" Command="{Binding AddRuleCommand}" />
                             <Button Content="Löschen" Command="{Binding RemoveRuleCommand}" />
                             <Button Content="▲" MinWidth="30" Command="{Binding MoveRuleUpCommand}" ToolTip="Nach oben" />
                             <Button Content="▼" MinWidth="30" Command="{Binding MoveRuleDownCommand}" ToolTip="Nach unten" />
@@ -99,7 +99,7 @@
                             <TextBlock Text="Sekunden (0 = aus)" VerticalAlignment="Center" />
                         </StackPanel>
                         <TextBlock DockPanel.Dock="Bottom" Style="{StaticResource Hint}" Margin="0,6,0,0"
-                                   Text="Die Regeln werden von oben nach unten geprüft. Jede passende Regel sendet an ihr Ziel. Mit „Danach stoppen“ werden die folgenden Regeln übersprungen. Tipp: Rechtsklick auf eine empfangene Nachricht → „Regel aus dieser Nachricht erstellen“." />
+                                   Text="Die Telegrammereignisse werden von oben nach unten geprüft. Jedes passende Ereignis wird an seine Verarbeitungen gesendet. Mit „Danach stoppen“ werden die folgenden Ereignisse übersprungen. Tipp: Rechtsklick auf eine empfangene Nachricht → „Telegrammereignis aus dieser Nachricht erstellen“." />
                         <DataGrid ItemsSource="{Binding Rules}" SelectedItem="{Binding SelectedRule}" AutoGenerateColumns="False"
                                   CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column" SelectionMode="Single"
                                   GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#EEE">
@@ -128,8 +128,8 @@
                                     </Style.Triggers>
                                 </Style>
                             </StackPanel.Style>
-                            <TextBlock Text="Regel bearbeiten" FontSize="15" FontWeight="SemiBold" />
-                            <CheckBox Content="Regel aktiv" IsChecked="{Binding Enabled}" Margin="0,8,0,0" />
+                            <TextBlock Text="Telegrammereignis bearbeiten" FontSize="15" FontWeight="SemiBold" />
+                            <CheckBox Content="Ereignis aktiv" IsChecked="{Binding Enabled}" Margin="0,8,0,0" />
 
                             <TextBlock Text="Name" Style="{StaticResource FieldLabel}" />
                             <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
@@ -192,7 +192,7 @@
                             </Border>
                             <TextBlock Style="{StaticResource Hint}" Text="Mehrere Ziele anhaken = an alle gleichzeitig senden. Keins angehakt = Nachricht nur grün markieren, nicht senden." />
 
-                            <CheckBox Content="Danach stoppen (folgende Regeln nicht prüfen)" IsChecked="{Binding StopProcessing}" Margin="0,10,0,0" />
+                            <CheckBox Content="Danach stoppen (folgende Ereignisse nicht prüfen)" IsChecked="{Binding StopProcessing}" Margin="0,10,0,0" />
                             <CheckBox Content="Wiederholungen trotzdem senden (Wiederholungs-Sperre gilt hier nicht)" IsChecked="{Binding SendRepeats}" Margin="0,6,0,0" />
 
                             <TextBlock Foreground="#C62828" TextWrapping="Wrap" Margin="0,10,0,0"
@@ -247,7 +247,7 @@
             </TabItem>
 
             <!-- ============================ ZIELE ============================ -->
-            <TabItem Header="Weiterleitung (REST / Webhook)">
+            <TabItem Header="Verarbeitung">
                 <Grid Margin="6">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="220" />
@@ -297,7 +297,7 @@
                             <TextBlock Text="Ziel bearbeiten" FontSize="15" FontWeight="SemiBold" />
                             <CheckBox Content="Ziel aktiv" IsChecked="{Binding Enabled}" Margin="0,8,0,0" />
 
-                            <TextBlock Text="Name (wird in den Regeln ausgewählt)" Style="{StaticResource FieldLabel}" />
+                            <TextBlock Text="Name (wird bei den Telegrammereignissen ausgewählt)" Style="{StaticResource FieldLabel}" />
                             <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
 
                             <TextBlock Text="Methode und URL" Style="{StaticResource FieldLabel}" />
@@ -457,7 +457,7 @@
                         <CheckBox Content="Beim Schließen (X) im Hintergrund weiterlaufen" IsChecked="{Binding Settings.CloseToTray}" Margin="0,4,0,0" />
                         <CheckBox Content="Beim Minimieren nur als Symbol unten rechts anzeigen" IsChecked="{Binding Settings.MinimizeToTray}" Margin="0,4,0,0" />
                         <CheckBox Content="Programm immer im Hintergrund starten" IsChecked="{Binding Settings.StartMinimized}" Margin="0,4,0,0" />
-                        <CheckBox Content="Hinweis unten rechts bei Regeltreffern, solange das Fenster ausgeblendet ist" IsChecked="{Binding Settings.TrayNotifications}" Margin="0,4,0,0" />
+                        <CheckBox Content="Hinweis unten rechts bei Treffern eines Telegrammereignisses, solange das Fenster ausgeblendet ist" IsChecked="{Binding Settings.TrayNotifications}" Margin="0,4,0,0" />
                         <TextBlock Style="{StaticResource Hint}" Text="Fenster wieder öffnen: Klick auf das Symbol unten rechts (ggf. unter dem Pfeil ^). Ganz beenden: Rechtsklick auf das Symbol → Beenden." />
                         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                             <Button Content="CSV-Ordner öffnen" Command="{Binding OpenLogFolderCommand}" />
@@ -473,7 +473,7 @@
                     <StackPanel Margin="10" MaxWidth="700" HorizontalAlignment="Left">
                         <TextBlock Text="Testnachricht einspeisen" FontSize="15" FontWeight="SemiBold" />
                         <TextBlock Style="{StaticResource Hint}" FontSize="12"
-                                   Text="Erzeugt eine Nachricht wie vom Funk, ohne SDR-Stick. Sie erscheint im Reiter Empfang und durchläuft Beschreibungen, Filterregeln und Weiterleitung genau wie eine echte Meldung." />
+                                   Text="Erzeugt eine Nachricht wie vom Funk, ohne SDR-Stick. Sie erscheint im Reiter Empfang und durchläuft Beschreibungen, Telegrammereignisse und Verarbeitung genau wie eine echte Meldung." />
 
                         <Grid Margin="0,10,0,0">
                             <Grid.ColumnDefinitions>
@@ -504,7 +504,7 @@
                                        Text="Text leer lassen = reiner Ton-Alarm." />
                         </StackPanel>
                         <TextBlock Style="{StaticResource Hint}" Margin="0,16,0,0"
-                                   Text="Dieselben Werte nutzt auch „Testnachricht senden“ im Reiter Weiterleitung." />
+                                   Text="Dieselben Werte nutzt auch „Testnachricht senden“ im Reiter Verarbeitung." />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -515,7 +515,7 @@
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
                         <Button Content="Leeren" Command="{Binding ClearLogCommand}" />
                         <TextBlock Style="{StaticResource Hint}" VerticalAlignment="Center"
-                                   Text="Ausgaben von rtl_fm / multimon-ng, Start/Stopp und Ergebnisse der Weiterleitung." />
+                                   Text="Ausgaben von rtl_fm / multimon-ng, Start/Stopp und Ergebnisse der Verarbeitung." />
                     </StackPanel>
                     <ListBox x:Name="LogList" ItemsSource="{Binding LogLines}" FontFamily="Consolas" FontSize="12" />
                 </DockPanel>

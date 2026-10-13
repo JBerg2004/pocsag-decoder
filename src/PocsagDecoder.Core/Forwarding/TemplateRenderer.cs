@@ -40,7 +40,7 @@ public static partial class TemplateRenderer
         ["ric_short"] = "Kurze Bezeichnung der RIC",
         ["ric_location"] = "Ort der RIC",
         ["subric_description"] = "Beschreibung der SubRIC",
-        ["rule"] = "Name der Regel, die ausgelöst hat",
+        ["rule"] = "Name des Telegrammereignisses, das ausgelöst hat",
         ["raw"] = "Unveränderte Decoder-Zeile",
     };
 

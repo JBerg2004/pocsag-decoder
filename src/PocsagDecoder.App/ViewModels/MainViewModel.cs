@@ -267,6 +267,56 @@ public sealed class MainViewModel : ObservableObject
         _ => 1,
     };
 
+    /// <summary>Auswahlliste für die Fenster: „Alle Telegramme“ und die Namen der Telegrammereignisse.</summary>
+    public ObservableCollection<string> EventNames { get; } = new();
+
+    private readonly Dictionary<FilterRule, string> _ruleNames = new();
+
+    private void TrackRules()
+    {
+        foreach (var r in Rules) WatchRule(r);
+        Rules.CollectionChanged += (_, e) =>
+        {
+            if (e.NewItems is not null) foreach (FilterRule r in e.NewItems) WatchRule(r);
+            if (e.OldItems is not null) foreach (FilterRule r in e.OldItems) { r.PropertyChanged -= OnWatchedRuleChanged; _ruleNames.Remove(r); }
+            UpdateEventNames();
+        };
+        UpdateEventNames();
+    }
+
+    private void WatchRule(FilterRule rule)
+    {
+        _ruleNames[rule] = rule.Name;
+        rule.PropertyChanged -= OnWatchedRuleChanged;
+        rule.PropertyChanged += OnWatchedRuleChanged;
+    }
+
+    private void OnWatchedRuleChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (sender is not FilterRule rule) return;
+        if (e.PropertyName == nameof(FilterRule.Name))
+        {
+            var old = _ruleNames.GetValueOrDefault(rule, "");
+            _ruleNames[rule] = rule.Name;
+            foreach (var p in Panes) p.RenameEvent(old, rule.Name);
+            UpdateEventNames();
+            RequestSave();
+            return;
+        }
+        // Bedingungen geändert: Fenster mit diesem Ereignis neu filtern.
+        foreach (var p in Panes.Where(p => p.Settings.Event == rule.Name)) p.Refresh();
+    }
+
+    private void UpdateEventNames()
+    {
+        var names = new List<string> { MessagePane.AllEvents };
+        names.AddRange(Rules.Select(r => r.Name).Where(n => !string.IsNullOrWhiteSpace(n)).Distinct());
+        if (names.SequenceEqual(EventNames)) return;
+        EventNames.Clear();
+        foreach (var n in names) EventNames.Add(n);
+        foreach (var p in Panes) p.NotifyEventsChanged();
+    }
+
     private void InitPanes()
     {
         if (Settings.ReceivePanes.Count == 0)
@@ -278,6 +328,7 @@ public sealed class MainViewModel : ObservableObject
             System.Windows.Input.CommandManager.InvalidateRequerySuggested();
         };
         AddPaneCommand = new RelayCommand(AddPane);
+        TrackRules();
     }
 
     private void AddPane()
@@ -464,7 +515,7 @@ public sealed class MainViewModel : ObservableObject
         item.Forwarding = item.Forwarding.Replace($"{target.Name}: sende…", text);
         if (result.Success) ForwardedCount++;
         else item.HasError = true;
-        AddLog($"Weiterleitung RIC {item.Ric}{item.SubRic} via \"{rule.Name}\" an {target.Name}: {result.Detail} (Versuche: {result.Attempts})");
+        AddLog($"Verarbeitung RIC {item.Ric}{item.SubRic} via \"{rule.Name}\" an {target.Name}: {result.Detail} (Versuche: {result.Attempts})");
     }
 
     private void WriteCsv(MessageItem item)
@@ -484,7 +535,7 @@ public sealed class MainViewModel : ObservableObject
 
     private void AddRule()
     {
-        var rule = new FilterRule { Name = $"Regel {Rules.Count + 1}", TargetName = Targets.FirstOrDefault()?.Name ?? string.Empty };
+        var rule = new FilterRule { Name = $"Ereignis {Rules.Count + 1}", TargetName = Targets.FirstOrDefault()?.Name ?? string.Empty };
         Rules.Add(rule);
         SelectedRule = rule;
     }
