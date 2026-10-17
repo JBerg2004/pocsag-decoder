@@ -224,7 +224,7 @@ public class DescriptionTests
           </section>
           <section name="item1">
             <item name="enabled">False</item>
-            <item name="description">0.0 Test</item>
+            <item name="description">Probealarm</item>
             <section name="filters">
               <section name="item0">
                 <item name="type">pocsag</item>
@@ -234,7 +234,7 @@ public class DescriptionTests
             <section name="action0">
               <item name="actionId">2</item>
               <item name="networkHost">127.0.0.1</item>
-              <item name="networkUser">Testeinheit</item>
+              <item name="networkUser">Probeeinheit</item>
             </section>
           </section>
           <section name="item2">
