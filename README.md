@@ -41,6 +41,12 @@ RTL-SDR-Stick → rtl_fm.exe → (Audio 22050 Hz) → multimon-ng.exe → POCSAG
 4. `PocsagDecoder.exe` und die Tools in denselben Ordner legen (oder im Reiter „Einstellungen“ die Pfade auswählen).
 5. `PocsagDecoder.exe` starten. Es wird keine .NET-Installation benötigt (die Exe enthält die Laufzeit).
 
+**Einfacher:** `Installieren.bat` in den Ordner mit `PocsagDecoder.exe`, `rtl_fm.exe` und `multimon-ng.exe` legen und doppelklicken.
+Das Skript kopiert alles nach `%LOCALAPPDATA%\Programs\PocsagDecoder`, installiert bei Bedarf die .NET 8 Desktop Runtime
+(nur für die kleine Exe nötig), legt Verknüpfungen auf dem Desktop und im Startmenü an und erklärt den Zadig-Schritt.
+Für einen Umzug auf einen anderen PC die eigene `%APPDATA%\PocsagDecoder\settings.json` in einen Unterordner
+`Einstellungen` neben das Skript legen; sie wird dann mit übernommen (enthält Webhook-Adressen, nicht weitergeben).
+
 Test, ob der Stick funktioniert: `rtl_test.exe` in einer Eingabeaufforderung.
 
 ## Bedienung
