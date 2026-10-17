@@ -284,4 +284,14 @@ public class DescriptionTests
         new RicDirectory([back]).Annotate(m);
         Assert.Equal("Staffel 1", TemplateRenderer.Render("{bosmon_user}", m, "", TemplateEscaping.None));
     }
+
+    [Fact]
+    public void ParsesBosMonRicList()
+    {
+        var r = RicDirectory.Parse("\uFEFF\"1234567*\",\"Musterstadt\",\"01 WeFü\",\"01 Musterstadt WeFü\"\r\n\"1234568*\",\"\",\"\",\"FR Beispieldorf\"\r\n");
+        Assert.Empty(r.Errors);
+        var a = r.Entries.Single(e => e.Ric == 1234567);
+        Assert.Equal(("Musterstadt", "01 WeFü", "01 Musterstadt WeFü"), (a.Location, a.ShortName, a.Name));
+        Assert.Equal("FR Beispieldorf", r.Entries.Single(e => e.Ric == 1234568).Name);
+    }
 }

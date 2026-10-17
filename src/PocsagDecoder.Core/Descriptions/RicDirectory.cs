@@ -188,6 +188,9 @@ public sealed partial class RicDirectory
             try
             {
                 var ricField = parts[0];
+                // BosMon-RIC-Liste: "1234567*","Ort","Kurz","Bezeichnung" (* = alle SubRICs)
+                var bosMonList = ricField.EndsWith('*') && parts.Length >= 4 && subCols is null;
+                ricField = ricField.TrimEnd('*');
                 int combinedSub = -1;
                 var last = char.ToUpperInvariant(ricField[^1]);
                 if (last is >= 'A' and <= 'D')
@@ -205,6 +208,12 @@ public sealed partial class RicDirectory
                 if (combinedSub >= 0)
                 {
                     entry.SetSub(combinedSub, string.Join(sep, parts.Skip(1)));
+                }
+                else if (bosMonList)
+                {
+                    entry.Location = parts[1];
+                    entry.ShortName = parts[2];
+                    entry.Name = parts[3];
                 }
                 else if (subCols is not null)
                 {
