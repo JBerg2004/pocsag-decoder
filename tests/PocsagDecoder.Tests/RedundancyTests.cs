@@ -31,6 +31,34 @@ public class RedundancyTests
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             RedundancyProtocol.QueryAsync("127.0.0.1", server.Port, "falsch", TimeSpan.FromSeconds(5)));
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            RedundancyProtocol.QueryAsync("127.0.0.1", server.Port, "", TimeSpan.FromSeconds(5)));
+        // auch über IPv6 erreichbar
+        if (System.Net.Sockets.Socket.OSSupportsIPv6)
+            Assert.True((await RedundancyProtocol.QueryAsync("::1", server.Port, "geheim 1", TimeSpan.FromSeconds(5))).Running);
+    }
+
+    [Fact]
+    public void EncryptedAnswerHidesTextAndCannotBeReplayed()
+    {
+        var nonce = new byte[16];
+        nonce[0] = 1;
+        var status = new MasterStatus { Running = true, Recent = { new SeenMessage(T0, 1234567, 0, "Brand Wohnhaus") } };
+        var line = RedundancyProtocol.BuildResponse(status, nonce, "geheim");
+        Assert.DoesNotContain("Brand", line);
+        Assert.Equal("Brand Wohnhaus", RedundancyProtocol.ReadResponse(line, nonce, "geheim").Recent[0].Text);
+
+        var other = new byte[16];
+        Assert.Throws<UnauthorizedAccessException>(() => RedundancyProtocol.ReadResponse(line, other, "geheim")); // alte Antwort wieder eingespielt
+        Assert.Throws<UnauthorizedAccessException>(() => RedundancyProtocol.ReadResponse(line, nonce, "anders"));
+
+        var request = RedundancyProtocol.ParseRequest(RedundancyProtocol.BuildRequest(nonce, "geheim", "PC 2"));
+        Assert.NotNull(request);
+        Assert.Equal("PC 2", request.Value.Peer);
+        Assert.DoesNotContain("geheim", RedundancyProtocol.BuildRequest(nonce, "geheim", "PC 2"));
+        Assert.True(RedundancyProtocol.CheckProof(nonce, request.Value.Proof, "geheim"));
+        Assert.False(RedundancyProtocol.CheckProof(nonce, request.Value.Proof, "anders"));
+        Assert.False(RedundancyProtocol.CheckProof(other, request.Value.Proof, "geheim"));
     }
 
     [Fact]

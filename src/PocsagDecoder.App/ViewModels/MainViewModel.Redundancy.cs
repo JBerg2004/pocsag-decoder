@@ -187,7 +187,8 @@ public sealed partial class MainViewModel
                 _masterServer.Rejected += peer => Application.Current?.Dispatcher.BeginInvoke(() =>
                     AddLog($"Master/Slave: Anfrage von {peer} abgelehnt, Kennwort falsch."));
                 _masterServer.Start();
-                RedundancyStatus = $"Master: wartet auf Port {Settings.RedundancyPort} auf den Slave.";
+                RedundancyStatus = $"Master: wartet auf Port {Settings.RedundancyPort} auf den Slave."
+                    + (Settings.RedundancyKey.Length == 0 ? " Ohne Kennwort ist die Verbindung unverschlüsselt, über das Internet bitte unbedingt eins eintragen." : "");
                 AddLog($"Master/Slave: Master gestartet, Port {Settings.RedundancyPort}.");
             }
             catch (SocketException ex)
@@ -303,7 +304,7 @@ public sealed partial class MainViewModel
         {
             return (await RedundancyProtocol.QueryAsync(Settings.RedundancyMaster, Settings.RedundancyPort, Settings.RedundancyKey, TimeSpan.FromSeconds(4)), null);
         }
-        catch (Exception ex) when (ex is SocketException or IOException or TimeoutException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        catch (Exception ex) when (ex is SocketException or IOException or TimeoutException or UnauthorizedAccessException or InvalidDataException or System.Text.Json.JsonException)
         {
             return (null, ex.Message);
         }

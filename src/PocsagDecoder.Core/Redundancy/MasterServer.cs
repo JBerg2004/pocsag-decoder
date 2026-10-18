@@ -22,7 +22,8 @@ public sealed class MasterServer : IDisposable
     {
         _status = status;
         _key = key ?? string.Empty;
-        _listener = new TcpListener(IPAddress.Any, port);
+        // IPv4 und IPv6 zugleich: über das Internet ist der Master oft nur per IPv6 erreichbar (z. B. DS-Lite).
+        _listener = TcpListener.Create(port);
     }
 
     public int Port => ((IPEndPoint)_listener.LocalEndpoint).Port;
@@ -57,20 +58,21 @@ public sealed class MasterServer : IDisposable
                 using var reader = new StreamReader(stream, Encoding.UTF8, leaveOpen: true);
                 var request = RedundancyProtocol.ParseRequest(await reader.ReadLineAsync(timeout.Token));
                 if (request is null) return;
-                var remote = (client.Client.RemoteEndPoint as IPEndPoint)?.Address.ToString() ?? "?";
+                var remote = (client.Client.RemoteEndPoint as IPEndPoint)?.Address is { } address
+                    ? (address.IsIPv4MappedToIPv6 ? address.MapToIPv4() : address).ToString() : "?";
                 var peer = request.Value.Peer.Length > 0 ? $"{request.Value.Peer} ({remote})" : remote;
-                MasterStatus answer;
-                if (_key.Length > 0 && request.Value.Key != _key)
+                string answer;
+                if (!RedundancyProtocol.CheckProof(request.Value.Nonce, request.Value.Proof, _key))
                 {
-                    answer = new MasterStatus { Error = "Kennwort stimmt nicht mit dem Master überein." };
+                    answer = RedundancyProtocol.Serialize(new MasterStatus { Error = "Kennwort stimmt nicht mit dem Master überein." });
                     Rejected?.Invoke(peer);
                 }
                 else
                 {
-                    answer = _status();
+                    answer = RedundancyProtocol.BuildResponse(_status(), request.Value.Nonce, _key);
                     SlaveSeen?.Invoke(peer, DateTime.Now);
                 }
-                var bytes = Encoding.UTF8.GetBytes(RedundancyProtocol.Serialize(answer) + "\n");
+                var bytes = Encoding.UTF8.GetBytes(answer + "\n");
                 await stream.WriteAsync(bytes, timeout.Token);
             }
             catch (Exception ex) when (ex is IOException or SocketException or OperationCanceledException) { /* Slave weg */ }

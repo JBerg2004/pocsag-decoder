@@ -759,14 +759,26 @@
                                         </Grid.RowDefinitions>
                                         <TextBlock Text="Master-PC (nur am Slave)" VerticalAlignment="Center" Margin="0,0,12,0" />
                                         <TextBox Grid.Column="1" Width="220" HorizontalAlignment="Left" Text="{Binding RedundancyMaster, UpdateSourceTrigger=LostFocus}"
-                                                 IsEnabled="{Binding IsSlave}" ToolTip="Rechnername oder IP-Adresse des Master-PCs, z. B. 192.168.178.20" />
+                                                 IsEnabled="{Binding IsSlave}" ToolTip="Im selben Netz: Rechnername oder IP-Adresse, z. B. 192.168.178.20. Über das Internet: MyFRITZ- oder DynDNS-Adresse bzw. IPv6-Adresse des Masters, oder die Tailscale-Adresse." />
                                         <TextBlock Grid.Row="1" Text="Port" VerticalAlignment="Center" Margin="0,6,12,0" />
                                         <TextBox Grid.Row="1" Grid.Column="1" Width="80" HorizontalAlignment="Left" Margin="0,6,0,0" Text="{Binding RedundancyPort, UpdateSourceTrigger=LostFocus}"
                                                  ToolTip="Auf beiden PCs gleich. Die Windows-Firewall am Master muss ihn zulassen (beim ersten Start als Master fragt Windows nach)." />
-                                        <TextBlock Grid.Row="2" Text="Kennwort (optional)" VerticalAlignment="Center" Margin="0,6,12,0" />
+                                        <TextBlock Grid.Row="2" Text="Kennwort" VerticalAlignment="Center" Margin="0,6,12,0" />
                                         <TextBox Grid.Row="2" Grid.Column="1" Width="220" HorizontalAlignment="Left" Margin="0,6,0,0" Text="{Binding RedundancyKey, UpdateSourceTrigger=LostFocus}"
-                                                 ToolTip="Auf beiden PCs gleich. Verhindert, dass ein fremdes Gerät im Netz sich als Slave ausgibt." />
+                                                 ToolTip="Auf beiden PCs gleich. Mit Kennwort ist die Verbindung verschlüsselt (AES), und nur wer es kennt, bekommt eine Antwort. Das Kennwort selbst wird nie übertragen." />
                                     </Grid>
+                                </GroupBox>
+                                <GroupBox Header="Über das Internet (PCs in verschiedenen Netzen)">
+                                    <StackPanel>
+                                        <TextBlock TextWrapping="Wrap"
+                                                   Text="1. Am Router des Masters den Port (Standard 8754, TCP) für den Master-PC freigeben. Fritzbox: Internet → Freigaben → Gerät für Freigaben hinzufügen → Master-PC → Neue Freigabe → Portfreigabe, Protokoll TCP, Port 8754, IPv4 und IPv6 anhaken." />
+                                        <TextBlock TextWrapping="Wrap" Margin="0,4,0,0"
+                                                   Text="2. Am Slave als Master-PC die Internetadresse eintragen, z. B. die MyFRITZ-Adresse des Master-PCs (steht in der Fritzbox bei der Freigabe) oder eine DynDNS-Adresse." />
+                                        <TextBlock TextWrapping="Wrap" Margin="0,4,0,0"
+                                                   Text="3. Auf beiden PCs dasselbe Kennwort eintragen. Ohne Kennwort ist die Verbindung unverschlüsselt." />
+                                        <TextBlock Style="{StaticResource Hint}" Margin="0,6,0,0"
+                                                   Text="Anschlüsse mit DS-Lite oder Mobilfunk haben keine eigene IPv4-Adresse, dort klappt es nur über IPv6 (Slave braucht dann ebenfalls IPv6). Geht beides nicht, alternativ Tailscale oder das VPN der Fritzbox nutzen. Fällt das Internet zwischen den Standorten aus, übernimmt der Slave: Alarme können dann doppelt ankommen, verloren geht keiner." />
+                                    </StackPanel>
                                 </GroupBox>
                                 <GroupBox Header="Übernahme durch den Slave">
                                     <StackPanel>
