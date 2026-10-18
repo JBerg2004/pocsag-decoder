@@ -37,6 +37,9 @@ public partial class App : Application
             Shutdown();
             return;
         }
+        // Nach einem Update die alte Programmdatei aufräumen (sie ist evtl. noch kurz gesperrt).
+        if (Environment.ProcessPath is { } exePath)
+            _ = Task.Run(() => PocsagDecoder.Core.Settings.UpdateInstaller.CleanUp(exePath));
         var minimized = e.Args.Any(a => a.Equals("--minimized", StringComparison.OrdinalIgnoreCase) || a.Equals("/minimized", StringComparison.OrdinalIgnoreCase));
         var window = new MainWindow { StartHidden = minimized };
         MainWindow = window;

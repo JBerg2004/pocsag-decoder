@@ -29,6 +29,11 @@ RTL-SDR-Stick → rtl_fm.exe → (Audio 22050 Hz) → multimon-ng.exe → POCSAG
 - Fehlerkorrektur einstellbar (Reiter Empfänger, multimon-ng `-b`, Standard 1): weniger Phantom-RICs als die multimon-Voreinstellung 2
 - **Hintergrundbetrieb**: Symbol im Infobereich (unten rechts), Schließen/Minimieren blendet nur aus, Hinweis bei Treffern eines Telegrammereignisses, optional Start mit Windows (`--minimized`), nur eine Instanz gleichzeitig
 - CSV-Tagesprotokoll unter `%APPDATA%\PocsagDecoder\logs`
+- Reiter **Verlauf**: alle Tagesprotokolle nach Zeitraum, Suchbegriffen (RIC, Bezeichnung, Ort, Text …), SubRIC und „nur weitergeleitete“ durchsuchen; Treffer als Excel-Datei (.xlsx) speichern
+- **Empfangsqualität** in der Statusleiste: vergleicht wiederholt gesendete Alarme; kommt die Wiederholung mit genau demselben Text an, war der Empfang fehlerfrei
+- **Design** hell, dunkel oder wie Windows; SubRIC-Farben und Schriftgröße der Listen einstellbar (Strg + Mausrad)
+- **Sicherung**: alle Einstellungen in eine Datei speichern und wiederherstellen (Einstellungen → Programm; enthält Webhook-Adressen, nicht weitergeben)
+- **Updates**: sucht beim Start und zweimal am Tag nach einem neuen Release auf GitHub, lädt es im Hintergrund herunter und prüft die Prüfsumme; ein Klick auf „Jetzt aktualisieren“ ersetzt die Exe und startet neu, die Einstellungen bleiben erhalten
 - Einstellungen unter `%APPDATA%\PocsagDecoder\settings.json`
 
 ## Installation
@@ -191,6 +196,11 @@ Voraussetzung: .NET 8 SDK.
 dotnet test
 dotnet publish src/PocsagDecoder.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o publish
 ```
+
+Neue Version veröffentlichen: Version in `src/PocsagDecoder.App/PocsagDecoder.App.csproj` erhöhen, committen und ein Tag setzen
+(`git tag v1.2.0 && git push origin v1.2.0`). Die GitHub-Action `.github/workflows/release.yml` baut dann
+`PocsagDecoder.exe` (klein, braucht die .NET 8 Desktop Runtime) und `PocsagDecoder-komplett.exe` (mit Laufzeit)
+und legt das Release an; laufende Programme finden es über die Update-Suche.
 
 Projektaufbau:
 

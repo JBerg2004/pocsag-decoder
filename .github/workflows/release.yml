@@ -1,0 +1,33 @@
+# Baut bei einem Versions-Tag (z. B. v1.2.0) beide Exe-Dateien und veröffentlicht sie als GitHub-Release.
+# Das Programm sucht dort nach Updates und lädt die passende Exe automatisch herunter.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Kleine Exe (braucht .NET 8 Desktop Runtime)
+        run: dotnet publish src/PocsagDecoder.App -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -o out/klein
+      - name: Komplette Exe (mit .NET-Laufzeit)
+        run: dotnet publish src/PocsagDecoder.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugType=none -o out/komplett
+      - name: Release anlegen
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir dist
+          cp out/klein/PocsagDecoder.exe dist/PocsagDecoder.exe
+          cp out/komplett/PocsagDecoder.exe dist/PocsagDecoder-komplett.exe
+          cp Installieren.bat dist/ 2>/dev/null || true
+          gh release create "$GITHUB_REF_NAME" dist/* --title "POCSAG Decoder ${GITHUB_REF_NAME#v}" --generate-notes

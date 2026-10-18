@@ -15,6 +15,10 @@ public sealed partial class MainViewModel
     private bool _skipSaveOnExit;
     private UpdateInfo? _update;
     private string _updateStatus = string.Empty;
+    private string? _updateFile;
+    private int? _downloadPercent;
+    private bool _downloading;
+    private System.Windows.Threading.DispatcherTimer? _updateTimer;
 
     /// <summary>Einstellungen wurden aus einer Sicherung ersetzt: Programm neu starten.</summary>
     public event EventHandler? RestartRequested;
@@ -25,9 +29,13 @@ public sealed partial class MainViewModel
     private void InitMaintenance()
     {
         CheckUpdatesCommand = new RelayCommand(() => CheckForUpdatesAsync(manual: true));
-        OpenUpdateCommand = new RelayCommand(() => OpenUrl(_update?.Url ?? UpdateCheck.ReleasesPage));
+        OpenUpdateCommand = new RelayCommand(OpenUpdate);
         if (Settings.CheckForUpdates)
             _ = Task.Delay(TimeSpan.FromSeconds(8)).ContinueWith(_ => Application.Current?.Dispatcher.BeginInvoke(() => CheckForUpdatesAsync(manual: false)));
+        // Das Programm läuft oft tagelang im Hintergrund: zweimal am Tag erneut nachsehen.
+        _updateTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromHours(12) };
+        _updateTimer.Tick += async (_, _) => { if (Settings.CheckForUpdates && _updateFile is null) await CheckForUpdatesAsync(manual: false); };
+        _updateTimer.Start();
     }
 
     // --- Empfangsqualität -------------------------------------------------------
@@ -124,30 +132,152 @@ public sealed partial class MainViewModel
         set { if (Settings.CheckForUpdates == value) return; Settings.CheckForUpdates = value; OnPropertyChanged(); RequestSave(); }
     }
 
+    public bool AutoDownloadUpdates
+    {
+        get => Settings.AutoDownloadUpdates;
+        set { if (Settings.AutoDownloadUpdates == value) return; Settings.AutoDownloadUpdates = value; OnPropertyChanged(); RequestSave(); }
+    }
+
     public bool HasUpdate => _update is not null;
-    public string UpdateText => _update is null ? string.Empty : $"Neue Version {_update.Version.ToString(3)} verfügbar";
+
+    /// <summary>Neue Version ist heruntergeladen und geprüft, ein Klick installiert sie.</summary>
+    public bool UpdateReady => _updateFile is not null;
+
+    public string UpdateText => _update is null ? string.Empty
+        : _updateFile is not null ? $"Version {_update.Version.ToString(3)} bereit – jetzt aktualisieren"
+        : _downloading ? $"Version {_update.Version.ToString(3)} wird geladen" + (_downloadPercent is { } p ? $" ({p} %)" : " …")
+        : $"Neue Version {_update.Version.ToString(3)} verfügbar";
+
+    public string UpdateToolTip => UpdateReady
+        ? "Programm wird ersetzt und neu gestartet. Einstellungen bleiben erhalten, der Empfang ist nur ein paar Sekunden unterbrochen."
+        : "Download-Seite auf GitHub öffnen";
+
     public string UpdateStatus { get => _updateStatus; private set => Set(ref _updateStatus, value); }
 
     public RelayCommand CheckUpdatesCommand { get; private set; } = null!;
     public RelayCommand OpenUpdateCommand { get; private set; } = null!;
+
+    private void RaiseUpdateChanged()
+    {
+        OnPropertyChanged(nameof(HasUpdate));
+        OnPropertyChanged(nameof(UpdateReady));
+        OnPropertyChanged(nameof(UpdateText));
+        OnPropertyChanged(nameof(UpdateToolTip));
+    }
 
     private async Task CheckForUpdatesAsync(bool manual)
     {
         if (manual) UpdateStatus = "Suche nach Updates …";
         try
         {
-            _update = await UpdateCheck.FindNewerAsync(CurrentVersion);
-            OnPropertyChanged(nameof(HasUpdate));
-            OnPropertyChanged(nameof(UpdateText));
-            if (_update is not null) AddLog($"{UpdateText}: {_update.Url}");
-            UpdateStatus = _update is null
-                ? $"Du hast die neueste Version ({VersionText.Replace("Version ", "")}). Geprüft: {DateTime.Now:HH:mm}"
-                : $"{UpdateText} – Klick auf den Hinweis unten in der Statusleiste öffnet die Download-Seite.";
+            if (_downloading) return;
+            var found = await UpdateCheck.FindNewerAsync(CurrentVersion, PreferredUpdateAsset());
+            if (found?.Version != _update?.Version) _updateFile = null;
+            _update = found;
+            RaiseUpdateChanged();
+            if (_update is null)
+            {
+                UpdateStatus = $"Du hast die neueste Version ({VersionText.Replace("Version ", "")}). Geprüft: {DateTime.Now:HH:mm}";
+                return;
+            }
+            AddLog($"{UpdateText}: {_update.Url}");
+            if (_updateFile is null && Settings.AutoDownloadUpdates && _update.DownloadUrl is not null)
+                await DownloadUpdateAsync();
+            else if (_updateFile is null)
+                UpdateStatus = $"{UpdateText}. Klick auf den Hinweis unten in der Statusleiste "
+                    + (_update.DownloadUrl is null ? "öffnet die Download-Seite." : "lädt sie herunter und installiert sie.");
         }
         catch (Exception ex)
         {
             if (manual) UpdateStatus = "Update-Suche fehlgeschlagen: " + ex.Message;
         }
+    }
+
+    private async Task DownloadUpdateAsync()
+    {
+        if (_update is null || _downloading) return;
+        _downloading = true;
+        _downloadPercent = null;
+        RaiseUpdateChanged();
+        UpdateStatus = UpdateText;
+        var progress = new Progress<double>(f =>
+        {
+            var p = (int)(f * 100);
+            if (p == _downloadPercent) return;
+            _downloadPercent = p;
+            OnPropertyChanged(nameof(UpdateText));
+        });
+        try
+        {
+            _updateFile = await UpdateInstaller.DownloadAsync(_update, progress: progress);
+            AddLog($"Version {_update.Version.ToString(3)} heruntergeladen und geprüft.");
+            UpdateStatus = $"Version {_update.Version.ToString(3)} ist heruntergeladen. Klick auf „Jetzt aktualisieren“ (oder unten in der Statusleiste) installiert sie.";
+        }
+        catch (Exception ex)
+        {
+            AddLog("Update-Download fehlgeschlagen: " + ex.Message);
+            UpdateStatus = "Download fehlgeschlagen: " + ex.Message + " Ein Klick auf den Hinweis versucht es erneut.";
+        }
+        finally
+        {
+            _downloading = false;
+            RaiseUpdateChanged();
+        }
+    }
+
+    /// <summary>Klick auf den Update-Hinweis: herunterladen bzw. installieren.</summary>
+    private async Task OpenUpdate()
+    {
+        if (_update is null) { OpenUrl(UpdateCheck.ReleasesPage); return; }
+        if (_downloading) return;
+        if (_update.DownloadUrl is null) { OpenUrl(_update.Url); return; }
+        if (_updateFile is null)
+        {
+            await DownloadUpdateAsync();
+            if (_updateFile is null) return;
+        }
+        InstallUpdate();
+    }
+
+    private void InstallUpdate()
+    {
+        if (_update is null || _updateFile is null) return;
+        var exe = Environment.ProcessPath;
+        if (exe is null || !exe.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) || Path.GetFileNameWithoutExtension(exe).Equals("dotnet", StringComparison.OrdinalIgnoreCase))
+        {
+            OpenUrl(_update.Url);
+            return;
+        }
+        var answer = MessageBox.Show(Application.Current.MainWindow,
+            $"Jetzt auf Version {_update.Version.ToString(3)} aktualisieren?\n\n"
+            + "Das Programm wird ersetzt und startet neu. Deine Einstellungen bleiben erhalten, der Empfang ist nur ein paar Sekunden unterbrochen.",
+            "Update installieren", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes);
+        if (answer != MessageBoxResult.Yes) return;
+        try
+        {
+            Save(quiet: true);
+            UpdateInstaller.Install(_updateFile, exe);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(Application.Current.MainWindow,
+                $"Das Update konnte nicht installiert werden:\n{ex.Message}\n\nDie Download-Seite wird geöffnet, dort kannst du die neue Version von Hand herunterladen.",
+                "Update installieren", MessageBoxButton.OK, MessageBoxImage.Warning);
+            OpenUrl(_update.Url);
+            return;
+        }
+        AddLog($"Update auf Version {_update.Version.ToString(3)} installiert, Neustart.");
+        RestartRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>Wer die große Exe mit eingebauter .NET-Laufzeit benutzt, bekommt auch beim Update die große.</summary>
+    private static string PreferredUpdateAsset()
+    {
+        try
+        {
+            return Environment.ProcessPath is { } exe && new FileInfo(exe).Length > 30_000_000 ? UpdateCheck.SelfContainedAsset : UpdateCheck.SmallAsset;
+        }
+        catch (IOException) { return UpdateCheck.SmallAsset; }
     }
 
     private static void OpenUrl(string url)

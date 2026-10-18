@@ -60,7 +60,7 @@
                 <TextBlock DockPanel.Dock="Right" Text="{Binding Clock}" Foreground="{DynamicResource MutedBrush}" FontFamily="Consolas" VerticalAlignment="Center" />
                 <Button DockPanel.Dock="Right" Style="{StaticResource LinkButton}" Content="{Binding UpdateText}" Command="{Binding OpenUpdateCommand}"
                         FontWeight="SemiBold" Margin="0,0,14,0" Padding="4,0" MinHeight="0"
-                        Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVis}}" ToolTip="Download-Seite auf GitHub öffnen" />
+                        Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVis}}" ToolTip="{Binding UpdateToolTip}" />
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Ellipse Width="8" Height="8" Margin="0,0,6,0" VerticalAlignment="Center">
                         <Ellipse.Style>
@@ -611,13 +611,17 @@
                                 <GroupBox Header="Updates">
                                     <StackPanel>
                                         <TextBlock Text="{Binding VersionText}" FontWeight="SemiBold" />
-                                        <CheckBox Content="Beim Programmstart nach einer neuen Version suchen" IsChecked="{Binding CheckForUpdates}" Margin="0,6,0,0" />
-                                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                            <Button Content="Jetzt nach Updates suchen" Command="{Binding CheckUpdatesCommand}" />
-                                            <TextBlock Text="{Binding UpdateStatus}" VerticalAlignment="Center" TextWrapping="Wrap" />
-                                        </StackPanel>
+                                        <CheckBox Content="Beim Programmstart und zweimal am Tag nach einer neuen Version suchen" IsChecked="{Binding CheckForUpdates}" Margin="0,6,0,0" />
+                                        <CheckBox Content="Neue Versionen automatisch herunterladen" IsChecked="{Binding AutoDownloadUpdates}" Margin="0,4,0,0" />
+                                        <DockPanel Margin="0,8,0,0">
+                                            <Button DockPanel.Dock="Left" Content="Jetzt nach Updates suchen" Command="{Binding CheckUpdatesCommand}" VerticalAlignment="Top" />
+                                            <Button DockPanel.Dock="Left" Style="{StaticResource PrimaryButton}" Content="Jetzt aktualisieren" Command="{Binding OpenUpdateCommand}"
+                                                    Margin="6,0,0,0" VerticalAlignment="Top" ToolTip="{Binding UpdateToolTip}"
+                                                    Visibility="{Binding UpdateReady, Converter={StaticResource BoolToVis}}" />
+                                            <TextBlock Text="{Binding UpdateStatus}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="10,0,0,0" />
+                                        </DockPanel>
                                         <TextBlock Style="{StaticResource Hint}" Margin="0,6,0,0"
-                                                   Text="Fragt bei GitHub nach der neuesten veröffentlichten Version. Gibt es eine neuere, erscheint unten in der Statusleiste ein Hinweis, ein Klick darauf öffnet die Download-Seite. Es wird nichts automatisch installiert." />
+                                                   Text="Fragt bei GitHub nach der neuesten veröffentlichten Version und lädt sie im Hintergrund herunter. Installiert wird erst, wenn du auf „Jetzt aktualisieren“ oder auf den Hinweis unten in der Statusleiste klickst: Das Programm wird dann ersetzt und startet neu, die Einstellungen bleiben erhalten." />
                                     </StackPanel>
                                 </GroupBox>
                             </StackPanel>

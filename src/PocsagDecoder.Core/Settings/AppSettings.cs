@@ -111,6 +111,9 @@ public sealed class AppSettings
     /// <summary>Beim Programmstart auf GitHub nach einer neueren Version suchen.</summary>
     public bool CheckForUpdates { get; set; } = true;
 
+    /// <summary>Gefundene neue Version gleich herunterladen; installiert wird erst nach Klick.</summary>
+    public bool AutoDownloadUpdates { get; set; } = true;
+
     public static AppSettings CreateDefault() => new()
     {
         Targets =

@@ -79,4 +79,50 @@ public class MaintenanceTests
         Assert.Equal("Z", XlsxWriter.Column(25));
         Assert.Equal("AA", XlsxWriter.Column(26));
     }
+
+    [Fact]
+    public void FindsExeAssetWithChecksum()
+    {
+        using var doc = System.Text.Json.JsonDocument.Parse("""
+            {"tag_name":"v1.2.0","assets":[
+              {"name":"Quellcode.zip","browser_download_url":"https://example.org/a.zip","size":5},
+              {"name":"PocsagDecoder.exe","browser_download_url":"https://example.org/PocsagDecoder.exe","size":2048,"digest":"sha256:ABCDEF"}]}
+            """);
+        var (url, size, sha) = UpdateCheck.FindExeAsset(doc.RootElement);
+        Assert.Equal("https://example.org/PocsagDecoder.exe", url);
+        Assert.Equal(2048, size);
+        Assert.Equal("abcdef", sha);
+    }
+
+    [Fact]
+    public void VerifiesAndInstallsUpdate()
+    {
+        var dir = Directory.CreateTempSubdirectory("pocsag-update").FullName;
+        try
+        {
+            var bytes = new byte[4096];
+            bytes[0] = (byte)'M';
+            bytes[1] = (byte)'Z';
+            bytes[100] = 42;
+            var download = Path.Combine(dir, "neu.exe");
+            File.WriteAllBytes(download, bytes);
+            var sha = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).ToLowerInvariant();
+
+            Assert.Null(UpdateInstaller.Verify(download, new UpdateInfo(new Version(1, 2, 0), "v1.2.0", "", "x", bytes.Length, sha)));
+            Assert.NotNull(UpdateInstaller.Verify(download, new UpdateInfo(new Version(1, 2, 0), "v1.2.0", "", "x", bytes.Length, "00")));
+            Assert.NotNull(UpdateInstaller.Verify(download, new UpdateInfo(new Version(1, 2, 0), "v1.2.0", "", "x", 10, null)));
+
+            var exe = Path.Combine(dir, "PocsagDecoder.exe");
+            File.WriteAllText(exe, "alt");
+            UpdateInstaller.Install(download, exe);
+            Assert.Equal(bytes, File.ReadAllBytes(exe));
+            Assert.Equal("alt", File.ReadAllText(exe + UpdateInstaller.OldSuffix));
+            UpdateInstaller.CleanUp(exe);
+            Assert.False(File.Exists(exe + UpdateInstaller.OldSuffix));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
 }

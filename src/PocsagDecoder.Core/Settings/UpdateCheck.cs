@@ -3,17 +3,23 @@ using System.Text.Json;
 
 namespace PocsagDecoder.Core.Settings;
 
-/// <summary>Neuere Version auf GitHub (Releases).</summary>
-public sealed record UpdateInfo(Version Version, string Tag, string Url);
+/// <summary>Neuere Version auf GitHub (Releases). <paramref name="DownloadUrl"/> ist die angehängte .exe, falls vorhanden.</summary>
+public sealed record UpdateInfo(Version Version, string Tag, string Url, string? DownloadUrl = null, long Size = 0, string? Sha256 = null);
 
 /// <summary>Fragt die neueste Version (GitHub-Release) ab und vergleicht sie mit der laufenden.</summary>
 public static class UpdateCheck
 {
     public const string Repository = "JBerg2004/pocsag-decoder";
+    /// <summary>Kleine Exe (braucht die .NET 8 Desktop Runtime).</summary>
+    public const string SmallAsset = "PocsagDecoder.exe";
+
+    /// <summary>Exe mit eingebauter .NET-Laufzeit.</summary>
+    public const string SelfContainedAsset = "PocsagDecoder-komplett.exe";
+
     public static string ReleasesPage => $"https://github.com/{Repository}/releases";
 
     /// <summary>Neuere Version oder null, wenn keine neuere da ist (oder noch kein Release veröffentlicht wurde).</summary>
-    public static async Task<UpdateInfo?> FindNewerAsync(Version current, HttpClient? http = null, CancellationToken ct = default)
+    public static async Task<UpdateInfo?> FindNewerAsync(Version current, string preferredAsset = SmallAsset, HttpClient? http = null, CancellationToken ct = default)
     {
         var own = http is null;
         http ??= new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
@@ -28,12 +34,32 @@ public static class UpdateCheck
             using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
             var tag = doc.RootElement.GetProperty("tag_name").GetString() ?? string.Empty;
             var url = doc.RootElement.TryGetProperty("html_url", out var u) ? u.GetString() ?? ReleasesPage : ReleasesPage;
-            return TryParseVersion(tag, out var latest) && IsNewer(latest, current) ? new UpdateInfo(latest, tag, url) : null;
+            if (!TryParseVersion(tag, out var latest) || !IsNewer(latest, current)) return null;
+            var (download, size, sha) = FindExeAsset(doc.RootElement, preferredAsset);
+            return new UpdateInfo(latest, tag, url, download, size, sha);
         }
         finally
         {
             if (own) http.Dispose();
         }
+    }
+
+    /// <summary>Programmdatei unter den Anhängen des Release: bevorzugt <paramref name="preferred"/>, sonst die erste .exe.</summary>
+    public static (string? Url, long Size, string? Sha256) FindExeAsset(JsonElement release, string preferred = SmallAsset)
+    {
+        if (!release.TryGetProperty("assets", out var assets) || assets.ValueKind != JsonValueKind.Array) return (null, 0, null);
+        var exes = assets.EnumerateArray()
+            .Where(a => a.TryGetProperty("name", out var n) && n.GetString()?.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) == true)
+            .OrderByDescending(a => a.GetProperty("name").GetString()!.Equals(preferred, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        if (exes.Count == 0) return (null, 0, null);
+        var asset = exes[0];
+        var url = asset.TryGetProperty("browser_download_url", out var d) ? d.GetString() : null;
+        var size = asset.TryGetProperty("size", out var s) && s.TryGetInt64(out var l) ? l : 0;
+        // GitHub liefert „sha256:…“ als Prüfsumme der Datei mit.
+        var digest = asset.TryGetProperty("digest", out var g) ? g.GetString() : null;
+        var sha = digest?.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase) == true ? digest[7..].ToLowerInvariant() : null;
+        return (url, size, sha);
     }
 
     /// <summary>„v1.2.0“, „1.2“, „Version 1.2.3“ → Version.</summary>
