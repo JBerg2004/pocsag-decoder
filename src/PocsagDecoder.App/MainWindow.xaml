@@ -768,19 +768,6 @@
                                                  ToolTip="Auf beiden PCs gleich. Mit Kennwort ist die Verbindung verschlüsselt (AES), und nur wer es kennt, bekommt eine Antwort. Das Kennwort selbst wird nie übertragen." />
                                     </Grid>
                                 </GroupBox>
-                                <GroupBox Header="PCs in verschiedenen Netzen">
-                                    <StackPanel>
-                                        <TextBlock TextWrapping="Wrap" FontWeight="SemiBold" Text="Empfohlen: Tailscale (kostenlos, verschlüsselt, ohne Änderungen am Router)" />
-                                        <TextBlock TextWrapping="Wrap" Margin="0,4,0,0"
-                                                   Text="1. Auf beiden PCs Tailscale installieren (tailscale.com/download) und mit demselben Konto anmelden." />
-                                        <TextBlock TextWrapping="Wrap" Margin="0,4,0,0"
-                                                   Text="2. Am Master im Tailscale-Symbol unten rechts seine Adresse ablesen (beginnt mit 100.) oder den Gerätenamen aus der Tailscale-Übersicht nehmen." />
-                                        <TextBlock TextWrapping="Wrap" Margin="0,4,0,0"
-                                                   Text="3. Am Slave diese Adresse oben als Master-PC eintragen und „Verbindung testen“ klicken." />
-                                        <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
-                                                   Text="Andere Wege: im selben Heimnetz einfach die normale Adresse des Masters (steht oben unter „Dieser PC“); Fritzbox-VPN („Netzwerke koppeln“); oder eine Portfreigabe für TCP-Port 8754 am Router des Masters mit MyFRITZ- bzw. DynDNS-Adresse, dann unbedingt mit Kennwort (bei DS-Lite und Mobilfunk nur über IPv6). Fällt die Verbindung zwischen den Standorten aus, übernimmt der Slave: Alarme können dann doppelt ankommen, verloren geht keiner." />
-                                    </StackPanel>
-                                </GroupBox>
                                 <GroupBox Header="Übernahme durch den Slave">
                                     <StackPanel>
                                         <StackPanel Orientation="Horizontal">
