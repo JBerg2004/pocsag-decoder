@@ -55,8 +55,6 @@ public class InterfaceTests
             var s = SettingsStore.Load(path);
             Assert.Equal("System", s.Theme);
             Assert.True(s.SubRicColors);
-            Assert.True(s.AlarmBanner);
-            Assert.Equal("A", s.AlarmBannerSubRics);
             Assert.Equal(12.5, s.ListFontSize);
             s.Theme = "Dark";
             SettingsStore.Save(s, path);

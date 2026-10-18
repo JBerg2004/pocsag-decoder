@@ -1,40 +1,18 @@
-using System.Collections.ObjectModel;
 using System.Windows.Threading;
 
 namespace PocsagDecoder.App.ViewModels;
 
-/// <summary>Darstellung: Design, SubRIC-Farben, Alarm-Banner, Schriftgröße und Statusleiste.</summary>
+/// <summary>Darstellung: Design, SubRIC-Farben, Schriftgröße und Statusleiste.</summary>
 public sealed partial class MainViewModel
 {
-    private const int MaxAlarms = 5;
     private DispatcherTimer? _clockTimer;
     private DateTime? _lastReceivedAt;
     private string _clock = string.Empty;
     private string _lastReceivedText = "Noch keine Meldung empfangen";
 
-    /// <summary>Aktive Alarme im Banner oben, neueste zuerst.</summary>
-    public ObservableCollection<MessageItem> ActiveAlarms { get; } = new();
-
-    public bool HasAlarms => ActiveAlarms.Count > 0;
-
-    /// <summary>Neuester Alarm, groß im Banner.</summary>
-    public MessageItem? LatestAlarm => ActiveAlarms.FirstOrDefault();
-
-    /// <summary>Ältere Alarme, kleiner darunter.</summary>
-    public IReadOnlyList<MessageItem> OlderAlarms => ActiveAlarms.Skip(1).ToList();
-
-    public RelayCommand DismissAlarmsCommand { get; private set; } = null!;
-
     private void InitDisplay()
     {
         ThemeManager.Apply(Settings.Theme);
-        DismissAlarmsCommand = new RelayCommand(() => ActiveAlarms.Clear());
-        ActiveAlarms.CollectionChanged += (_, _) =>
-        {
-            OnPropertyChanged(nameof(HasAlarms));
-            OnPropertyChanged(nameof(LatestAlarm));
-            OnPropertyChanged(nameof(OlderAlarms));
-        };
 
         _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _clockTimer.Tick += (_, _) => UpdateClock();
@@ -77,46 +55,6 @@ public sealed partial class MainViewModel
             OnPropertyChanged();
             RequestSave();
         }
-    }
-
-    // --- Alarm-Banner -----------------------------------------------------------
-
-    public bool AlarmBanner
-    {
-        get => Settings.AlarmBanner;
-        set
-        {
-            if (Settings.AlarmBanner == value) return;
-            Settings.AlarmBanner = value;
-            if (!value) ActiveAlarms.Clear();
-            OnPropertyChanged();
-            RequestSave();
-        }
-    }
-
-    public bool AlarmBannerA { get => AlarmOn('A'); set => SetAlarmOn('A', value); }
-    public bool AlarmBannerB { get => AlarmOn('B'); set => SetAlarmOn('B', value); }
-    public bool AlarmBannerC { get => AlarmOn('C'); set => SetAlarmOn('C', value); }
-    public bool AlarmBannerD { get => AlarmOn('D'); set => SetAlarmOn('D', value); }
-
-    private bool AlarmOn(char subRic) => (Settings.AlarmBannerSubRics ?? string.Empty).Contains(subRic, StringComparison.OrdinalIgnoreCase);
-
-    private void SetAlarmOn(char subRic, bool on)
-    {
-        if (AlarmOn(subRic) == on) return;
-        var letters = "ABCD".Where(c => c == subRic ? on : AlarmOn(c));
-        Settings.AlarmBannerSubRics = string.Concat(letters);
-        OnPropertyChanged("AlarmBanner" + subRic);
-        RequestSave();
-    }
-
-    /// <summary>Treffer eines Telegrammereignisses: bei passender SubRIC ins Banner, Wiederholungen nicht.</summary>
-    private void ShowAlarmIfWanted(MessageItem item)
-    {
-        if (!Settings.AlarmBanner || !item.Matched || item.IsRepeat) return;
-        if (item.Function is < 0 or > 3 || !AlarmOn("ABCD"[item.Function])) return;
-        ActiveAlarms.Insert(0, item);
-        while (ActiveAlarms.Count > MaxAlarms) ActiveAlarms.RemoveAt(ActiveAlarms.Count - 1);
     }
 
     // --- Statusleiste -----------------------------------------------------------

@@ -46,6 +46,4 @@
     <SolidColorBrush x:Key="SubRicBBrush" Color="#EF6C00" />
     <SolidColorBrush x:Key="SubRicCBrush" Color="#1565C0" />
     <SolidColorBrush x:Key="SubRicDBrush" Color="#616161" />
-    <SolidColorBrush x:Key="AlarmBannerBrush" Color="#B71C1C" />
-    <SolidColorBrush x:Key="AlarmBannerLineBrush" Color="#7F1010" />
 </ResourceDictionary>

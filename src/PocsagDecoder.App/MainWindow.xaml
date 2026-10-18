@@ -16,30 +16,6 @@
         <conv:InverseBoolConverter x:Key="Not" />
         <conv:TargetCheckedConverter x:Key="TargetChecked" />
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
-
-        <!-- Eine Zeile im Alarm-Banner -->
-        <DataTemplate x:Key="AlarmLine">
-            <Grid Margin="0,2">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Text="{Binding Timestamp, StringFormat='HH:mm:ss'}" FontFamily="Consolas" Opacity="0.85"
-                           VerticalAlignment="Center" Margin="0,0,12,0" />
-                <Border Grid.Column="1" Background="#33FFFFFF" CornerRadius="3" Padding="7,1" Margin="0,0,12,0" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding SubRic}" FontFamily="Consolas" FontWeight="Bold" />
-                </Border>
-                <TextBlock Grid.Column="2" TextWrapping="Wrap" VerticalAlignment="Center">
-                    <Run Text="{Binding RicDescription, Mode=OneWay}" FontWeight="Bold" />
-                    <Run Text="{Binding RicLocation, Mode=OneWay}" />
-                    <Run Text="·" Foreground="#CCFFFFFF" />
-                    <Run Text="{Binding SubRicDescription, Mode=OneWay}" FontWeight="SemiBold" />
-                    <Run Text="  " /><Run Text="{Binding Text, Mode=OneWay}" />
-                    <Run Text="{Binding Ric, Mode=OneWay, StringFormat='  (RIC {0})'}" Foreground="#CCFFFFFF" />
-                </TextBlock>
-            </Grid>
-        </DataTemplate>
     </Window.Resources>
 
     <DockPanel>
@@ -103,21 +79,6 @@
                         <Run Text="Empfangen" Foreground="{DynamicResource MutedBrush}" /> <Run Text="{Binding ReceivedCount, Mode=OneWay}" FontWeight="SemiBold" />
                         <Run Text="   Weitergeleitet" Foreground="{DynamicResource MutedBrush}" /> <Run Text="{Binding ForwardedCount, Mode=OneWay}" FontWeight="SemiBold" />
                     </TextBlock>
-                </StackPanel>
-            </DockPanel>
-        </Border>
-
-        <!-- Alarm-Banner: Treffer mit passender SubRIC, bleibt bis „Quittieren“ -->
-        <Border DockPanel.Dock="Top" Background="{DynamicResource AlarmBannerBrush}" BorderBrush="{DynamicResource AlarmBannerLineBrush}" BorderThickness="0,0,0,2"
-                Padding="14,10" Visibility="{Binding HasAlarms, Converter={StaticResource BoolToVis}}" TextElement.Foreground="White">
-            <DockPanel>
-                <Button DockPanel.Dock="Right" Content="✓  Quittieren" Command="{Binding DismissAlarmsCommand}" VerticalAlignment="Top"
-                        Background="White" Foreground="#B71C1C" BorderBrush="White" FontWeight="SemiBold" Margin="12,0,0,0" />
-                <StackPanel>
-                    <!-- Neuester Alarm groß -->
-                    <ContentControl Content="{Binding LatestAlarm}" ContentTemplate="{StaticResource AlarmLine}" FontSize="20" />
-                    <!-- Ältere Alarme kleiner darunter -->
-                    <ItemsControl ItemsSource="{Binding OlderAlarms}" ItemTemplate="{StaticResource AlarmLine}" FontSize="13" Margin="0,4,0,0" Opacity="0.9" />
                 </StackPanel>
             </DockPanel>
         </Border>
@@ -332,7 +293,7 @@
                         <DockPanel>
                             <Button DockPanel.Dock="Right" Content="💾 Einstellungen speichern" Command="{Binding SaveCommand}" Margin="0" />
                             <TextBlock Style="{StaticResource Hint}" VerticalAlignment="Center" Margin="0"
-                                       Text="Design, Farben, Banner und Schriftgröße werden sofort übernommen und automatisch gespeichert." />
+                                       Text="Design, Farben und Schriftgröße werden sofort übernommen und automatisch gespeichert." />
                         </DockPanel>
                     </Border>
                 <TabControl Style="{StaticResource SideTabs}">
@@ -508,23 +469,6 @@
                                         </DockPanel>
                                         <TextBlock Style="{StaticResource Hint}"
                                                    Text="Gilt für alle Fenster im Reiter Telegramme. Tipp: Strg + Mausrad über einer Liste ändert die Größe ebenfalls." />
-                                    </StackPanel>
-                                </GroupBox>
-
-                                <GroupBox Header="Alarm-Banner">
-                                    <StackPanel>
-                                        <CheckBox Content="Großes Alarm-Banner oben im Fenster anzeigen" IsChecked="{Binding AlarmBanner}" FontWeight="SemiBold" />
-                                        <StackPanel Margin="20,6,0,0" IsEnabled="{Binding AlarmBanner}">
-                                            <TextBlock Text="bei diesen SubRICs:" Foreground="{DynamicResource MutedBrush}" />
-                                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                                <CheckBox Content="{Binding SubRicLabelA}" IsChecked="{Binding AlarmBannerA}" Margin="0,0,12,0" />
-                                                <CheckBox Content="{Binding SubRicLabelB}" IsChecked="{Binding AlarmBannerB}" Margin="0,0,12,0" />
-                                                <CheckBox Content="{Binding SubRicLabelC}" IsChecked="{Binding AlarmBannerC}" Margin="0,0,12,0" />
-                                                <CheckBox Content="{Binding SubRicLabelD}" IsChecked="{Binding AlarmBannerD}" />
-                                            </StackPanel>
-                                        </StackPanel>
-                                        <TextBlock Style="{StaticResource Hint}" Margin="0,6,0,0"
-                                                   Text="Das Banner erscheint, wenn eine Meldung auf ein Telegrammereignis passt (Wiederholungen nicht). Es zeigt die letzten 5 Alarme und bleibt stehen, bis du auf „Quittieren“ klickst." />
                                     </StackPanel>
                                 </GroupBox>
 

@@ -105,12 +105,6 @@ public sealed class AppSettings
     /// <summary>SubRIC in den Telegrammlisten farbig kennzeichnen (A rot, B orange, C blau, D grau).</summary>
     public bool SubRicColors { get; set; } = true;
 
-    /// <summary>Großes Alarm-Banner oben im Fenster bei Treffern eines Telegrammereignisses.</summary>
-    public bool AlarmBanner { get; set; } = true;
-
-    /// <summary>SubRICs, bei denen das Alarm-Banner erscheint, z. B. "A" oder "AB".</summary>
-    public string AlarmBannerSubRics { get; set; } = "A";
-
     /// <summary>Schriftgröße der Telegrammlisten.</summary>
     public double ListFontSize { get; set; } = 12.5;
 

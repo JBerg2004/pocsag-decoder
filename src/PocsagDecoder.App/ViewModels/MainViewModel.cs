@@ -546,7 +546,6 @@ public sealed partial class MainViewModel : ObservableObject
         ReceivedCount++;
         NoteReceivedForStatus();
         if (item.Matched) MessageMatched?.Invoke(this, item);
-        ShowAlarmIfWanted(item);
 
         if (hits.Count > 0 && _duplicates.IsDuplicate(message))
         {
