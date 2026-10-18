@@ -21,28 +21,54 @@ public static class UpdateCheck
     /// <summary>Neuere Version oder null, wenn keine neuere da ist (oder noch kein Release veröffentlicht wurde).</summary>
     public static async Task<UpdateInfo?> FindNewerAsync(Version current, string preferredAsset = SmallAsset, HttpClient? http = null, CancellationToken ct = default)
     {
+        var latest = await FindLatestAsync(current, preferredAsset, http, ct);
+        return latest is not null && IsNewer(latest.Version, current) ? latest : null;
+    }
+
+    /// <summary>
+    /// Neuestes veröffentlichtes Release (ohne Entwürfe und Vorabversionen) oder null, wenn es keins gibt.
+    /// Fragt die Release-Liste ab statt „releases/latest“: Die Antwort darauf hält GitHub nach einem neuen Release teils noch eine Weile zwischengespeichert.
+    /// </summary>
+    public static async Task<UpdateInfo?> FindLatestAsync(Version current, string preferredAsset = SmallAsset, HttpClient? http = null, CancellationToken ct = default)
+    {
         var own = http is null;
         http ??= new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
         try
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.github.com/repos/{Repository}/releases/latest");
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.github.com/repos/{Repository}/releases?per_page=20");
             request.Headers.UserAgent.Add(new ProductInfoHeaderValue("PocsagDecoder", current.ToString()));
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+            request.Headers.CacheControl = new CacheControlHeaderValue { NoCache = true };
             using var response = await http.SendAsync(request, ct);
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
             response.EnsureSuccessStatusCode();
             using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
-            var tag = doc.RootElement.GetProperty("tag_name").GetString() ?? string.Empty;
-            var url = doc.RootElement.TryGetProperty("html_url", out var u) ? u.GetString() ?? ReleasesPage : ReleasesPage;
-            if (!TryParseVersion(tag, out var latest) || !IsNewer(latest, current)) return null;
-            var (download, size, sha) = FindExeAsset(doc.RootElement, preferredAsset);
-            return new UpdateInfo(latest, tag, url, download, size, sha);
+            return PickLatest(doc.RootElement, preferredAsset);
         }
         finally
         {
             if (own) http.Dispose();
         }
     }
+
+    /// <summary>Höchste Version aus der Release-Liste der GitHub-API.</summary>
+    public static UpdateInfo? PickLatest(JsonElement releases, string preferredAsset = SmallAsset)
+    {
+        if (releases.ValueKind != JsonValueKind.Array) return null;
+        UpdateInfo? best = null;
+        foreach (var release in releases.EnumerateArray())
+        {
+            if (Flag(release, "draft") || Flag(release, "prerelease")) continue;
+            var tag = release.TryGetProperty("tag_name", out var t) ? t.GetString() ?? string.Empty : string.Empty;
+            if (!TryParseVersion(tag, out var version) || (best is not null && !IsNewer(version, best.Version))) continue;
+            var url = release.TryGetProperty("html_url", out var u) ? u.GetString() ?? ReleasesPage : ReleasesPage;
+            var (download, size, sha) = FindExeAsset(release, preferredAsset);
+            best = new UpdateInfo(version, tag, url, download, size, sha);
+        }
+        return best;
+    }
+
+    private static bool Flag(JsonElement e, string name) => e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.True;
 
     /// <summary>Programmdatei unter den Anhängen des Release: bevorzugt <paramref name="preferred"/>, sonst die erste .exe.</summary>
     public static (string? Url, long Size, string? Sha256) FindExeAsset(JsonElement release, string preferred = SmallAsset)

@@ -125,4 +125,19 @@ public class MaintenanceTests
             Directory.Delete(dir, recursive: true);
         }
     }
+
+    [Fact]
+    public void PicksHighestPublishedRelease()
+    {
+        using var doc = System.Text.Json.JsonDocument.Parse("""
+            [{"tag_name":"v1.4.0","draft":true},
+             {"tag_name":"v1.3.0-beta","prerelease":true},
+             {"tag_name":"v1.2.0","html_url":"https://example.org/v1.2.0","assets":[]},
+             {"tag_name":"v1.10.0","html_url":"https://example.org/v1.10.0","assets":[{"name":"PocsagDecoder.exe","browser_download_url":"https://example.org/x.exe","size":3}]}]
+            """);
+        var latest = UpdateCheck.PickLatest(doc.RootElement);
+        Assert.NotNull(latest);
+        Assert.Equal(new Version(1, 10, 0), latest.Version);
+        Assert.Equal("https://example.org/x.exe", latest.DownloadUrl);
+    }
 }

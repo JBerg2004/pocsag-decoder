@@ -11,7 +11,7 @@
     <RootNamespace>PocsagDecoder.App</RootNamespace>
     <AssemblyName>PocsagDecoder</AssemblyName>
     <Product>POCSAG Decoder</Product>
-    <Version>1.2.0</Version>
+    <Version>1.2.1</Version>
     <ApplicationIcon>app.ico</ApplicationIcon>
   </PropertyGroup>
 

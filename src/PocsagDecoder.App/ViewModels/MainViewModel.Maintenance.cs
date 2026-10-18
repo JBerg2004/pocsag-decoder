@@ -171,13 +171,15 @@ public sealed partial class MainViewModel
         try
         {
             if (_downloading) return;
-            var found = await UpdateCheck.FindNewerAsync(CurrentVersion, PreferredUpdateAsset());
+            var latest = await UpdateCheck.FindLatestAsync(CurrentVersion, PreferredUpdateAsset());
+            var found = latest is not null && UpdateCheck.IsNewer(latest.Version, CurrentVersion) ? latest : null;
             if (found?.Version != _update?.Version) _updateFile = null;
             _update = found;
             RaiseUpdateChanged();
             if (_update is null)
             {
-                UpdateStatus = $"Du hast die neueste Version ({VersionText.Replace("Version ", "")}). Geprüft: {DateTime.Now:HH:mm}";
+                UpdateStatus = $"Du hast die neueste Version ({VersionText.Replace("Version ", "")}"
+                    + (latest is null ? ", auf GitHub ist noch keine veröffentlicht" : $", auf GitHub: {latest.Version.ToString(3)}") + $"). Geprüft: {DateTime.Now:HH:mm}";
                 return;
             }
             AddLog($"{UpdateText}: {_update.Url}");
