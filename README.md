@@ -197,10 +197,9 @@ dotnet test
 dotnet publish src/PocsagDecoder.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o publish
 ```
 
-Neue Version veröffentlichen: Version in `src/PocsagDecoder.App/PocsagDecoder.App.csproj` erhöhen, committen und ein Tag setzen
-(`git tag v1.2.0 && git push origin v1.2.0`). Die GitHub-Action `.github/workflows/release.yml` baut dann
-`PocsagDecoder.exe` (klein, braucht die .NET 8 Desktop Runtime) und `PocsagDecoder-komplett.exe` (mit Laufzeit)
-und legt das Release an; laufende Programme finden es über die Update-Suche.
+Neue Version veröffentlichen: Version in `src/PocsagDecoder.App/PocsagDecoder.App.csproj` erhöhen und nach `main` pushen.
+Die GitHub-Action `.github/workflows/release.yml` baut dann `PocsagDecoder.exe` (klein, braucht die .NET 8 Desktop Runtime) und `PocsagDecoder-komplett.exe` (mit Laufzeit)
+und legt das Release `v<Version>` an; laufende Programme finden es über die Update-Suche.
 
 Projektaufbau:
 
