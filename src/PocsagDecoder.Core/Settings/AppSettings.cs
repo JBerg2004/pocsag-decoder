@@ -108,6 +108,9 @@ public sealed class AppSettings
     /// <summary>Schriftgröße der Telegrammlisten.</summary>
     public double ListFontSize { get; set; } = 12.5;
 
+    /// <summary>Beim Programmstart auf GitHub nach einer neueren Version suchen.</summary>
+    public bool CheckForUpdates { get; set; } = true;
+
     public static AppSettings CreateDefault() => new()
     {
         Targets =

@@ -2,6 +2,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Microsoft.Win32;
 using PocsagDecoder.App.ViewModels;
 
@@ -27,6 +28,11 @@ public partial class MainWindow : Window
             if (e.PropertyName == nameof(MainViewModel.StatusText)) _tray.SetStatus(Vm.StatusText);
         };
         Vm.SystemError += (_, e) => _tray.ShowBalloon(e.Title, e.Text, warning: true);
+        Vm.RestartRequested += (_, _) =>
+        {
+            ((App)Application.Current).RestartOnExit = true;
+            ExitApplication();
+        };
         Vm.MessageMatched += (_, item) =>
         {
             if (IsVisible || !Vm.Settings.TrayNotifications || !item.TrayNotify) return;
@@ -171,6 +177,50 @@ public partial class MainWindow : Window
     {
         var dlg = new OpenFolderDialog { Title = "Ordner für die empfangenen Meldungen wählen", InitialDirectory = Vm.LogDirectory };
         if (dlg.ShowDialog(this) == true) Vm.LogDirectory = dlg.FolderName;
+    }
+
+    private void HistorySearch_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter) return;
+        HistorySearchBox.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+        Vm.SearchHistoryCommand.Execute(null);
+    }
+
+    private void ExportHistory_Click(object sender, RoutedEventArgs e)
+    {
+        if (Vm.HistoryResults.Count == 0)
+        {
+            MessageBox.Show(this, "Es gibt keine Treffer zum Speichern. Bitte zuerst suchen.", "Als Excel speichern");
+            return;
+        }
+        var dlg = new SaveFileDialog
+        {
+            Title = "Verlauf als Excel speichern",
+            Filter = "Excel-Arbeitsmappe (*.xlsx)|*.xlsx",
+            FileName = $"pocsag-verlauf-{DateTime.Now:yyyy-MM-dd}.xlsx",
+        };
+        if (dlg.ShowDialog(this) == true) Vm.ExportHistory(dlg.FileName);
+    }
+
+    private void CreateBackup_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new SaveFileDialog
+        {
+            Title = "Sicherung erstellen",
+            Filter = "POCSAG-Decoder-Sicherung (*.json)|*.json",
+            FileName = $"pocsag-sicherung-{DateTime.Now:yyyy-MM-dd}.json",
+        };
+        if (dlg.ShowDialog(this) == true) Vm.CreateBackup(dlg.FileName);
+    }
+
+    private void RestoreBackup_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new OpenFileDialog
+        {
+            Title = "Sicherung wiederherstellen",
+            Filter = "POCSAG-Decoder-Sicherung (*.json)|*.json|Alle Dateien (*.*)|*.*",
+        };
+        if (dlg.ShowDialog(this) == true) Vm.RestoreBackup(dlg.FileName);
     }
 
     private void ResetFontSize_Click(object sender, RoutedEventArgs e) => Vm.ListFontSize = 12.5;

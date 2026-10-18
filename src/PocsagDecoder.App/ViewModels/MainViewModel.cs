@@ -68,6 +68,8 @@ public sealed partial class MainViewModel : ObservableObject
         InitErrorHandling();
         InitTargets();
         InitDisplay();
+        InitHistory();
+        InitMaintenance();
 
         StartCommand = new RelayCommand(Start, () => !IsRunning);
         StopCommand = new RelayCommand(Stop, () => IsRunning);
@@ -545,6 +547,7 @@ public sealed partial class MainViewModel : ObservableObject
         while (Messages.Count > Math.Max(100, Settings.MaxMessages)) Messages.RemoveAt(Messages.Count - 1);
         ReceivedCount++;
         NoteReceivedForStatus();
+        NoteQuality(message);
         if (item.Matched) MessageMatched?.Invoke(this, item);
 
         if (hits.Count > 0 && _duplicates.IsDuplicate(message))
@@ -879,6 +882,8 @@ public sealed partial class MainViewModel : ObservableObject
 
     private void Save(bool quiet)
     {
+        // Nach dem Wiederherstellen einer Sicherung nichts mehr überschreiben.
+        if (_skipSaveOnExit) return;
         Settings.Rules = Rules.ToList();
         Settings.Targets = Targets.ToList();
         Settings.RicEntries = Descriptions.Where(d => !d.IsEmpty).ToList();

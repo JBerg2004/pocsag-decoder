@@ -9,6 +9,10 @@ public partial class App : Application
     private const string InstanceName = "PocsagDecoder.SingleInstance";
     private Mutex? _instanceMutex;
     private EventWaitHandle? _showSignal;
+    private bool _ownsMutex;
+
+    /// <summary>Beim Beenden das Programm neu starten (nach dem Wiederherstellen einer Sicherung).</summary>
+    public bool RestartOnExit { get; set; }
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -19,7 +23,13 @@ public partial class App : Application
             new RoutedEventHandler((s, _) => ThemeManager.ApplyTitleBar((Window)s)));
 
         // Nur eine Instanz: ein zweiter Start holt das laufende Fenster nach vorn (der SDR-Stick kann nur einmal benutzt werden).
-        _instanceMutex = new Mutex(true, InstanceName + ".Mutex", out var first);
+        // Nach „Sicherung wiederherstellen“ (--restarted) warten, bis die alte Instanz beendet ist.
+        var restarted = e.Args.Any(a => a.Equals("--restarted", StringComparison.OrdinalIgnoreCase));
+        _instanceMutex = new Mutex(false, InstanceName + ".Mutex");
+        bool first;
+        try { first = _instanceMutex.WaitOne(restarted ? TimeSpan.FromSeconds(20) : TimeSpan.Zero); }
+        catch (AbandonedMutexException) { first = true; }
+        _ownsMutex = first;
         _showSignal = new EventWaitHandle(false, EventResetMode.AutoReset, InstanceName + ".Show");
         if (!first)
         {
@@ -41,6 +51,21 @@ public partial class App : Application
                 Dispatcher.BeginInvoke(window.ShowFromTray);
         }) { IsBackground = true, Name = "SingleInstance" };
         listener.Start();
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        if (_ownsMutex)
+        {
+            _instanceMutex?.ReleaseMutex();
+            _ownsMutex = false;
+        }
+        if (RestartOnExit && Environment.ProcessPath is { } exe)
+        {
+            try { System.Diagnostics.Process.Start(exe, "--restarted"); }
+            catch (Exception) { /* dann startet der Nutzer selbst neu */ }
+        }
+        base.OnExit(e);
     }
 
     private static void OnUnhandled(object sender, DispatcherUnhandledExceptionEventArgs e)
