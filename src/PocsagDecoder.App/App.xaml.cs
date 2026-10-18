@@ -14,6 +14,9 @@ public partial class App : Application
     {
         DispatcherUnhandledException += OnUnhandled;
         base.OnStartup(e);
+        // Titelleiste jedes Fensters (auch Dialoge) passend zum hellen oder dunklen Design.
+        EventManager.RegisterClassHandler(typeof(Window), FrameworkElement.LoadedEvent,
+            new RoutedEventHandler((s, _) => ThemeManager.ApplyTitleBar((Window)s)));
 
         // Nur eine Instanz: ein zweiter Start holt das laufende Fenster nach vorn (der SDR-Stick kann nur einmal benutzt werden).
         _instanceMutex = new Mutex(true, InstanceName + ".Mutex", out var first);

@@ -67,6 +67,7 @@ public sealed partial class MainViewModel : ObservableObject
         InitPanes();
         InitErrorHandling();
         InitTargets();
+        InitDisplay();
 
         StartCommand = new RelayCommand(Start, () => !IsRunning);
         StopCommand = new RelayCommand(Stop, () => IsRunning);
@@ -543,7 +544,9 @@ public sealed partial class MainViewModel : ObservableObject
         Messages.Insert(0, item);
         while (Messages.Count > Math.Max(100, Settings.MaxMessages)) Messages.RemoveAt(Messages.Count - 1);
         ReceivedCount++;
+        NoteReceivedForStatus();
         if (item.Matched) MessageMatched?.Invoke(this, item);
+        ShowAlarmIfWanted(item);
 
         if (hits.Count > 0 && _duplicates.IsDuplicate(message))
         {

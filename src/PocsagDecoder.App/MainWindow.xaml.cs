@@ -173,6 +173,8 @@ public partial class MainWindow : Window
         if (dlg.ShowDialog(this) == true) Vm.LogDirectory = dlg.FolderName;
     }
 
+    private void ResetFontSize_Click(object sender, RoutedEventArgs e) => Vm.ListFontSize = 12.5;
+
     private void ResetLogDirectory_Click(object sender, RoutedEventArgs e) => Vm.ResetLogDirectory();
 
     private void SaveTemplate_Click(object sender, RoutedEventArgs e)

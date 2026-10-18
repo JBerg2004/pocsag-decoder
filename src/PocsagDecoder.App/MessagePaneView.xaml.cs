@@ -21,6 +21,13 @@ public partial class MessagePaneView : UserControl
         Grid.Loaded += (_, _) => AttachColumnHeaderMenu();
         // Klick irgendwo ins Fenster wählt es aus.
         PreviewMouseDown += (_, _) => { if (Pane is { } p) p.Main.ActivePane = p; };
+        // Strg + Mausrad: Schriftgröße aller Telegrammlisten ändern.
+        PreviewMouseWheel += (_, e) =>
+        {
+            if (Keyboard.Modifiers != ModifierKeys.Control || Pane is not { } p) return;
+            p.Main.ListFontSize += e.Delta > 0 ? 0.5 : -0.5;
+            e.Handled = true;
+        };
     }
 
     private void OnColumnsChanged(object? sender, EventArgs e) => ApplyHiddenColumns();

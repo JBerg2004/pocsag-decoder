@@ -46,6 +46,26 @@ public class InterfaceTests
     }
 
     [Fact]
+    public void OldSettingsGetDisplayDefaults()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"pocsag-{Guid.NewGuid():N}.json");
+        File.WriteAllText(path, """{ "AutoStart": true }""");
+        try
+        {
+            var s = SettingsStore.Load(path);
+            Assert.Equal("System", s.Theme);
+            Assert.True(s.SubRicColors);
+            Assert.True(s.AlarmBanner);
+            Assert.Equal("A", s.AlarmBannerSubRics);
+            Assert.Equal(12.5, s.ListFontSize);
+            s.Theme = "Dark";
+            SettingsStore.Save(s, path);
+            Assert.Equal("Dark", SettingsStore.Load(path).Theme);
+        }
+        finally { File.Delete(path); }
+    }
+
+    [Fact]
     public void MqttConnectPacketHasCredentials()
     {
         var p = MqttPublisher.BuildConnect("id", "user", "pw");

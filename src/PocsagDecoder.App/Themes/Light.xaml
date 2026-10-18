@@ -1,0 +1,51 @@
+<!-- Farben für das helle Design. Gleiche Schlüssel in Light.xaml und Dark.xaml. -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <SolidColorBrush x:Key="AccentBrush" Color="#C62828" />
+    <SolidColorBrush x:Key="AccentDarkBrush" Color="#8E1B1B" />
+    <SolidColorBrush x:Key="HeaderBrush" Color="#1F2430" />
+    <SolidColorBrush x:Key="HeaderMutedBrush" Color="#AEB4BF" />
+    <SolidColorBrush x:Key="HeaderButtonBrush" Color="#2E3442" />
+    <SolidColorBrush x:Key="HeaderButtonLineBrush" Color="#4A5263" />
+    <SolidColorBrush x:Key="PageBrush" Color="#F3F4F6" />
+    <SolidColorBrush x:Key="CardBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="InputBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="ButtonBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="LineBrush" Color="#DDE1E6" />
+    <SolidColorBrush x:Key="ControlLineBrush" Color="#C3C9D1" />
+    <SolidColorBrush x:Key="ControlHoverLineBrush" Color="#8E96A1" />
+    <SolidColorBrush x:Key="FocusBrush" Color="#3B82F6" />
+    <SolidColorBrush x:Key="TextBrush" Color="#1F2328" />
+    <SolidColorBrush x:Key="MutedBrush" Color="#6B7280" />
+    <SolidColorBrush x:Key="SecondaryTextBrush" Color="#444444" />
+    <SolidColorBrush x:Key="SelectBrush" Color="#D7E6FB" />
+    <SolidColorBrush x:Key="HoverBrush" Color="#EEF2F7" />
+    <SolidColorBrush x:Key="GoBrush" Color="#2E7D32" />
+    <SolidColorBrush x:Key="GoDarkBrush" Color="#1B5E20" />
+    <SolidColorBrush x:Key="GoTextBrush" Color="#1B5E20" />
+    <SolidColorBrush x:Key="DangerTextBrush" Color="#C62828" />
+    <SolidColorBrush x:Key="LinkBrush" Color="#2563EB" />
+    <SolidColorBrush x:Key="InfoTextBrush" Color="#1A4D8F" />
+    <SolidColorBrush x:Key="SubRicTextBrush" Color="#8A3B00" />
+    <SolidColorBrush x:Key="GridLineBrush" Color="#EEF0F3" />
+    <SolidColorBrush x:Key="GridHeaderBrush" Color="#F7F8FA" />
+    <SolidColorBrush x:Key="GridHeaderTextBrush" Color="#4B5563" />
+    <SolidColorBrush x:Key="TitleBarBrush" Color="#F3F4F6" />
+    <SolidColorBrush x:Key="SubtleBrush" Color="#F7F8FA" />
+    <SolidColorBrush x:Key="MatchedRowBrush" Color="#EAF6EC" />
+    <SolidColorBrush x:Key="ErrorRowBrush" Color="#FDECEA" />
+    <SolidColorBrush x:Key="SelectedCardBrush" Color="#FDF2F2" />
+    <SolidColorBrush x:Key="WarnBoxBrush" Color="#FFF4CE" />
+    <SolidColorBrush x:Key="WarnLineBrush" Color="#E6C65C" />
+    <SolidColorBrush x:Key="SwitchOffBrush" Color="#C3C9D1" />
+    <SolidColorBrush x:Key="IdleBrush" Color="#C3C9D1" />
+    <SolidColorBrush x:Key="OkBrush" Color="#16A34A" />
+    <SolidColorBrush x:Key="FailBrush" Color="#DC2626" />
+    <SolidColorBrush x:Key="StatusBarBrush" Color="#E8EBEF" />
+    <SolidColorBrush x:Key="SubRicABrush" Color="#D32F2F" />
+    <SolidColorBrush x:Key="SubRicBBrush" Color="#EF6C00" />
+    <SolidColorBrush x:Key="SubRicCBrush" Color="#1565C0" />
+    <SolidColorBrush x:Key="SubRicDBrush" Color="#616161" />
+    <SolidColorBrush x:Key="AlarmBannerBrush" Color="#B71C1C" />
+    <SolidColorBrush x:Key="AlarmBannerLineBrush" Color="#7F1010" />
+</ResourceDictionary>
