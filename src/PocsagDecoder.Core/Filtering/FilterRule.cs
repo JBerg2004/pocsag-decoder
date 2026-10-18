@@ -30,6 +30,7 @@ public sealed class FilterRule : INotifyPropertyChanged
     private TextMatchMode _descriptionMode = TextMatchMode.Contains;
     private bool _stopProcessing;
     private bool _sendRepeats;
+    private bool _trayNotify = true;
 
     public Guid Id { get; set; } = Guid.NewGuid();
 
@@ -78,6 +79,9 @@ public sealed class FilterRule : INotifyPropertyChanged
         if (on) list.Add(name);
         TargetName = string.Join(", ", list);
     }
+
+    /// <summary>Bei einem Treffer den Hinweis unten rechts zeigen (wenn in den Einstellungen eingeschaltet).</summary>
+    public bool TrayNotify { get => _trayNotify; set => Set(ref _trayNotify, value); }
 
     /// <summary>Nach einem Treffer keine weiteren Regeln prüfen.</summary>
     public bool StopProcessing { get => _stopProcessing; set => Set(ref _stopProcessing, value); }

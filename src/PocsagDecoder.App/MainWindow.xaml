@@ -117,6 +117,7 @@
                                 <DataGridTextColumn Header="Text" Binding="{Binding Text}" Width="*" IsReadOnly="True" />
                                 <DataGridTextColumn Header="Beschreibung" Binding="{Binding DescriptionText}" Width="*" IsReadOnly="True" />
                                 <DataGridTextColumn Header="Ziele" Binding="{Binding TargetName}" Width="*" IsReadOnly="True" />
+                                <DataGridCheckBoxColumn Header="Hinweis" Binding="{Binding TrayNotify, UpdateSourceTrigger=PropertyChanged}" Width="55" />
                             </DataGrid.Columns>
                         </DataGrid>
                     </DockPanel>
@@ -200,6 +201,8 @@
 
                             <CheckBox Content="Danach stoppen (folgende Ereignisse nicht prüfen)" IsChecked="{Binding StopProcessing}" Margin="0,10,0,0" />
                             <CheckBox Content="Wiederholungen trotzdem senden (Wiederholungs-Sperre gilt hier nicht)" IsChecked="{Binding SendRepeats}" Margin="0,6,0,0" />
+                            <CheckBox Content="Hinweis unten rechts anzeigen" IsChecked="{Binding TrayNotify}" Margin="0,6,0,0"
+                                      ToolTip="Gilt nur, wenn in den Einstellungen „Hinweis unten rechts bei Telegrammereignissen“ eingeschaltet ist und das Fenster ausgeblendet ist." />
 
                             <TextBlock Foreground="#C62828" TextWrapping="Wrap" Margin="0,10,0,0"
                                        Text="{Binding DataContext.RuleError, RelativeSource={RelativeSource AncestorType=Window}}" />
@@ -397,7 +400,7 @@
                                     <CheckBox Content="Beim Minimieren nur als Symbol unten rechts anzeigen" IsChecked="{Binding Settings.MinimizeToTray}" Margin="0,4,0,0" />
                                     <CheckBox Content="Hinweis unten rechts bei Telegrammereignissen, solange das Fenster ausgeblendet ist" IsChecked="{Binding Settings.TrayNotifications}" Margin="0,4,0,0" />
                                     <TextBlock Style="{StaticResource Hint}" Margin="0,6,0,0"
-                                               Text="Fenster wieder öffnen: Klick auf das Symbol unten rechts (ggf. unter dem Pfeil ^). Ganz beenden: Rechtsklick auf das Symbol → Beenden." />
+                                               Text="Welche Telegrammereignisse einen Hinweis zeigen, legst du im Reiter „Telegrammereignisse“ beim jeweiligen Ereignis fest (Haken „Hinweis unten rechts anzeigen“). Fenster wieder öffnen: Klick auf das Symbol unten rechts (ggf. unter dem Pfeil ^). Ganz beenden: Rechtsklick auf das Symbol → Beenden." />
                                 </StackPanel>
                             </GroupBox>
 

@@ -29,7 +29,7 @@ public partial class MainWindow : Window
         Vm.SystemError += (_, e) => _tray.ShowBalloon(e.Title, e.Text, warning: true);
         Vm.MessageMatched += (_, item) =>
         {
-            if (IsVisible || !Vm.Settings.TrayNotifications) return;
+            if (IsVisible || !Vm.Settings.TrayNotifications || !item.TrayNotify) return;
             var head = $"RIC {item.Ric} {item.SubRic}" + (item.RicDescription.Length > 0 ? " – " + item.RicDescription : "");
             _tray.ShowBalloon(head, item.Text);
         };

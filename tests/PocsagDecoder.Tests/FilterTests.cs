@@ -109,4 +109,13 @@ public class FilterTests
         Assert.Equal(new[] { "Ziel Zwei" }, rule.TargetNames);
         Assert.Empty(new FilterRule { TargetName = " , " }.TargetNames);
     }
+
+    [Fact]
+    public void TrayNotifyDefaultsToOnForOldSettings()
+    {
+        var old = System.Text.Json.JsonSerializer.Deserialize<FilterRule>("{\"Name\":\"Alt\",\"RicPattern\":\"1\"}")!;
+        Assert.True(old.TrayNotify);
+        var off = System.Text.Json.JsonSerializer.Serialize(new FilterRule { TrayNotify = false });
+        Assert.False(System.Text.Json.JsonSerializer.Deserialize<FilterRule>(off)!.TrayNotify);
+    }
 }

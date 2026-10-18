@@ -538,6 +538,7 @@ public sealed partial class MainViewModel : ObservableObject
         // Regeln vor dem Einfügen prüfen, damit Fensterfilter wie „nur Regeltreffer“ die Zeile richtig einsortieren.
         var hits = RuleEngine.Match(Rules, message);
         item.Matched = hits.Count > 0;
+        item.TrayNotify = hits.Any(r => r.TrayNotify);
         item.IsRepeat = _repeatMarker.IsDuplicate(message);
         Messages.Insert(0, item);
         while (Messages.Count > Math.Max(100, Settings.MaxMessages)) Messages.RemoveAt(Messages.Count - 1);

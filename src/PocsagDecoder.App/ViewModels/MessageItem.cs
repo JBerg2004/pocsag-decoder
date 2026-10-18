@@ -12,6 +12,9 @@ public sealed class MessageItem : ObservableObject
     /// <summary>Gleiche Meldung (RIC, Funktion, Text) kam kurz vorher schon einmal.</summary>
     public bool IsRepeat { get; set; }
 
+    /// <summary>Mindestens ein getroffenes Telegrammereignis will einen Hinweis unten rechts.</summary>
+    public bool TrayNotify { get; set; }
+
     public MessageItem(PocsagMessage message) => Message = message;
 
     public PocsagMessage Message { get; }
