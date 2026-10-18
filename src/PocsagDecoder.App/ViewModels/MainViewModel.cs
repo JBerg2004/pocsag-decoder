@@ -70,6 +70,7 @@ public sealed partial class MainViewModel : ObservableObject
         InitDisplay();
         InitHistory();
         InitMaintenance();
+        InitRedundancy();
 
         StartCommand = new RelayCommand(Start, () => !IsRunning);
         StopCommand = new RelayCommand(Stop, () => IsRunning);
@@ -548,6 +549,7 @@ public sealed partial class MainViewModel : ObservableObject
         ReceivedCount++;
         NoteReceivedForStatus();
         NoteQuality(message);
+        NoteRedundancy(message);
         if (item.Matched) MessageMatched?.Invoke(this, item);
 
         if (hits.Count > 0 && _duplicates.IsDuplicate(message))
@@ -562,6 +564,15 @@ public sealed partial class MainViewModel : ObservableObject
             hits = repeats;
         }
 
+        if (hits.Count == 0) { WriteCsv(item); return; }
+        if (SlaveHolds(item, hits)) return;
+        if (IsSlave && _failover.Active && item.Message.Raw != "(Testnachricht)") item.AppendForwarding("Slave hat übernommen");
+        ForwardToTargets(item, hits);
+    }
+
+    /// <summary>Treffer an die Schnittstellen der Telegrammereignisse senden, danach ins CSV schreiben.</summary>
+    private void ForwardToTargets(MessageItem item, IReadOnlyList<FilterRule> hits)
+    {
         var pending = new List<Task>();
         foreach (var rule in hits)
         {

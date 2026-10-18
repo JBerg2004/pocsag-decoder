@@ -120,6 +120,37 @@
                         </Rectangle>
                         <TextBlock Text="{Binding QualityText}" VerticalAlignment="Center" Margin="6,0,0,0" />
                     </StackPanel>
+                    <!-- Master/Slave -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" ToolTip="{Binding RedundancyToolTip}" Background="Transparent">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding RedundancyLevel}" Value="0"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+                        <Rectangle Width="1" Height="14" Fill="{DynamicResource LineBrush}" Margin="12,0" />
+                        <Ellipse Width="8" Height="8" Margin="0,0,6,0" VerticalAlignment="Center">
+                            <Ellipse.Style>
+                                <Style TargetType="Ellipse">
+                                    <Setter Property="Fill" Value="{DynamicResource OkBrush}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding RedundancyLevel}" Value="2"><Setter Property="Fill" Value="{DynamicResource SubRicBBrush}" /></DataTrigger>
+                                        <DataTrigger Binding="{Binding RedundancyLevel}" Value="3"><Setter Property="Fill" Value="{DynamicResource FailBrush}" /></DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Ellipse.Style>
+                        </Ellipse>
+                        <TextBlock Text="{Binding RedundancyBarText}" VerticalAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding RedundancyLevel}" Value="3"><Setter Property="FontWeight" Value="Bold" /></DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
                     <Rectangle Width="1" Height="14" Fill="{DynamicResource LineBrush}" Margin="12,0" />
                     <TextBlock VerticalAlignment="Center">
                         <Run Text="Empfangen" Foreground="{DynamicResource MutedBrush}" /> <Run Text="{Binding ReceivedCount, Mode=OneWay}" FontWeight="SemiBold" />
@@ -696,6 +727,65 @@
                                             <TextBlock Style="{StaticResource Hint}" VerticalAlignment="Center"
                                                        Text="Pro Tag eine Datei pocsag-JJJJ-MM-TT.csv. Auch ein Netzlaufwerk ist möglich." />
                                         </DockPanel>
+                                    </StackPanel>
+                                </GroupBox>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                    <TabItem Header="🔁  Master/Slave">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel Margin="18,14" MaxWidth="780" HorizontalAlignment="Left">
+                                <TextBlock Text="Master/Slave" Style="{StaticResource SectionTitle}" />
+                                <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,10"
+                                           Text="Zwei PCs mit je einem Stick empfangen gleichzeitig. Weitergeleitet wird nur vom Master. Der Slave fragt den Master alle 5 Sekunden ab und übernimmt die Weiterleitung, wenn der Master nicht erreichbar ist, sein Empfang steht oder er nichts mehr empfängt. Läuft der Master wieder, gibt der Slave automatisch zurück. Telegrammereignisse und Schnittstellen müssen auf beiden PCs gleich eingerichtet sein (am einfachsten per Sicherung unter „Programm“ übertragen)." />
+                                <GroupBox Header="Betriebsart">
+                                    <StackPanel>
+                                        <RadioButton Content="Aus – dieser PC arbeitet allein" IsChecked="{Binding RedundancyOff}" GroupName="Redundancy" />
+                                        <RadioButton Content="Master – dieser PC leitet weiter, der Slave ist Ersatz" IsChecked="{Binding IsMaster}" GroupName="Redundancy" Margin="0,4,0,0" />
+                                        <RadioButton Content="Slave – dieser PC springt ein, wenn der Master ausfällt" IsChecked="{Binding IsSlave}" GroupName="Redundancy" Margin="0,4,0,0" />
+                                        <TextBlock Text="{Binding OwnAddresses, Mode=OneWay}" Foreground="{DynamicResource MutedBrush}" Margin="0,8,0,0" />
+                                    </StackPanel>
+                                </GroupBox>
+                                <GroupBox Header="Verbindung">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="Master-PC (nur am Slave)" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                        <TextBox Grid.Column="1" Width="220" HorizontalAlignment="Left" Text="{Binding RedundancyMaster, UpdateSourceTrigger=LostFocus}"
+                                                 IsEnabled="{Binding IsSlave}" ToolTip="Rechnername oder IP-Adresse des Master-PCs, z. B. 192.168.178.20" />
+                                        <TextBlock Grid.Row="1" Text="Port" VerticalAlignment="Center" Margin="0,6,12,0" />
+                                        <TextBox Grid.Row="1" Grid.Column="1" Width="80" HorizontalAlignment="Left" Margin="0,6,0,0" Text="{Binding RedundancyPort, UpdateSourceTrigger=LostFocus}"
+                                                 ToolTip="Auf beiden PCs gleich. Die Windows-Firewall am Master muss ihn zulassen (beim ersten Start als Master fragt Windows nach)." />
+                                        <TextBlock Grid.Row="2" Text="Kennwort (optional)" VerticalAlignment="Center" Margin="0,6,12,0" />
+                                        <TextBox Grid.Row="2" Grid.Column="1" Width="220" HorizontalAlignment="Left" Margin="0,6,0,0" Text="{Binding RedundancyKey, UpdateSourceTrigger=LostFocus}"
+                                                 ToolTip="Auf beiden PCs gleich. Verhindert, dass ein fremdes Gerät im Netz sich als Slave ausgibt." />
+                                    </Grid>
+                                </GroupBox>
+                                <GroupBox Header="Übernahme durch den Slave">
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="Übernehmen, wenn der Master seit" VerticalAlignment="Center" />
+                                            <TextBox Width="45" Margin="6,0" Text="{Binding FailoverSeconds, UpdateSourceTrigger=LostFocus}" />
+                                            <TextBlock Text="Sekunden ausgefallen ist" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <CheckBox Content="Alarme, die der Master nicht empfangen hat, vom Slave senden" IsChecked="{Binding FailoverSendMissed}" Margin="0,8,0,0" />
+                                        <TextBlock Style="{StaticResource Hint}" Margin="20,2,0,0"
+                                                   Text="Der Slave fragt 8 Sekunden nach jedem Treffer beim Master nach, ob er die Meldung auch hat. Fehlt sie dort (z. B. schlechter Empfang am Master) oder ist der Master nicht erreichbar, sendet der Slave sie selbst. So geht kein Alarm verloren, auch nicht in den Sekunden bis zur Übernahme." />
+                                        <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0"
+                                                   Text="Fällt der Master aus, meldet der Slave das wie einen Fehler (Einstellungen unter „Fehlermeldungen“). Der Master meldet umgekehrt, wenn sich der Slave nicht mehr meldet." />
+                                    </StackPanel>
+                                </GroupBox>
+                                <GroupBox Header="Zustand">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding RedundancyStatus}" TextWrapping="Wrap" />
+                                        <Button Content="Verbindung testen" Command="{Binding TestRedundancyCommand}" HorizontalAlignment="Left" Margin="0,8,0,0" />
                                     </StackPanel>
                                 </GroupBox>
                             </StackPanel>

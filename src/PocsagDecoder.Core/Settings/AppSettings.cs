@@ -114,6 +114,24 @@ public sealed class AppSettings
     /// <summary>Gefundene neue Version gleich herunterladen; installiert wird erst nach Klick.</summary>
     public bool AutoDownloadUpdates { get; set; } = true;
 
+    /// <summary>Master/Slave-Betrieb mit zwei PCs: „Aus“, „Master“ oder „Slave“.</summary>
+    public string RedundancyMode { get; set; } = Redundancy.RedundancyModes.Off;
+
+    /// <summary>TCP-Port, auf dem der Master antwortet.</summary>
+    public int RedundancyPort { get; set; } = 8754;
+
+    /// <summary>Slave: Name oder IP-Adresse des Master-PCs.</summary>
+    public string RedundancyMaster { get; set; } = string.Empty;
+
+    /// <summary>Gemeinsames Kennwort, damit kein fremdes Gerät sich als Master ausgibt (leer = keins).</summary>
+    public string RedundancyKey { get; set; } = string.Empty;
+
+    /// <summary>Slave übernimmt, wenn der Master so lange nicht erreichbar ist oder nicht empfängt.</summary>
+    public int FailoverSeconds { get; set; } = 20;
+
+    /// <summary>Slave sendet Alarme selbst, die der Master nicht empfangen hat (z. B. Funkloch am Master).</summary>
+    public bool FailoverSendMissed { get; set; } = true;
+
     public static AppSettings CreateDefault() => new()
     {
         Targets =
