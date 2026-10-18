@@ -19,6 +19,9 @@ public sealed partial class MainViewModel
     private int? _downloadPercent;
     private bool _downloading;
     private System.Windows.Threading.DispatcherTimer? _updateTimer;
+    private System.Windows.Threading.DispatcherTimer? _logTimer;
+    private string _logUsageText = string.Empty;
+    private bool _cleaningLogs;
 
     /// <summary>Einstellungen wurden aus einer Sicherung ersetzt: Programm neu starten.</summary>
     public event EventHandler? RestartRequested;
@@ -36,6 +39,13 @@ public sealed partial class MainViewModel
         _updateTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromHours(12) };
         _updateTimer.Tick += async (_, _) => { if (Settings.CheckForUpdates && _updateFile is null) await CheckForUpdatesAsync(manual: false); };
         _updateTimer.Start();
+
+        // Protokolle aufräumen: kurz nach dem Start und danach stündlich (nach Mitternacht wird der Vortag komprimiert).
+        CleanUpLogsCommand = new RelayCommand(() => CleanUpLogsAsync(manual: true));
+        _logTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromHours(1) };
+        _logTimer.Tick += async (_, _) => await CleanUpLogsAsync(manual: false);
+        _logTimer.Start();
+        _ = Task.Delay(TimeSpan.FromSeconds(20)).ContinueWith(_ => Application.Current?.Dispatcher.BeginInvoke(() => CleanUpLogsAsync(manual: false)));
     }
 
     // --- Empfangsqualität -------------------------------------------------------
@@ -123,6 +133,80 @@ public sealed partial class MainViewModel
 
     private static string BackupSummary(AppSettings s) =>
         $"• {s.Rules.Count} Telegrammereignisse\n• {s.Targets.Count} Schnittstellen\n• {s.RicEntries.Count} RIC-Beschreibungen\n• {s.ReceivePanes.Count} Fenster unter Telegramme";
+
+    // --- Platz sparen bei den Protokollen ---------------------------------------
+
+    public bool LogCompress
+    {
+        get => Settings.LogCompress;
+        set
+        {
+            if (Settings.LogCompress == value) return;
+            Settings.LogCompress = value;
+            OnPropertyChanged();
+            RequestSave();
+            if (value) _ = CleanUpLogsAsync(manual: false);
+        }
+    }
+
+    /// <summary>0 = alles behalten.</summary>
+    public int LogKeepDays
+    {
+        get => Settings.LogKeepDays;
+        set
+        {
+            var days = Math.Clamp(value, 0, 36500);
+            if (Settings.LogKeepDays == days) return;
+            Settings.LogKeepDays = days;
+            OnPropertyChanged();
+            RequestSave();
+        }
+    }
+
+    public string LogUsageText { get => _logUsageText; private set => Set(ref _logUsageText, value); }
+
+    public RelayCommand CleanUpLogsCommand { get; private set; } = null!;
+
+    private async Task CleanUpLogsAsync(bool manual)
+    {
+        if (_cleaningLogs) return;
+        _cleaningLogs = true;
+        var directory = _csv.Directory;
+        var compress = Settings.LogCompress;
+        var keep = Settings.LogKeepDays;
+        try
+        {
+            var (result, deleted, usage) = await Task.Run(() =>
+            {
+                var r = compress ? LogMaintenance.Compress(directory, DateTime.Today) : new LogMaintenance.Result(0, 0, 0);
+                var d = LogMaintenance.DeleteOld(directory, DateTime.Today, keep);
+                return (r, d, LogMaintenance.Usage(directory));
+            });
+            if (result.Compressed > 0)
+                AddLog($"Protokoll: {result.Compressed} Tag(e) komprimiert, {FormatBytes(result.SavedBytes)} gespart.");
+            if (deleted > 0)
+                AddLog($"Protokoll: {deleted} Datei(en) älter als {keep} Tage gelöscht.");
+            LogUsageText = $"Belegt: {usage.Days} Tag(e), {FormatBytes(usage.Bytes)}"
+                + (manual ? $" · aufgeräumt {DateTime.Now:HH:mm}" : "");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
+        {
+            AddLog("Protokoll aufräumen fehlgeschlagen: " + ex.Message);
+            if (manual) LogUsageText = "Aufräumen fehlgeschlagen: " + ex.Message;
+        }
+        finally
+        {
+            _cleaningLogs = false;
+        }
+    }
+
+    private static string FormatBytes(long bytes) => bytes switch
+    {
+        < 1024 => $"{bytes} Bytes",
+        < 1024 * 1024 => $"{bytes / 1024.0:0} KB",
+        < 1024L * 1024 * 1024 => $"{bytes / 1024.0 / 1024:0.0} MB",
+        _ => $"{bytes / 1024.0 / 1024 / 1024:0.00} GB",
+    };
 
     // --- Update-Hinweis ---------------------------------------------------------
 

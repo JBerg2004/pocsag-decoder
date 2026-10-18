@@ -28,7 +28,7 @@ RTL-SDR-Stick → rtl_fm.exe → (Audio 22050 Hz) → multimon-ng.exe → POCSAG
 - Reiter **Einstellungen**, Abschnitt Testnachricht: Meldung ohne SDR-Stick einspeisen (zum Ausprobieren von Beschreibungen, Telegrammereignissen und Webhooks); vor dem Senden kommt eine Sicherheitsabfrage
 - Fehlerkorrektur einstellbar (Reiter Empfänger, multimon-ng `-b`, Standard 1): weniger Phantom-RICs als die multimon-Voreinstellung 2
 - **Hintergrundbetrieb**: Symbol im Infobereich (unten rechts), Schließen/Minimieren blendet nur aus, Hinweis bei Treffern eines Telegrammereignisses, optional Start mit Windows (`--minimized`), nur eine Instanz gleichzeitig
-- CSV-Tagesprotokoll unter `%APPDATA%\PocsagDecoder\logs`
+- CSV-Tagesprotokoll unter `%APPDATA%\PocsagDecoder\logs`; abgeschlossene Tage werden auf Wunsch als `.csv.gz` komprimiert (etwa ein Achtel der Größe), sehr alte Tage optional nach X Tagen gelöscht (Einstellungen → Aufzeichnung)
 - Reiter **Verlauf**: alle Tagesprotokolle nach Zeitraum, Suchbegriffen (RIC, Bezeichnung, Ort, Text …), SubRIC und „nur weitergeleitete“ durchsuchen; Treffer als Excel-Datei (.xlsx) speichern
 - **Empfangsqualität** in der Statusleiste: vergleicht wiederholt gesendete Alarme; kommt die Wiederholung mit genau demselben Text an, war der Empfang fehlerfrei
 - **Design** hell, dunkel oder wie Windows; SubRIC-Farben und Schriftgröße der Listen einstellbar (Strg + Mausrad)

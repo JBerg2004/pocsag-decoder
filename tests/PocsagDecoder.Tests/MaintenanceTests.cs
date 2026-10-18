@@ -140,4 +140,38 @@ public class MaintenanceTests
         Assert.Equal(new Version(1, 10, 0), latest.Version);
         Assert.Equal("https://example.org/x.exe", latest.DownloadUrl);
     }
+
+    [Fact]
+    public void CompressesOldDaysAndHistoryStillReadsThem()
+    {
+        var dir = Directory.CreateTempSubdirectory("pocsag-logs").FullName;
+        try
+        {
+            const string header = "Zeit;Baud;RIC;SubRIC;Funktion;Typ;Text;Weiterleitung\n";
+            File.WriteAllText(Path.Combine(dir, "pocsag-2026-10-16.csv"), header + "2026-10-16 10:00:00;1200;1000011;A;0;Alpha;\"Probealarm\";\"\"\n");
+            File.WriteAllText(Path.Combine(dir, "pocsag-2026-10-18.csv"), header + "2026-10-18 10:00:00;1200;1000012;B;1;Alpha;\"Heute\";\"\"\n");
+
+            var result = LogMaintenance.Compress(dir, new DateTime(2026, 10, 18));
+            Assert.Equal(1, result.Compressed);
+            Assert.True(File.Exists(Path.Combine(dir, "pocsag-2026-10-16.csv.gz")));
+            Assert.False(File.Exists(Path.Combine(dir, "pocsag-2026-10-16.csv")));
+            Assert.True(File.Exists(Path.Combine(dir, "pocsag-2026-10-18.csv"))); // heute bleibt
+
+            // Nachzügler für einen schon komprimierten Tag wird angehängt
+            File.WriteAllText(Path.Combine(dir, "pocsag-2026-10-16.csv"), header + "2026-10-16 23:59:59;1200;1000013;C;2;Alpha;\"Spät\";\"\"\n");
+            LogMaintenance.Compress(dir, new DateTime(2026, 10, 18));
+
+            var all = MessageHistory.Read(dir, new DateTime(2026, 10, 1), new DateTime(2026, 10, 31)).Select(e => e.Message.Ric).ToList();
+            Assert.Equal(new[] { 1000011, 1000013, 1000012 }, all);
+            Assert.Equal(2, LogMaintenance.Usage(dir).Days);
+
+            Assert.Equal(1, LogMaintenance.DeleteOld(dir, new DateTime(2026, 10, 18), 1));
+            Assert.Equal(0, LogMaintenance.DeleteOld(dir, new DateTime(2026, 10, 18), 0));
+            Assert.Single(MessageHistory.Read(dir, new DateTime(2026, 10, 1), new DateTime(2026, 10, 31)));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
 }

@@ -63,6 +63,12 @@ public sealed class AppSettings
     /// <summary>Ordner für die CSV-Tagesdateien; leer = Standardordner.</summary>
     public string LogDirectory { get; set; } = string.Empty;
 
+    /// <summary>Abgeschlossene Tage als .csv.gz komprimieren (ca. ein Achtel der Größe).</summary>
+    public bool LogCompress { get; set; } = true;
+
+    /// <summary>Tagesdateien nach so vielen Tagen löschen; 0 = alles behalten.</summary>
+    public int LogKeepDays { get; set; }
+
     /// <summary>Bei Systemfehlern benachrichtigen.</summary>
     public bool ErrorNotify { get; set; } = true;
 
