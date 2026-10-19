@@ -105,6 +105,19 @@ public sealed class AppSettings
 
     public string HeartbeatSubRic { get; set; } = "A";
 
+    /// <summary>Heartbeat per HTTP-POST an eine URL, z. B. healthchecks.io oder einen Home-Assistant-Webhook.</summary>
+    public bool HeartbeatUrlEnabled { get; set; }
+
+    public string HeartbeatUrl { get; set; } = string.Empty;
+
+    /// <summary>Wird statt <see cref="HeartbeatUrl"/> aufgerufen, wenn der Empfang nicht läuft oder die Haupt-URL nicht antwortet (leer = aus).</summary>
+    public string HeartbeatFailUrl { get; set; } = string.Empty;
+
+    public int HeartbeatUrlMinutes { get; set; } = 5;
+
+    /// <summary>Solange das Programm läuft, verhindern, dass Windows in den Energiesparmodus oder Ruhezustand geht.</summary>
+    public bool PreventSleep { get; set; } = true;
+
     /// <summary>Empfang nach einem Absturz automatisch neu starten.</summary>
     public bool AutoRestart { get; set; }
 

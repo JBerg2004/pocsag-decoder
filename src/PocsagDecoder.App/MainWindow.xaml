@@ -623,6 +623,9 @@
                                         <CheckBox Content="Beim Schließen (X) im Hintergrund weiterlaufen" IsChecked="{Binding Settings.CloseToTray}" Margin="0,4,0,0" />
                                         <CheckBox Content="Beim Minimieren nur als Symbol unten rechts anzeigen" IsChecked="{Binding Settings.MinimizeToTray}" Margin="0,4,0,0" />
                                         <CheckBox Content="Hinweis unten rechts bei Telegrammereignissen, solange das Fenster ausgeblendet ist" IsChecked="{Binding Settings.TrayNotifications}" Margin="0,4,0,0" />
+                                        <CheckBox Content="Energiesparmodus und Ruhezustand verhindern, solange das Programm läuft" IsChecked="{Binding PreventSleep}" Margin="0,4,0,0" />
+                                        <TextBlock Style="{StaticResource Hint}" Margin="20,2,0,0"
+                                                   Text="Empfohlen: Schläft der PC ein, kommen keine Alarme mehr an. Der Bildschirm darf trotzdem ausgehen. Gilt auch im Hintergrund; beim Beenden gibt das Programm die Sperre wieder frei." />
                                         <TextBlock Style="{StaticResource Hint}" Margin="0,6,0,0"
                                                    Text="Welche Telegrammereignisse einen Hinweis zeigen, legst du im Reiter „Telegrammereignisse“ beim jeweiligen Ereignis fest (Haken „Hinweis unten rechts anzeigen“). Fenster wieder öffnen: Klick auf das Symbol unten rechts (ggf. unter dem Pfeil ^). Ganz beenden: Rechtsklick auf das Symbol → Beenden." />
                                     </StackPanel>
@@ -892,6 +895,33 @@
                                                    Text="Im Master/Slave-Betrieb sendet jeder PC sein eigenes Lebenszeichen; {pc} zeigt, von welchem es kommt. Schlägt das Senden fehl, wird das wie ein Fehler beim Senden gemeldet." />
                                         <Button Content="Heartbeat jetzt senden" Command="{Binding SendHeartbeatCommand}" HorizontalAlignment="Left" Margin="0,10,0,0" />
                                         <TextBlock Text="{Binding HeartbeatStatus}" TextWrapping="Wrap" Margin="0,6,0,0" Foreground="{DynamicResource MutedBrush}" />
+                                    </StackPanel>
+                                </GroupBox>
+
+                                <GroupBox Header="Heartbeat an eine URL">
+                                    <StackPanel>
+                                        <CheckBox x:Name="HeartbeatUrlBox" Content="Regelmäßig eine URL aufrufen" IsChecked="{Binding HeartbeatUrlEnabled}" FontWeight="SemiBold" />
+                                        <TextBlock Style="{StaticResource Hint}" Margin="20,2,0,0"
+                                                   Text="Für Dienste wie healthchecks.io oder einen Home-Assistant-Webhook. Gesendet wird ein POST mit JSON: Zustand des Sticks, Zeit der letzten Meldung und Länge der Warteschlange. Kommt nichts mehr an, schlägt der Dienst Alarm." />
+                                        <StackPanel Margin="20,8,0,0" IsEnabled="{Binding IsChecked, ElementName=HeartbeatUrlBox}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="Alle" VerticalAlignment="Center" />
+                                                <TextBox Width="45" Margin="6,0" Text="{Binding HeartbeatUrlMinutes, UpdateSourceTrigger=LostFocus}" />
+                                                <TextBlock Text="Minuten senden" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                            <TextBlock Text="URL" Foreground="{DynamicResource MutedBrush}" Margin="0,10,0,0" />
+                                            <TextBox Text="{Binding HeartbeatUrl, UpdateSourceTrigger=LostFocus}" Margin="0,4,0,0"
+                                                     ToolTip="z. B. https://hc-ping.com/&lt;uuid&gt; oder http://homeassistant.local:8123/api/webhook/pocsag_heartbeat" />
+                                            <TextBlock Text="Fehler-URL (optional)" Foreground="{DynamicResource MutedBrush}" Margin="0,10,0,0" />
+                                            <TextBox Text="{Binding HeartbeatFailUrl, UpdateSourceTrigger=LostFocus}" Margin="0,4,0,0"
+                                                     ToolTip="z. B. https://hc-ping.com/&lt;uuid&gt;/fail" />
+                                            <TextBlock Style="{StaticResource Hint}" Margin="0,2,0,0"
+                                                       Text="Wird statt der URL aufgerufen, wenn der Empfang gestoppt oder abgebrochen ist (Stick abgezogen?), und zusätzlich, wenn die URL nicht antwortet. Leer lassen, dann geht auch ein Fehler an die normale URL, mit „status“: „fehler“." />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                            <Button Content="Heartbeat-URL testen" Command="{Binding TestHeartbeatUrlCommand}" />
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding HeartbeatUrlStatus}" TextWrapping="Wrap" Margin="0,6,0,0" Foreground="{DynamicResource MutedBrush}" />
                                     </StackPanel>
                                 </GroupBox>
                             </StackPanel>

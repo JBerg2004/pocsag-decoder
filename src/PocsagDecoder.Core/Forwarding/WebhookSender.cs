@@ -47,7 +47,19 @@ public sealed partial class WebhookSender
         return request;
     }
 
+    private int _pending;
+
+    /// <summary>Sendungen, die gerade laufen oder auf einen neuen Versuch warten (Warteschlange für den Heartbeat).</summary>
+    public int PendingCount => Volatile.Read(ref _pending);
+
     public async Task<SendResult> SendAsync(WebhookTarget target, PocsagMessage message, string ruleName, CancellationToken ct = default)
+    {
+        Interlocked.Increment(ref _pending);
+        try { return await SendCoreAsync(target, message, ruleName, ct).ConfigureAwait(false); }
+        finally { Interlocked.Decrement(ref _pending); }
+    }
+
+    private async Task<SendResult> SendCoreAsync(WebhookTarget target, PocsagMessage message, string ruleName, CancellationToken ct)
     {
         if (target.Kind != TargetKinds.Webhook) return await SendOtherAsync(target, message, ruleName, ct).ConfigureAwait(false);
         var attempts = 0;
