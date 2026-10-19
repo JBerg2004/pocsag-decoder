@@ -39,6 +39,9 @@ RTL-SDR-Stick → rtl_fm.exe → (Audio 22050 Hz) → multimon-ng.exe → POCSAG
 
 ## Installation
 
+**Am schnellsten:** Beim neuesten Release `PocsagDecoder-komplett.zip` herunterladen und entpacken. Darin sind Programm,
+`rtl_fm.exe`, `multimon-ng.exe` und `Installieren.bat`; danach nur noch den Zadig-Schritt (1.) und `Installieren.bat` ausführen.
+
 1. **Treiber für den Stick**: Stick einstecken, [Zadig](https://zadig.akeo.ie/) starten,
    „Options → List All Devices“, „Bulk-In, Interface (Interface 0)“ wählen und **WinUSB** installieren.
 2. **rtl_fm.exe**: Windows-Release von [rtl-sdr-blog](https://github.com/rtlsdrblog/rtl-sdr-blog/releases)
@@ -200,7 +203,7 @@ dotnet publish src/PocsagDecoder.App -c Release -r win-x64 --self-contained true
 
 Neue Version veröffentlichen: Version in `src/PocsagDecoder.App/PocsagDecoder.App.csproj` erhöhen und nach `main` pushen.
 Die GitHub-Action `.github/workflows/release.yml` baut dann `PocsagDecoder.exe` (klein, braucht die .NET 8 Desktop Runtime) und `PocsagDecoder-komplett.exe` (mit Laufzeit)
-und legt das Release `v<Version>` an; laufende Programme finden es über die Update-Suche.
+sowie `PocsagDecoder-komplett.zip` (mit den Programmen aus `sdr-tools/`) und legt das Release `v<Version>` an; laufende Programme finden es über die Update-Suche.
 
 Projektaufbau:
 

@@ -1,5 +1,6 @@
 # Wird die Version in PocsagDecoder.App.csproj erhöht, baut diese Action beide Exe-Dateien und veröffentlicht
 # sie als GitHub-Release (Tag v<Version>). Das Programm sucht dort nach Updates und lädt die passende Exe herunter.
+# Dazu kommt PocsagDecoder-komplett.zip für die Neuinstallation (Programm, rtl_fm, multimon-ng, Installieren.bat).
 name: Release
 
 on:
@@ -8,6 +9,7 @@ on:
     paths:
       - 'src/PocsagDecoder.App/PocsagDecoder.App.csproj'
       - '.github/workflows/release.yml'
+      - 'sdr-tools/**'
   workflow_dispatch:
 
 permissions:
@@ -29,16 +31,20 @@ jobs:
           if gh release view "v$version" > /dev/null 2>&1; then
             echo "Release v$version gibt es schon."
             echo "exists=true" >> "$GITHUB_OUTPUT"
+            if ! gh release view "v$version" --json assets --jq '.assets[].name' | grep -qx 'PocsagDecoder-komplett.zip'; then
+              echo "Komplettpaket fehlt noch."
+              echo "needzip=true" >> "$GITHUB_OUTPUT"
+            fi
           fi
       - uses: actions/setup-dotnet@v4
-        if: steps.version.outputs.exists != 'true'
+        if: steps.version.outputs.exists != 'true' || steps.version.outputs.needzip == 'true'
         with:
           dotnet-version: '8.0.x'
       - name: Kleine Exe (braucht .NET 8 Desktop Runtime)
         if: steps.version.outputs.exists != 'true'
         run: dotnet publish src/PocsagDecoder.App -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -o out/klein
       - name: Komplette Exe (mit .NET-Laufzeit)
-        if: steps.version.outputs.exists != 'true'
+        if: steps.version.outputs.exists != 'true' || steps.version.outputs.needzip == 'true'
         run: dotnet publish src/PocsagDecoder.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugType=none -o out/komplett
       - name: Release anlegen
         if: steps.version.outputs.exists != 'true'
@@ -52,3 +58,17 @@ jobs:
           cp out/komplett/PocsagDecoder.exe dist/PocsagDecoder-komplett.exe
           cp Installieren.bat dist/
           gh release create "$TAG" dist/* --target "$GITHUB_SHA" --title "POCSAG Decoder ${TAG#v}" --generate-notes
+      - name: Komplettpaket (Zip für die Neuinstallation)
+        if: steps.version.outputs.exists != 'true' || steps.version.outputs.needzip == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          $pkg = "zip/PocsagDecoder"
+          New-Item -ItemType Directory -Force $pkg | Out-Null
+          Copy-Item out/komplett/PocsagDecoder.exe $pkg/
+          Copy-Item sdr-tools/*.exe, sdr-tools/*.dll $pkg/
+          Copy-Item Installieren.bat, README.md $pkg/
+          Compress-Archive -Path $pkg -DestinationPath PocsagDecoder-komplett.zip -Force
+          gh release upload $env:TAG PocsagDecoder-komplett.zip --clobber

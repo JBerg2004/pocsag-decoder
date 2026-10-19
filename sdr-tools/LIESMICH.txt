@@ -1,0 +1,3 @@
+Empfangsprogramme für den POCSAG Decoder (Windows x64):
+rtl_fm und weitere rtl-sdr-Werkzeuge (osmocom rtl-sdr, GPL-2.0) und multimon-ng (GPL-2.0).
+Sie werden beim Release in das Komplettpaket PocsagDecoder-komplett.zip gepackt.
