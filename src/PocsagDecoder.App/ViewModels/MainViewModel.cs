@@ -447,7 +447,7 @@ public sealed partial class MainViewModel : ObservableObject
         var pipeline = new DecoderPipeline(Settings.Decoder);
         try
         {
-            pipeline.MessageReceived += (_, m) => Application.Current.Dispatcher.BeginInvoke(() => { NoteMessageReceived(); NoteHeartbeatMessage(); OnMessage(m); });
+            pipeline.MessageReceived += (_, m) => Application.Current.Dispatcher.BeginInvoke(() => { NoteMessageReceived(); OnMessage(m); });
             pipeline.Log += (_, line) => Application.Current.Dispatcher.BeginInvoke(() => AddLog(line));
             pipeline.Stopped += (_, _) => Application.Current.Dispatcher.BeginInvoke(() =>
             {

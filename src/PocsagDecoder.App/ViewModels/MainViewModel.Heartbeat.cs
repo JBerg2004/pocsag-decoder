@@ -9,7 +9,6 @@ public sealed partial class MainViewModel
 {
     private DispatcherTimer? _heartbeatTimer;
     private DateTime? _lastHeartbeatAt;
-    private DateTime? _lastReceivedAt;
     private string _heartbeatStatus = "Noch kein Heartbeat gesendet.";
 
     public RelayCommand SendHeartbeatCommand { get; private set; } = null!;
@@ -98,9 +97,6 @@ public sealed partial class MainViewModel
         _heartbeatTimer.Tick += (_, _) => CheckHeartbeat();
         _heartbeatTimer.Start();
     }
-
-    /// <summary>Für {last}: wann zuletzt wirklich eine Meldung kam.</summary>
-    private void NoteHeartbeatMessage() => _lastReceivedAt = DateTime.Now;
 
     private WebhookTarget? FindHeartbeatTarget() =>
         Targets.FirstOrDefault(t => string.Equals(t.Name, Settings.HeartbeatTargetName, StringComparison.OrdinalIgnoreCase));
