@@ -842,6 +842,61 @@
                             </StackPanel>
                         </ScrollViewer>
                     </TabItem>
+                    <TabItem Header="💓  Heartbeat">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel Margin="18,14" MaxWidth="780" HorizontalAlignment="Left">
+                                <TextBlock Text="Heartbeat" Style="{StaticResource SectionTitle}" />
+                                <GroupBox Header="Lebenszeichen senden">
+                                    <StackPanel>
+                                        <CheckBox x:Name="HeartbeatBox" Content="Regelmäßig ein Lebenszeichen senden" IsChecked="{Binding HeartbeatEnabled}" FontWeight="SemiBold" />
+                                        <TextBlock Style="{StaticResource Hint}" Margin="20,2,0,0"
+                                                   Text="Die Gegenseite (z. B. Home Assistant, Uptime Kuma oder FE2) kann Alarm schlagen, wenn das Lebenszeichen ausbleibt. So fällt auf, wenn der PC, das Programm oder der Empfang ausgefallen ist." />
+                                        <StackPanel Margin="20,8,0,0" IsEnabled="{Binding IsChecked, ElementName=HeartbeatBox}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="Alle" VerticalAlignment="Center" />
+                                                <TextBox Width="45" Margin="6,0" Text="{Binding HeartbeatMinutes, UpdateSourceTrigger=LostFocus}" />
+                                                <TextBlock Text="Minuten senden" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                                <TextBlock Text="Schnittstelle" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                <ComboBox Width="200" ItemsSource="{Binding ErrorTargetChoices}" SelectedItem="{Binding HeartbeatTarget}"
+                                                          ToolTip="Gesendet wird mit der Vorlage dieser Schnittstelle: {message} enthält den Heartbeat-Text, {rule} ist „Heartbeat“." />
+                                            </StackPanel>
+                                            <CheckBox Content="Nur senden, solange der Empfang läuft" IsChecked="{Binding HeartbeatOnlyWhileReceiving}" Margin="0,8,0,0" />
+                                            <TextBlock Style="{StaticResource Hint}" Margin="20,2,0,0"
+                                                       Text="Empfohlen: Wird der Empfang gestoppt oder bricht ab, bleibt das Lebenszeichen aus. Ohne Haken kommt es auch dann, mit „gestoppt“ im Text." />
+
+                                            <TextBlock Text="Text" Foreground="{DynamicResource MutedBrush}" Margin="0,10,0,0" />
+                                            <TextBox Text="{Binding HeartbeatText, UpdateSourceTrigger=LostFocus}" Margin="0,4,0,0" />
+                                            <ItemsControl ItemsSource="{Binding HeartbeatPlaceholders}" Margin="0,4,0,0">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Style="{StaticResource Hint}">
+                                                            <Run Text="{Binding Key, Mode=OneWay}" FontFamily="Consolas" />
+                                                            <Run Text="{Binding Value, Mode=OneWay}" />
+                                                        </TextBlock>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+
+                                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                                <TextBlock Text="RIC" VerticalAlignment="Center" />
+                                                <TextBox Width="80" Margin="6,0" Text="{Binding HeartbeatRic, UpdateSourceTrigger=LostFocus}" />
+                                                <TextBlock Text="SubRIC" VerticalAlignment="Center" Margin="8,0,6,0" />
+                                                <ComboBox Width="50" ItemsSource="{Binding SimSubRicChoices}" SelectedItem="{Binding HeartbeatSubRic}" />
+                                            </StackPanel>
+                                            <TextBlock Style="{StaticResource Hint}"
+                                                       Text="Optional, leer = 0000000. Nützlich, wenn die Gegenseite nach RIC zuordnet, z. B. FE2 über den BosMon-Eingang." />
+                                        </StackPanel>
+                                        <TextBlock Style="{StaticResource Hint}" Margin="0,10,0,0"
+                                                   Text="Im Master/Slave-Betrieb sendet jeder PC sein eigenes Lebenszeichen; {pc} zeigt, von welchem es kommt. Schlägt das Senden fehl, wird das wie ein Fehler beim Senden gemeldet." />
+                                        <Button Content="Heartbeat jetzt senden" Command="{Binding SendHeartbeatCommand}" HorizontalAlignment="Left" Margin="0,10,0,0" />
+                                        <TextBlock Text="{Binding HeartbeatStatus}" TextWrapping="Wrap" Margin="0,6,0,0" Foreground="{DynamicResource MutedBrush}" />
+                                    </StackPanel>
+                                </GroupBox>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
                     <TabItem Header="🧪  Testnachricht">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <StackPanel Margin="18,14" MaxWidth="780" HorizontalAlignment="Left">

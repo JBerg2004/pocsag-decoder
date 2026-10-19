@@ -148,6 +148,7 @@ Im Reiter **Einstellungen**:
 - **Aufzeichnung**: Speicherort der CSV-Tagesdateien frei wählbar (auch Netzlaufwerk), „Standard“ setzt ihn zurück.
 - **Fehlermeldungen**: Benachrichtigung, wenn der Empfang abbricht oder nicht startet, das Senden an eine Schnittstelle fehlschlägt, die CSV-Datei nicht geschrieben werden kann oder seit X Minuten keine Meldung kam. Wege: Hinweis unten rechts und/oder eine Schnittstelle (z. B. Home Assistant; `{message}` enthält den Fehlertext, `{rule}` ist „Systemfehler“). Gleiche Fehler höchstens alle 10 Minuten.
 - Optional: Empfang nach einem Abbruch automatisch neu starten (alle 30 Sekunden).
+- **Heartbeat**: sendet alle X Minuten (Standard 60) ein Lebenszeichen an eine Schnittstelle, z. B. an Home Assistant, Uptime Kuma oder FE2. Bleibt es dort aus, ist der PC, das Programm oder der Empfang ausgefallen. Standardmäßig nur, solange der Empfang läuft. `{message}` enthält den Heartbeat-Text (eigene Platzhalter `{pc}`, `{state}`, `{last}`), `{rule}` ist „Heartbeat“; RIC und SubRIC sind einstellbar, falls die Gegenseite nach RIC zuordnet. Button „Heartbeat jetzt senden“ zum Ausprobieren.
 
 ## Fenster im Reiter Telegramme
 
