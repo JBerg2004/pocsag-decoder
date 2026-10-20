@@ -85,6 +85,39 @@ public sealed class AppSettings
     /// <summary>Melden, wenn so viele Minuten keine Meldung kam (0 = aus).</summary>
     public int ErrorSilenceMinutes { get; set; }
 
+    /// <summary>Regelmäßig ein Lebenszeichen an eine Schnittstelle senden.</summary>
+    public bool HeartbeatEnabled { get; set; }
+
+    /// <summary>Abstand der Lebenszeichen in Minuten.</summary>
+    public int HeartbeatMinutes { get; set; } = 60;
+
+    /// <summary>Schnittstelle, an die das Lebenszeichen geht.</summary>
+    public string HeartbeatTargetName { get; set; } = string.Empty;
+
+    /// <summary>Nur senden, solange der Empfang läuft; bleibt es aus, ist der Empfang gestoppt.</summary>
+    public bool HeartbeatOnlyWhileReceiving { get; set; } = true;
+
+    /// <summary>Text für {message}; eigene Platzhalter {pc}, {state}, {last}.</summary>
+    public string HeartbeatText { get; set; } = Heartbeat.DefaultText;
+
+    /// <summary>RIC für {ric}, z. B. damit FE2 oder BosMon das Lebenszeichen einer eigenen Einheit zuordnen (0 = keine).</summary>
+    public int HeartbeatRic { get; set; }
+
+    public string HeartbeatSubRic { get; set; } = "A";
+
+    /// <summary>Heartbeat per HTTP-POST an eine URL, z. B. healthchecks.io oder einen Home-Assistant-Webhook.</summary>
+    public bool HeartbeatUrlEnabled { get; set; }
+
+    public string HeartbeatUrl { get; set; } = string.Empty;
+
+    /// <summary>Wird statt <see cref="HeartbeatUrl"/> aufgerufen, wenn der Empfang nicht läuft oder die Haupt-URL nicht antwortet (leer = aus).</summary>
+    public string HeartbeatFailUrl { get; set; } = string.Empty;
+
+    public int HeartbeatUrlMinutes { get; set; } = 5;
+
+    /// <summary>Solange das Programm läuft, verhindern, dass Windows in den Energiesparmodus oder Ruhezustand geht.</summary>
+    public bool PreventSleep { get; set; } = true;
+
     /// <summary>Empfang nach einem Absturz automatisch neu starten.</summary>
     public bool AutoRestart { get; set; }
 

@@ -96,6 +96,7 @@ public sealed partial class MainViewModel
     /// <summary>Der Decoder hat sich unerwartet beendet.</summary>
     private void OnDecoderCrashed()
     {
+        _decoderFailed = true;
         if (Settings.ErrorOnDecoder)
             ReportError("decoder", "Der Empfang wurde unerwartet beendet (Stick abgezogen oder Programmfehler?)."
                                    + (Settings.AutoRestart ? " Neustart in 30 Sekunden." : ""));

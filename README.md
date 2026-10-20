@@ -28,6 +28,7 @@ RTL-SDR-Stick → rtl_fm.exe → (Audio 22050 Hz) → multimon-ng.exe → POCSAG
 - Reiter **Einstellungen**, Abschnitt Testnachricht: Meldung ohne SDR-Stick einspeisen (zum Ausprobieren von Beschreibungen, Telegrammereignissen und Webhooks); vor dem Senden kommt eine Sicherheitsabfrage
 - Fehlerkorrektur einstellbar (Reiter Empfänger, multimon-ng `-b`, Standard 1): weniger Phantom-RICs als die multimon-Voreinstellung 2
 - **Hintergrundbetrieb**: Symbol im Infobereich (unten rechts), Schließen/Minimieren blendet nur aus, Hinweis bei Treffern eines Telegrammereignisses, optional Start mit Windows (`--minimized`), nur eine Instanz gleichzeitig
+- **Kein Energiesparmodus**: Solange das Programm läuft, gehen Energiesparmodus und Ruhezustand nicht an (`SetThreadExecutionState`), der Bildschirm darf trotzdem ausgehen. Abschaltbar unter Einstellungen → Programm.
 - CSV-Tagesprotokoll unter `%APPDATA%\PocsagDecoder\logs`; abgeschlossene Tage werden auf Wunsch als `.csv.gz` komprimiert (etwa ein Achtel der Größe), sehr alte Tage optional nach X Tagen gelöscht (Einstellungen → Aufzeichnung)
 - Reiter **Verlauf**: alle Tagesprotokolle nach Zeitraum, Suchbegriffen (RIC, Bezeichnung, Ort, Text …), SubRIC und „nur weitergeleitete“ durchsuchen; Treffer als Excel-Datei (.xlsx) speichern
 - **Empfangsqualität** in der Statusleiste: vergleicht wiederholt gesendete Alarme; kommt die Wiederholung mit genau demselben Text an, war der Empfang fehlerfrei
@@ -148,6 +149,14 @@ Im Reiter **Einstellungen**:
 - **Aufzeichnung**: Speicherort der CSV-Tagesdateien frei wählbar (auch Netzlaufwerk), „Standard“ setzt ihn zurück.
 - **Fehlermeldungen**: Benachrichtigung, wenn der Empfang abbricht oder nicht startet, das Senden an eine Schnittstelle fehlschlägt, die CSV-Datei nicht geschrieben werden kann oder seit X Minuten keine Meldung kam. Wege: Hinweis unten rechts und/oder eine Schnittstelle (z. B. Home Assistant; `{message}` enthält den Fehlertext, `{rule}` ist „Systemfehler“). Gleiche Fehler höchstens alle 10 Minuten.
 - Optional: Empfang nach einem Abbruch automatisch neu starten (alle 30 Sekunden).
+- **Heartbeat**: sendet alle X Minuten (Standard 60) ein Lebenszeichen an eine Schnittstelle, z. B. an Home Assistant, Uptime Kuma oder FE2. Bleibt es dort aus, ist der PC, das Programm oder der Empfang ausgefallen. Standardmäßig nur, solange der Empfang läuft. `{message}` enthält den Heartbeat-Text (eigene Platzhalter `{pc}`, `{state}`, `{last}`), `{rule}` ist „Heartbeat“; RIC und SubRIC sind einstellbar, falls die Gegenseite nach RIC zuordnet. Button „Heartbeat jetzt senden“ zum Ausprobieren.
+- **Heartbeat an eine URL**: ruft alle X Minuten (Standard 5) eine frei wählbare URL per `POST` mit JSON auf, z. B. [healthchecks.io](https://healthchecks.io) oder einen Home-Assistant-Webhook. Optional gibt es eine **Fehler-URL**: Sie wird statt der URL aufgerufen, wenn der Empfang gestoppt oder abgebrochen ist (Stick abgezogen?), und zusätzlich, wenn die URL nicht antwortet. Button „Heartbeat-URL testen“ zum Ausprobieren. Inhalt:
+
+  ```json
+  {"status":"ok","pc":"LEITSTELLE","stick":"ok","lastMessage":"2026-10-19T14:18:00","lastMessageMinutesAgo":12,"queueLength":0,"time":"2026-10-19T14:30:00"}
+  ```
+
+  `status` ist `ok` oder `fehler`, `stick` ist `ok`, `gestoppt` oder `Fehler`, `queueLength` zählt Sendungen an Schnittstellen, die noch laufen oder auf einen neuen Versuch warten. Für healthchecks.io: URL `https://hc-ping.com/<uuid>`, Fehler-URL `https://hc-ping.com/<uuid>/fail`. Für Home Assistant: `http://homeassistant.local:8123/api/webhook/<webhook_id>`, in der Automation stehen die Werte dann unter `trigger.json`, z. B. `trigger.json.stick`.
 
 ## Fenster im Reiter Telegramme
 

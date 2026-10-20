@@ -71,6 +71,8 @@ public sealed partial class MainViewModel : ObservableObject
         InitHistory();
         InitMaintenance();
         InitRedundancy();
+        InitHeartbeat();
+        InitSleepPrevention();
 
         StartCommand = new RelayCommand(Start, () => !IsRunning);
         StopCommand = new RelayCommand(Stop, () => IsRunning);
@@ -459,6 +461,7 @@ public sealed partial class MainViewModel : ObservableObject
             _pipeline = pipeline;
             pipeline.Start();
             IsRunning = true;
+            _decoderFailed = false;
             NoteMessageReceived(); // Zeitmessung für „keine Meldung seit …“ beginnt jetzt
             StatusText = Settings.Decoder.Mode == DecoderSourceMode.RtlSdr
                 ? $"Empfange auf {Settings.Decoder.FrequencyMHz:0.000} MHz"
@@ -470,6 +473,7 @@ public sealed partial class MainViewModel : ObservableObject
             AddLog("Fehler beim Start: " + ex.Message);
             StatusText = "Start fehlgeschlagen";
             _pipeline = null;
+            _decoderFailed = true;
             error = ex.Message;
             return false;
         }
@@ -483,12 +487,14 @@ public sealed partial class MainViewModel : ObservableObject
         _pipeline = null;
         await p.StopAsync();
         IsRunning = false;
+        _decoderFailed = false;
         StatusText = "Gestoppt";
     }
 
     public async Task ShutdownAsync()
     {
         if (_pipeline is not null) await _pipeline.StopAsync();
+        _sleep.Set(false);
         Save();
     }
 

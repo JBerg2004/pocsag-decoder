@@ -1,0 +1,19 @@
+# Prüft jeden Pull Request: Tests laufen und das Windows-Programm lässt sich bauen.
+name: Build
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Tests
+        run: dotnet test tests/PocsagDecoder.Tests -c Release
+      - name: Programm bauen
+        run: dotnet build src/PocsagDecoder.App -c Release
