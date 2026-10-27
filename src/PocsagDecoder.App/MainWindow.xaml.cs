@@ -295,8 +295,8 @@ public partial class MainWindow : Window
 
     private void GlobalSubRics_Click(object sender, RoutedEventArgs e)
     {
-        var dlg = new SubRicDialog(Vm.Settings.GlobalSubRics) { Owner = this };
-        if (dlg.ShowDialog() == true) Vm.SetGlobalSubRics(dlg.Names);
+        var dlg = new SubRicDialog(Vm.Settings.GlobalSubRics, Vm.Settings.GlobalSubRicShorts) { Owner = this };
+        if (dlg.ShowDialog() == true) Vm.SetGlobalSubRics(dlg.Names, dlg.Shorts);
     }
 
     private void RuleTarget_Click(object sender, RoutedEventArgs e)

@@ -1,31 +1,39 @@
 <Window x:Class="PocsagDecoder.App.SubRicDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="SubRICs zuordnen" Width="420" SizeToContent="Height" ResizeMode="NoResize"
+        Title="SubRICs zuordnen" Width="520" SizeToContent="Height" ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
         Background="{DynamicResource PageBrush}" Foreground="{DynamicResource TextBrush}">
     <StackPanel Margin="14">
         <TextBlock TextWrapping="Wrap" Margin="0,0,0,10"
-                   Text="Bedeutung der SubRICs für alle RICs. Steht bei einer einzelnen RIC im Reiter „RIC-Beschreibungen“ etwas Eigenes, hat das Vorrang." />
+                   Text="Bedeutung der SubRICs für alle RICs. Steht bei einer einzelnen RIC im Reiter „RIC-Beschreibungen“ etwas Eigenes, hat das Vorrang. Der Kurztext geht beim BosMon-Netzwerk ins Feld short, wie die Kurzbeschreibung der Funktion in BosMon (leer = wie die Bedeutung)." />
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="90" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="140" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <TextBlock Text="SubRIC A" FontWeight="SemiBold" VerticalAlignment="Center" />
-            <TextBox x:Name="BoxA" Grid.Column="1" Margin="0,3" />
-            <TextBlock Grid.Row="1" Text="SubRIC B" FontWeight="SemiBold" VerticalAlignment="Center" />
-            <TextBox x:Name="BoxB" Grid.Row="1" Grid.Column="1" Margin="0,3" />
-            <TextBlock Grid.Row="2" Text="SubRIC C" FontWeight="SemiBold" VerticalAlignment="Center" />
-            <TextBox x:Name="BoxC" Grid.Row="2" Grid.Column="1" Margin="0,3" />
-            <TextBlock Grid.Row="3" Text="SubRIC D" FontWeight="SemiBold" VerticalAlignment="Center" />
-            <TextBox x:Name="BoxD" Grid.Row="3" Grid.Column="1" Margin="0,3" />
+            <TextBlock Grid.Column="1" Text="Bedeutung" Opacity="0.7" />
+            <TextBlock Grid.Column="2" Text="Kurztext" Opacity="0.7" Margin="8,0,0,0" />
+            <TextBlock Grid.Row="1" Text="SubRIC A" FontWeight="SemiBold" VerticalAlignment="Center" />
+            <TextBox x:Name="BoxA" Grid.Row="1" Grid.Column="1" Margin="0,3" />
+            <TextBox x:Name="ShortA" Grid.Row="1" Grid.Column="2" Margin="8,3,0,3" />
+            <TextBlock Grid.Row="2" Text="SubRIC B" FontWeight="SemiBold" VerticalAlignment="Center" />
+            <TextBox x:Name="BoxB" Grid.Row="2" Grid.Column="1" Margin="0,3" />
+            <TextBox x:Name="ShortB" Grid.Row="2" Grid.Column="2" Margin="8,3,0,3" />
+            <TextBlock Grid.Row="3" Text="SubRIC C" FontWeight="SemiBold" VerticalAlignment="Center" />
+            <TextBox x:Name="BoxC" Grid.Row="3" Grid.Column="1" Margin="0,3" />
+            <TextBox x:Name="ShortC" Grid.Row="3" Grid.Column="2" Margin="8,3,0,3" />
+            <TextBlock Grid.Row="4" Text="SubRIC D" FontWeight="SemiBold" VerticalAlignment="Center" />
+            <TextBox x:Name="BoxD" Grid.Row="4" Grid.Column="1" Margin="0,3" />
+            <TextBox x:Name="ShortD" Grid.Row="4" Grid.Column="2" Margin="8,3,0,3" />
         </Grid>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
             <Button Content="Speichern" IsDefault="True" Click="Ok_Click" FontWeight="SemiBold" />

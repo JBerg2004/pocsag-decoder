@@ -52,6 +52,9 @@ public sealed class PocsagMessage
     /// <summary>Beschreibung der SubRIC allein.</summary>
     public string SubRicDescription { get; set; } = string.Empty;
 
+    /// <summary>Kurztext der SubRIC (z. B. „Alarm“ statt „Einsatz“), sonst wie <see cref="SubRicDescription"/>.</summary>
+    public string SubRicShortDescription { get; set; } = string.Empty;
+
     /// <summary>Unveränderte Ausgabezeile des Decoders.</summary>
     public string Raw { get; init; } = string.Empty;
 

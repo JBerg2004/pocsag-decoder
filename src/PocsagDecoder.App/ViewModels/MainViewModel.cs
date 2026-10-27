@@ -62,6 +62,7 @@ public sealed partial class MainViewModel : ObservableObject
         };
         DescriptionsView.SortDescriptions.Add(new SortDescription(nameof(RicEntry.Ric), ListSortDirection.Ascending));
         _directory.SetGlobalSubRics(Settings.GlobalSubRics);
+        _directory.SetGlobalSubRicShorts(Settings.GlobalSubRicShorts);
         RebuildDirectory();
 
         InitPanes();
@@ -766,10 +767,12 @@ public sealed partial class MainViewModel : ObservableObject
         }
     }
 
-    public void SetGlobalSubRics(IReadOnlyList<string> names)
+    public void SetGlobalSubRics(IReadOnlyList<string> names, IReadOnlyList<string> shorts)
     {
         Settings.GlobalSubRics = Enumerable.Range(0, 4).Select(i => i < names.Count ? (names[i] ?? "").Trim() : "").ToList();
+        Settings.GlobalSubRicShorts = Enumerable.Range(0, 4).Select(i => i < shorts.Count ? (shorts[i] ?? "").Trim() : "").ToList();
         _directory.SetGlobalSubRics(Settings.GlobalSubRics);
+        _directory.SetGlobalSubRicShorts(Settings.GlobalSubRicShorts);
         RebuildDirectory();
         OnPropertyChanged(nameof(GlobalSubRicSummary));
         foreach (var n in new[] { nameof(SubRicLabelA), nameof(SubRicLabelB), nameof(SubRicLabelC), nameof(SubRicLabelD) })

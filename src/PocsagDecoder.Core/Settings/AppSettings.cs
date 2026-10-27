@@ -39,6 +39,9 @@ public sealed class AppSettings
     /// <summary>Allgemeine Bedeutung der SubRICs A, B, C, D für alle RICs.</summary>
     public List<string> GlobalSubRics { get; set; } = ["", "", "", ""];
 
+    /// <summary>Kurztexte der SubRICs A–D, z. B. für das BosMon-Netzwerkereignis (Feld short). Leer = wie die Bedeutung.</summary>
+    public List<string> GlobalSubRicShorts { get; set; } = ["", "", "", ""];
+
     /// <summary>Fenster im Reiter Telegramme, jedes mit eigenem Filter und eigenen Spalten.</summary>
     public List<ReceivePaneSettings> ReceivePanes { get; set; } = new();
 
