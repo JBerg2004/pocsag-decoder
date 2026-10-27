@@ -51,11 +51,14 @@ public static class BosMonNetworkEvent
     }
 
     /// <summary>
-    /// Wie BosMon: ein reiner Tonruf hat eine leere Nachricht, ein Text-Telegramm ohne lesbaren Inhalt
-    /// ein einzelnes Leerzeichen (beides so im Mitschnitt vom 27.10.2026).
+    /// Wie BosMon (Mitschnitte vom 27.10.2026): der Text mit seinen Leerzeichen am Anfang und Ende,
+    /// ein reiner Tonruf mit leerer Nachricht, ein Text-Telegramm ohne lesbaren Inhalt mit einem Leerzeichen.
     /// </summary>
-    private static string MessageField(PocsagMessage m, string message) =>
-        message.Length > 0 || m.ContentType == PocsagContentType.Tone ? message : " ";
+    private static string MessageField(PocsagMessage m, string message)
+    {
+        if (message == m.Text && !string.IsNullOrEmpty(m.UntrimmedText)) return m.UntrimmedText;
+        return message.Length > 0 || m.ContentType == PocsagContentType.Tone ? message : " ";
+    }
 
     private static string Esc(string s) => SecurityElement.Escape(s) ?? "";
 

@@ -41,6 +41,7 @@ public static partial class MultimonParser
             Function = int.Parse(m.Groups["func"].Value, CultureInfo.InvariantCulture) & 0x3,
             ContentType = type,
             Text = CleanText(m.Groups["text"].Value),
+            UntrimmedText = m.Groups["text"].Success ? StripControlTokens(StripPadding(m.Groups["text"].Value, type)) : null,
             Raw = line,
         };
         return true;
@@ -50,12 +51,25 @@ public static partial class MultimonParser
     /// Entfernt Steuerzeichen, die multimon-ng als &lt;NUL&gt;, &lt;EOT&gt; usw. ausgibt,
     /// und schneidet Leerzeichen ab.
     /// </summary>
-    public static string CleanText(string text)
+    public static string CleanText(string text) => StripControlTokens(text).Trim();
+
+    private static string StripControlTokens(string text)
     {
         if (string.IsNullOrEmpty(text)) return string.Empty;
         text = ControlTokenRegex().Replace(text, string.Empty);
-        text = new string(text.Where(c => !char.IsControl(c)).ToArray());
-        return text.Trim();
+        return new string(text.Where(c => !char.IsControl(c)).ToArray());
+    }
+
+    /// <summary>
+    /// multimon-ng rückt den Text ein ("Alpha:   ", "Skyper:  ", "Numeric: "); ein Leerzeichen nimmt schon
+    /// der Ausdruck weg, hier fällt der Rest weg, damit Leerzeichen der Nachricht selbst erhalten bleiben.
+    /// </summary>
+    private static string StripPadding(string text, PocsagContentType type)
+    {
+        var pad = type switch { PocsagContentType.Alpha => 2, PocsagContentType.Skyper => 1, _ => 0 };
+        var n = 0;
+        while (n < pad && n < text.Length && text[n] == ' ') n++;
+        return text[n..];
     }
 
     [GeneratedRegex(@"<(NUL|SOH|STX|ETX|EOT|ENQ|ACK|BEL|BS|HT|LF|VT|FF|CR|SO|SI|DLE|DC1|DC2|DC3|DC4|NAK|SYN|ETB|CAN|EM|SUB|ESC|FS|GS|RS|US|DEL)>")]

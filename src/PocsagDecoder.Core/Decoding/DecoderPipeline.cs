@@ -164,6 +164,7 @@ public sealed class DecoderPipeline : IAsyncDisposable
                     Function = message.Function,
                     ContentType = message.ContentType,
                     Text = GermanCharset.Convert(message.Text),
+                    UntrimmedText = message.UntrimmedText is null ? null : GermanCharset.Convert(message.UntrimmedText),
                     Raw = message.Raw,
                 };
             }

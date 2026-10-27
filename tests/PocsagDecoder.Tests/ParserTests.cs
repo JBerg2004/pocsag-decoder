@@ -19,6 +19,18 @@ public class ParserTests
     }
 
     [Fact]
+    public void KeepsUntrimmedTextWithoutMultimonPadding()
+    {
+        Assert.True(MultimonParser.TryParse("POCSAG1200: Address: 1234567  Function: 3  Alpha:    Brand <EOT>", out var m));
+        Assert.Equal("Brand", m!.Text);
+        Assert.Equal(" Brand ", m.UntrimmedText);
+        Assert.True(MultimonParser.TryParse("POCSAG512: Address:   12345  Function: 1  Numeric: 0815 ", out var n));
+        Assert.Equal("0815 ", n!.UntrimmedText);
+        Assert.True(MultimonParser.TryParse("POCSAG2400: Address: 2000001  Function: 0 ", out var t));
+        Assert.Null(t!.UntrimmedText);
+    }
+
+    [Fact]
     public void ParsesNumericMessageAndPadsRic()
     {
         Assert.True(MultimonParser.TryParse("POCSAG512: Address:   12345  Function: 1  Numeric: 0815 ", out var m));
