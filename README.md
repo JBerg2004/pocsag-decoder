@@ -131,7 +131,7 @@ Im Reiter „Schnittstellen“ mit **+ Neu** eine Art aus der Übersicht wählen
 | E-Mail (SMTP) | Server, Port, TLS (STARTTLS), Benutzer, Passwort, Absender, Empfänger, Betreff, Text | Port 465 (reines SSL) geht nicht, 587 nehmen |
 | Divera 24/7 | API-Adresse, Accesskey, Stichwort, Text, Divera-RIC, Sonderrechte | |
 | FE2 | Server-Adresse (`http://SERVER:83/rest/external/http/alarm/v2`), Autorisierung, Absender, Einheiten, Stichwort, Stichwort-Beschreibung, Alarmtext | Externe Schnittstelle, Datenformat v2. In FE2: Alarmeingang „Externe Schnittstelle“, HTTP POST an, Version v2, Kennwort unter „Gültige Absender“. Einheiten = Codes der Einheiten in FE2 (Standard `{ric}{subric_upper}`, leer = Standard-Einheiten des Eingangs) |
-| BosMon-Netzwerk | Host (z. B. FE2-Rechner), Port (Standard 5566), TLS, Benutzer (bei FE2 der Einheiten-Code), Ereignisname, Nachricht | Sendet wie BosMons Netzwerkereignis im Format „Erweitert“ (XML über TCP, eine Verbindung je Telegramm), z. B. an den BosMon-Eingang von FE2. Nachgebaut nach einem Mitschnitt von BosMon |
+| BosMon-Netzwerk | Host (z. B. FE2-Rechner), Port (Standard 5566), TLS, Benutzer (bei FE2 der Einheiten-Code), Ereignisname, Nachricht | Sendet wie BosMons Netzwerkereignis im Format „Erweitert“ (XML über TCP, eine Verbindung je Telegramm), z. B. an den BosMon-Eingang von FE2. Nachgebaut nach Mitschnitten von BosMon (reiner Tonruf = leere Nachricht, Text-Telegramm ohne Inhalt = ein Leerzeichen) |
 | Programm starten | Programm/Skript, Argumente | `.ps1` wird mit PowerShell gestartet |
 | Ton abspielen | wav- oder mp3-Datei | spielt am PC |
 | Datenbank (SQLite) | Datei (Standard `%APPDATA%\PocsagDecoder\telegramme.db`) | Tabelle `telegramme` |
@@ -141,7 +141,7 @@ Passwörter und Tokens stehen im Klartext in der `settings.json`. Die Felder fü
 
 ## Allgemeine SubRIC-Zuordnung
 
-Im Reiter „RIC-Beschreibungen“ rechts neben der Suche: **SubRICs zuordnen…** – dort einmalig festlegen, was A, B, C und D bedeuten (z. B. A = Vollalarm, B = Kleinalarm). Das gilt für alle RICs und erscheint im Reiter Telegramme in der Spalte „SubRIC-Bedeutung“. Weicht eine einzelne RIC ab, kann sie in der Tabelle eigene Texte für A–D bekommen.
+Im Reiter „RIC-Beschreibungen“ rechts neben der Suche: **SubRICs zuordnen…** – dort einmalig festlegen, was A, B, C und D bedeuten (z. B. A = Vollalarm, B = Kleinalarm). Das gilt für alle RICs und erscheint im Reiter Telegramme in der Spalte „SubRIC-Bedeutung“. Weicht eine einzelne RIC ab, kann sie in der Tabelle eigene Texte für A–D bekommen. Daneben gibt es je SubRIC einen **Kurztext** (z. B. A = Alarm, B = ohne dring). Er geht beim BosMon-Netzwerk ins Feld `short`, genau wie die Kurzbeschreibung der Funktion in BosMon; leer bleibt es die Bedeutung.
 
 ## Fehlermeldungen und Speicherort
 

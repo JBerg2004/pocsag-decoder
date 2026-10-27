@@ -20,6 +20,7 @@ public sealed partial class RicDirectory
 {
     private readonly Dictionary<int, RicEntry> _map = new();
     private readonly string[] _global = ["", "", "", ""];
+    private readonly string[] _globalShort = ["", "", "", ""];
 
     /// <summary>
     /// Allgemeine Bedeutung der SubRICs A–D, unabhängig von der RIC.
@@ -32,6 +33,13 @@ public sealed partial class RicDirectory
     }
 
     public string GetGlobalSubRic(int function) => function is >= 0 and <= 3 ? _global[function] : string.Empty;
+
+    /// <summary>Kurztexte der SubRICs A–D (wie die Funktions-Kurzbeschreibung in BosMon).</summary>
+    public void SetGlobalSubRicShorts(IReadOnlyList<string>? names)
+    {
+        for (var i = 0; i < 4; i++)
+            _globalShort[i] = names is not null && i < names.Count ? (names[i] ?? string.Empty).Trim() : string.Empty;
+    }
 
     public RicDirectory(IEnumerable<RicEntry>? entries = null)
     {
@@ -68,6 +76,17 @@ public sealed partial class RicDirectory
         if (_map.TryGetValue(ric, out var e) && !string.IsNullOrWhiteSpace(e.GetSub(function))) return e.GetSub(function).Trim();
         var g = GetGlobalSubRic(function);
         return g.Length > 0 ? g : null;
+    }
+
+    /// <summary>
+    /// Kurztext der SubRIC: eigener SubRIC-Text der RIC, sonst der allgemeine Kurztext,
+    /// sonst die allgemeine SubRIC-Bedeutung.
+    /// </summary>
+    public string? GetSubRicShortDescription(int ric, int function)
+    {
+        if (_map.TryGetValue(ric, out var e) && !string.IsNullOrWhiteSpace(e.GetSub(function))) return e.GetSub(function).Trim();
+        if (function is >= 0 and <= 3 && _globalShort[function].Length > 0) return _globalShort[function];
+        return GetSubRicDescription(ric, function);
     }
 
     /// <summary>Kombinierte Beschreibung, oder leer wenn nichts hinterlegt ist.</summary>
@@ -479,6 +498,7 @@ public static class RicDirectoryExtensions
         message.RicLocation = directory.GetRicLocation(message.Ric) ?? string.Empty;
         message.RicBosMonUser = directory.GetRicBosMonUser(message.Ric) ?? string.Empty;
         message.SubRicDescription = directory.GetSubRicDescription(message.Ric, message.Function) ?? string.Empty;
+        message.SubRicShortDescription = directory.GetSubRicShortDescription(message.Ric, message.Function) ?? string.Empty;
         message.Description = directory.Describe(message.Ric, message.Function);
     }
 }

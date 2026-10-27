@@ -31,7 +31,7 @@ public static class BosMonNetworkEvent
         if (!string.IsNullOrWhiteSpace(user)) Line($"<user>{Esc(user.Trim())}</user>"); // BosMon: Feld „Benutzer“, in FE2 der Einheiten-Code
         Line("<telegram>");
         Line($"<function>{char.ToLowerInvariant(m.SubRic)}</function>");
-        Line($"<message>{Esc(string.IsNullOrEmpty(message) ? " " : message)}</message>");
+        Line($"<message>{Esc(MessageField(m, message))}</message>");
         Line($"<type>{TypePocsag}</type>");
         Line($"<address>{m.RicFormatted}</address>");
         Line($"<timestamp>{new DateTimeOffset(m.Timestamp).ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture)}</timestamp>");
@@ -49,6 +49,13 @@ public static class BosMonNetworkEvent
         Line("</event>");
         return sb.ToString();
     }
+
+    /// <summary>
+    /// Wie BosMon: ein reiner Tonruf hat eine leere Nachricht, ein Text-Telegramm ohne lesbaren Inhalt
+    /// ein einzelnes Leerzeichen (beides so im Mitschnitt vom 27.10.2026).
+    /// </summary>
+    private static string MessageField(PocsagMessage m, string message) =>
+        message.Length > 0 || m.ContentType == PocsagContentType.Tone ? message : " ";
 
     private static string Esc(string s) => SecurityElement.Escape(s) ?? "";
 
