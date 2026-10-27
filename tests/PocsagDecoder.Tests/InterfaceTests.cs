@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using Microsoft.Data.Sqlite;
+using PocsagDecoder.Core.Decoding;
 using PocsagDecoder.Core.Descriptions;
 using PocsagDecoder.Core.Forwarding;
 using PocsagDecoder.Core.Models;
@@ -308,6 +309,25 @@ public class InterfaceTests
         };
         var xml = BosMonNetworkEvent.Build("0.0 Test", m, "", "ohne dring", "ohne Dringlichkeit", "Testeinheit");
         Assert.Equal(BosMonToneCapture, xml);
+    }
+
+    /// <summary>Mitschnitt vom 27.10.2026, SubRIC d: BosMon behält das Leerzeichen am Ende der Nachricht (RIC ersetzt).</summary>
+    private const string BosMonTrailingSpaceCapture =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n<event format=\"2\">\r\n<name>0.0 Test</name>\r\n<user>Testeinheit</user>\r\n" +
+        "<telegram>\r\n<function>d</function>\r\n<message>&amp;ALPwwDk </message>\r\n<type>3</type>\r\n<address>1234567</address>\r\n<timestamp>1793124178656</timestamp>\r\n" +
+        "<flags>1048576</flags>\r\n<description>\r\n<function>\r\n<short>Rücknahme</short>\r\n<long>Einsatz Rücknahme</long>\r\n</function>\r\n</description>\r\n</telegram>\r\n</event>\r\n";
+
+    [Fact]
+    public void BosMonKeepsSpacesOfTheMessageLikeCapture()
+    {
+        var ts = DateTimeOffset.FromUnixTimeMilliseconds(1793124178656).LocalDateTime;
+        Assert.True(MultimonParser.TryParse("POCSAG1200: Address: 1234567  Function: 3  Alpha:   &ALPwwDk <EOT><NUL>", out var m, ts));
+        Assert.Equal("&ALPwwDk", m!.Text);
+        var xml = BosMonNetworkEvent.Build("0.0 Test", m, m.Text, "Rücknahme", "Einsatz Rücknahme", "Testeinheit");
+        Assert.Equal(BosMonTrailingSpaceCapture, xml);
+
+        Assert.True(MultimonParser.TryParse("POCSAG1200: Address: 1234567  Function: 0  Alpha:    <EOT>", out var space, ts));
+        Assert.Contains("<message> </message>", BosMonNetworkEvent.Build("0.0 Test", space!, space!.Text, null, null));
     }
 
     [Fact]

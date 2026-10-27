@@ -55,6 +55,12 @@ public sealed class PocsagMessage
     /// <summary>Kurztext der SubRIC (z. B. „Alarm“ statt „Einsatz“), sonst wie <see cref="SubRicDescription"/>.</summary>
     public string SubRicShortDescription { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Text wie gesendet, mit Leerzeichen am Anfang und Ende (BosMon gibt sie so weiter);
+    /// null, wenn die Nachricht nicht vom Decoder stammt.
+    /// </summary>
+    public string? UntrimmedText { get; init; }
+
     /// <summary>Unveränderte Ausgabezeile des Decoders.</summary>
     public string Raw { get; init; } = string.Empty;
 
