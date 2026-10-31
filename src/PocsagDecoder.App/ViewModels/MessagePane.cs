@@ -13,6 +13,14 @@ public sealed class MessagePane : ObservableObject
     private MessageItem? _selected;
     private bool _isActive;
     private DateTime? _clearedAt;
+    private string _quickSearch = string.Empty;
+    public string QuickSearch
+    {
+        get => _quickSearch;
+        set { if (Set(ref _quickSearch, value ?? string.Empty)) Refresh(); }
+    }
+
+    public void RefreshColumns() => ColumnsChanged?.Invoke(this, EventArgs.Empty);
 
     /// <summary>Spaltenköpfe der Tabelle (gleiche Texte wie in MessagePaneView.xaml).</summary>
     public static IReadOnlyList<string> ColumnNames { get; } =
@@ -103,7 +111,12 @@ public sealed class MessagePane : ObservableObject
     public MessageItem? SelectedItem
     {
         get => _selected;
-        set { if (Set(ref _selected, value) && value is not null) _main.SelectedMessage = value; }
+        set
+        {
+            var previous = _selected;
+            if (Set(ref _selected, value) && (value is not null || _main.SelectedMessage == previous))
+                _main.SelectedMessage = value;
+        }
     }
 
     public IReadOnlyList<string> HiddenColumns => Settings.HiddenColumns;
@@ -130,6 +143,11 @@ public sealed class MessagePane : ObservableObject
 
     private bool Matches(MessageItem item)
     {
+        if (!string.IsNullOrWhiteSpace(QuickSearch))
+        {
+            var searchable = string.Join(" ", item.Ric, item.Text, item.Description, item.RicDescription, item.SubRicDescription, item.RicShortName, item.RicLocation);
+            if (!searchable.Contains(QuickSearch.Trim(), StringComparison.OrdinalIgnoreCase)) return false;
+        }
         if (_clearedAt is { } cleared && item.Timestamp < cleared) return false;
         if (OnlyMatched && !item.Matched) return false;
         if (HideRepeats && item.IsRepeat) return false;

@@ -56,10 +56,28 @@ public sealed class MessageItem : ObservableObject
     /// <summary>Mindestens eine Regel hat gegriffen.</summary>
     public bool Matched { get => _matched; set => Set(ref _matched, value); }
 
-    public bool HasError { get => _hasError; set => Set(ref _hasError, value); }
+    public bool HasError { get => _hasError; set { if (Set(ref _hasError, value)) OnPropertyChanged(nameof(DeliverySummary)); } }
 
     /// <summary>Ergebnis der Weiterleitung(en), z.B. "Leitstelle: 200 OK".</summary>
-    public string Forwarding { get => _forwarding; set => Set(ref _forwarding, value); }
+    public string Forwarding
+    {
+        get => _forwarding;
+        set
+        {
+            if (!Set(ref _forwarding, value)) return;
+            OnPropertyChanged(nameof(DeliverySummary));
+            OnPropertyChanged(nameof(DeliveryLines));
+        }
+    }
+
+    public string DeliverySummary => HasError ? "Fehler beim Versand"
+        : Forwarding.Contains("sende…") ? "Wird gesendet…"
+        : Forwarding.Contains("✓") ? "Erfolgreich gesendet"
+        : string.IsNullOrEmpty(Forwarding) ? "Nur empfangen" : "Verarbeitet";
+    public IReadOnlyList<string> DeliveryLines => string.IsNullOrEmpty(Forwarding)
+        ? ["Nur empfangen – keine Weiterleitung ausgelöst."]
+        : Forwarding.Split(" | ", StringSplitOptions.RemoveEmptyEntries);
+    public string TechnicalDetails => $"{Timestamp:dd.MM.yyyy HH:mm:ss} · {Baud} Baud · {Type} · Funktion {Function}\n{Message.Raw}";
 
     public void AppendForwarding(string text)
     {

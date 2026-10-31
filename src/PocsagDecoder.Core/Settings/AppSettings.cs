@@ -30,6 +30,8 @@ public sealed class ReceivePaneSettings
 
 public sealed class AppSettings
 {
+    public bool SetupCompleted { get; set; }
+    public bool CompactReceiveList { get; set; } = true;
     public DecoderOptions Decoder { get; set; } = new();
     public List<FilterRule> Rules { get; set; } = new();
     public List<WebhookTarget> Targets { get; set; } = new();

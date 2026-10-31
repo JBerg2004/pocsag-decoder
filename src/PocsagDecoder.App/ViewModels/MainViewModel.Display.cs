@@ -10,6 +10,27 @@ public sealed partial class MainViewModel
     private string _clock = string.Empty;
     private string _lastReceivedText = "Noch keine Meldung empfangen";
 
+    public string ReceiverSummary => IsRunning ? "Aktiv" : "Gestoppt";
+    public string FrequencySummary => Settings.Decoder.Mode == Core.Decoding.DecoderSourceMode.CustomCommand
+        ? "Eigener Empfangsbefehl" : $"{Settings.Decoder.FrequencyMHz:0.000} MHz";
+    public string LastMessageTime => _lastReceivedAt?.ToString("HH:mm:ss") ?? "Noch keine";
+    public string PendingSummary => _sender.PendingCount == 0 ? "Keine offenen" : $"{_sender.PendingCount} ausstehend";
+    public string QualitySummary => _quality.Percent is { } percent ? $"{percent} % · {_quality.LevelText}" : "Wird ermittelt";
+    public string ForwardedSummary => $"{ForwardedCount} erfolgreich · {Messages.Count(m => m.HasError)} mit Fehler (in Liste)";
+
+    public bool CompactReceiveList
+    {
+        get => Settings.CompactReceiveList;
+        set
+        {
+            if (Settings.CompactReceiveList == value) return;
+            Settings.CompactReceiveList = value;
+            OnPropertyChanged();
+            foreach (var pane in Panes) pane.RefreshColumns();
+            RequestSave();
+        }
+    }
+
     private void InitDisplay()
     {
         ThemeManager.Apply(Settings.Theme);
@@ -74,6 +95,8 @@ public sealed partial class MainViewModel
     {
         var now = DateTime.Now;
         Clock = now.ToString("dd.MM.yyyy  HH:mm:ss");
+        foreach (var name in new[] { nameof(ReceiverSummary), nameof(FrequencySummary), nameof(LastMessageTime), nameof(PendingSummary), nameof(ForwardedSummary) })
+            OnPropertyChanged(name);
         if (_lastReceivedAt is not { } last) return;
         var ago = now - last;
         var text = ago.TotalSeconds < 60 ? "gerade eben"

@@ -6,6 +6,7 @@
             <!-- ===== Farben: Themes/Light.xaml oder Themes/Dark.xaml, wird von ThemeManager getauscht ===== -->
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Themes/Light.xaml" />
+                <ResourceDictionary Source="Themes/Shell.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <!-- ===== Schaltflächen ===== -->

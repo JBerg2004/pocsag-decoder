@@ -73,6 +73,22 @@ Test, ob der Stick funktioniert: `rtl_test.exe` in einer Eingabeaufforderung.
 
 ## Bedienung
 
+Die Seitennavigation führt zu Empfang, Ereignissen, RIC-Verzeichnis, Schnittstellen,
+Verlauf, Einstellungen und Protokoll. Unter **Empfang** zeigen vier Statusfelder den
+Empfänger, den letzten Empfang, die Empfangsqualität und offene Sendungen.
+Die kompakte Liste konzentriert sich auf RIC, SubRIC, Bezeichnung, Ort und Verarbeitung.
+Nachrichtentexte sind standardmäßig ausgeblendet, da sie auch verschlüsselte Inhalte
+enthalten können. Bei Auswahl einer Meldung erscheinen Zuordnung und Versandziele
+darunter; Nachrichtentext und technische Details lassen sich bei Bedarf aufklappen.
+Mit **Kompakte Ansicht** kann auf die vollständige Spaltenauswahl umgeschaltet werden.
+Die Suche je Fenster findet RICs, Bezeichnungen und Orte und ergänzt die bestehenden Filter.
+
+**Einrichten** öffnet einen Assistenten für Empfangsprogramme, Frequenz und eine optionale
+Webhook-Weiterleitung. Bei einer neuen Installation erscheint er automatisch, bestehende
+Konfigurationen werden nicht automatisch geändert. Abbrechen verwirft seine Eingaben.
+Ein optionaler Webhook wird erst mit dem abschließenden Speichern angelegt; der Assistent
+startet weder den Empfang noch einen Testversand.
+
 1. Reiter **Einstellungen**: Frequenz (z. B. 173,255 MHz), Gain (leer = automatisch), ppm-Korrektur.
 2. Reiter **Schnittstellen**: Ziel anlegen, URL und Body einstellen, „Testnachricht senden“.
 3. Reiter **Telegrammereignisse**: Ereignis anlegen, RIC/SubRIC eintragen, Ziel auswählen.
@@ -219,6 +235,7 @@ Voraussetzung: .NET 8 SDK.
 
 ```
 dotnet test
+dotnet test tests/PocsagDecoder.App.Tests -c Release
 dotnet publish src/PocsagDecoder.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o publish
 ```
 

@@ -47,6 +47,11 @@
                 <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
             </DockPanel>
         </Border>
+        <DockPanel DockPanel.Dock="Top" Margin="10,9">
+            <CheckBox DockPanel.Dock="Right" Content="Kompakte Ansicht" IsChecked="{Binding Main.CompactReceiveList}" Margin="12,0,0,0" VerticalAlignment="Center"/><TextBlock DockPanel.Dock="Left" Text="Suchen" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <TextBox Text="{Binding QuickSearch, UpdateSourceTrigger=PropertyChanged, Delay=180}" AutomationProperties.Name="Meldungen nach RIC, Bezeichnung oder Ort durchsuchen" ToolTip="RIC, Bezeichnung oder Ort suchen"/>
+        </DockPanel>
+        <Grid>
         <DataGrid x:Name="Grid" ItemsSource="{Binding View}" SelectedItem="{Binding SelectedItem}"
                   AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False"
                   BorderThickness="0" Margin="1,0,1,1"
@@ -119,7 +124,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Header="Bezeichnung" Binding="{Binding RicDescription}" Width="170">
+                <DataGridTextColumn Header="Bezeichnung" Binding="{Binding RicDescription}" Width="*" MinWidth="150">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="TextWrapping" Value="Wrap" />
@@ -149,14 +154,14 @@
                 <DataGridTextColumn Header="Fkt." Binding="{Binding Function}" Width="40" />
                 <DataGridTextColumn Header="Baud" Binding="{Binding Baud}" Width="50" />
                 <DataGridTextColumn Header="Typ" Binding="{Binding Type}" Width="65" />
-                <DataGridTextColumn Header="Text" Binding="{Binding Text}" Width="*">
+                <DataGridTextColumn Header="Text" Binding="{Binding Text}" Width="*" MinWidth="240">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="TextWrapping" Value="Wrap" />
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTextColumn Header="Verarbeitung" Binding="{Binding Forwarding}" Width="260">
+                <DataGridTextColumn Header="Verarbeitung" Binding="{Binding DeliverySummary}" Width="165">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="TextWrapping" Value="Wrap" />
@@ -166,6 +171,11 @@
                 </DataGridTextColumn>
             </DataGrid.Columns>
         </DataGrid>
+        <Border Background="{DynamicResource CardBrush}" IsHitTestVisible="False" Margin="1,32,1,1">
+            <Border.Style><Style TargetType="Border"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding VisibleCount}" Value="0"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></Border.Style>
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="20"><TextBlock Text="Keine Meldungen in dieser Ansicht" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center"/><TextBlock Text="Empfang starten oder Suchfilter prüfen." Foreground="{DynamicResource MutedBrush}" Margin="0,8,0,0" HorizontalAlignment="Center"/></StackPanel>
+        </Border>
+        </Grid>
     </DockPanel>
     </Border>
 </UserControl>

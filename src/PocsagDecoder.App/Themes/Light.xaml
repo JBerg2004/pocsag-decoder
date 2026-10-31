@@ -1,8 +1,8 @@
 <!-- Farben für das helle Design. Gleiche Schlüssel in Light.xaml und Dark.xaml. -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <SolidColorBrush x:Key="AccentBrush" Color="#C62828" />
-    <SolidColorBrush x:Key="AccentDarkBrush" Color="#8E1B1B" />
+    <SolidColorBrush x:Key="AccentBrush" Color="#2563EB" />
+    <SolidColorBrush x:Key="AccentDarkBrush" Color="#1D4ED8" />
     <SolidColorBrush x:Key="HeaderBrush" Color="#1F2430" />
     <SolidColorBrush x:Key="HeaderMutedBrush" Color="#AEB4BF" />
     <SolidColorBrush x:Key="HeaderButtonBrush" Color="#2E3442" />
@@ -34,7 +34,7 @@
     <SolidColorBrush x:Key="SubtleBrush" Color="#F7F8FA" />
     <SolidColorBrush x:Key="MatchedRowBrush" Color="#EAF6EC" />
     <SolidColorBrush x:Key="ErrorRowBrush" Color="#FDECEA" />
-    <SolidColorBrush x:Key="SelectedCardBrush" Color="#FDF2F2" />
+    <SolidColorBrush x:Key="SelectedCardBrush" Color="#EFF6FF" />
     <SolidColorBrush x:Key="WarnBoxBrush" Color="#FFF4CE" />
     <SolidColorBrush x:Key="WarnLineBrush" Color="#E6C65C" />
     <SolidColorBrush x:Key="SwitchOffBrush" Color="#C3C9D1" />

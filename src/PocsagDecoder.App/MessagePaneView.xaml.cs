@@ -80,11 +80,19 @@ public partial class MessagePaneView : UserControl
     {
         if (Pane is not { } pane) return;
         foreach (var c in Grid.Columns)
-            c.Visibility = pane.HiddenColumns.Contains(ColumnName(c)) ? Visibility.Collapsed : Visibility.Visible;
+        {
+            var name = ColumnName(c);
+            var technical = name is "Fkt." or "Baud" or "Typ" or "Text" or "Bezeichnung kurz";
+            c.Visibility = pane.HiddenColumns.Contains(name) || (pane.Main.CompactReceiveList && technical)
+                ? Visibility.Collapsed : Visibility.Visible;
+        }
     }
 
     private void SaveHiddenColumns() =>
-        Pane?.SetHiddenColumns(Grid.Columns.Where(x => x.Visibility != Visibility.Visible).Select(ColumnName));
+        Pane?.SetHiddenColumns(Grid.Columns.Where(x => x.Visibility != Visibility.Visible)
+            .Select(ColumnName).Where(name => Pane.Main.CompactReceiveList != true
+                || name is not ("Fkt." or "Baud" or "Typ" or "Text" or "Bezeichnung kurz")
+                || Pane.HiddenColumns.Contains(name)));
 
     private ContextMenu BuildColumnMenu()
     {
