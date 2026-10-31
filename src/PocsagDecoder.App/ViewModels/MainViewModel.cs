@@ -42,8 +42,13 @@ public sealed partial class MainViewModel : ObservableObject
     private string _simSubRic = "A";
     private string _simText = "Probealarm";
 
-    public MainViewModel()
+    private readonly string? _settingsPath;
+
+    public MainViewModel() : this(null) { }
+
+    public MainViewModel(string? settingsPath)
     {
+        _settingsPath = settingsPath;
         Settings = LoadSettings();
         Rules = new ObservableCollection<FilterRule>(Settings.Rules);
         Targets = new ObservableCollection<WebhookTarget>(Settings.Targets);
@@ -77,7 +82,7 @@ public sealed partial class MainViewModel : ObservableObject
 
         StartCommand = new RelayCommand(Start, () => !IsRunning);
         StopCommand = new RelayCommand(Stop, () => IsRunning);
-        ClearMessagesCommand = new RelayCommand(() => Messages.Clear());
+        ClearMessagesCommand = new RelayCommand(() => { Messages.Clear(); SelectedMessage = null; });
         ClearLogCommand = new RelayCommand(() => LogLines.Clear());
         SaveCommand = new RelayCommand(Save);
         OpenLogFolderCommand = new RelayCommand(OpenLogFolder);
@@ -273,6 +278,7 @@ public sealed partial class MainViewModel : ObservableObject
             if (_activePane is not null) _activePane.IsActive = false;
             _activePane = value;
             _activePane.IsActive = true;
+            SelectedMessage = _activePane.SelectedItem;
             OnPropertyChanged();
         }
     }
@@ -884,11 +890,11 @@ public sealed partial class MainViewModel : ObservableObject
 
     // --- Einstellungen ----------------------------------------------------
 
-    private static AppSettings LoadSettings()
+    private AppSettings LoadSettings()
     {
         try
         {
-            return SettingsStore.Load();
+            return SettingsStore.Load(_settingsPath);
         }
         catch (Exception ex)
         {
@@ -909,7 +915,7 @@ public sealed partial class MainViewModel : ObservableObject
         Settings.RicEntries = Descriptions.Where(d => !d.IsEmpty).ToList();
         try
         {
-            SettingsStore.Save(Settings);
+            SettingsStore.Save(Settings, _settingsPath);
             SyncTcpServers();
             if (!quiet) AddLog("Einstellungen gespeichert: " + SettingsStore.DefaultPath);
         }

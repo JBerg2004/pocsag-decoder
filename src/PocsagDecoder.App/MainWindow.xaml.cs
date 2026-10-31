@@ -11,10 +11,14 @@ namespace PocsagDecoder.App;
 public partial class MainWindow : Window
 {
     private bool _closingHandled;
+    private readonly bool _firstRun = !System.IO.File.Exists(PocsagDecoder.Core.Settings.SettingsStore.DefaultPath);
 
-    public MainWindow()
+    public MainWindow() : this(null) { }
+
+    public MainWindow(MainViewModel? model)
     {
         InitializeComponent();
+        DataContext = model ?? new MainViewModel();
         Vm.RuleCreated += (_, _) => RulesTab.IsSelected = true;
         Vm.DescriptionRequested += (_, _) => DescriptionsTab.IsSelected = true;
         ((INotifyCollectionChanged)Vm.LogLines).CollectionChanged += (_, e) =>
@@ -47,10 +51,23 @@ public partial class MainWindow : Window
         {
             Vm.StartIfConfigured();
             if (StartHidden || Vm.Settings.StartMinimized) Hide();
+            else if (_firstRun && !Vm.Settings.SetupCompleted) OpenSetup();
         };
     }
 
     private MainViewModel Vm => (MainViewModel)DataContext;
+
+    private void Setup_Click(object sender, RoutedEventArgs e) => OpenSetup();
+    private void OpenSetup()
+    {
+        if (Vm.IsRunning)
+        {
+            MessageBox.Show(this, "Bitte den Empfang stoppen, bevor du die Einrichtung änderst.", "Einrichtung", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+        new SetupWindow(Vm) { Owner = this }.ShowDialog();
+        RefreshBindings();
+    }
 
     private readonly TrayIcon _tray;
     private bool _exitRequested;

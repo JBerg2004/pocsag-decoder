@@ -11,7 +11,7 @@ public sealed class TrayIcon : IDisposable
 
     public TrayIcon(Action open, Action startReceive, Func<bool> isRunning, Action exit)
     {
-        var stream = Application.GetResourceStream(new Uri("pack://application:,,,/app.ico"))?.Stream;
+        var stream = Application.GetResourceStream(new Uri($"pack://application:,,,/{typeof(TrayIcon).Assembly.GetName().Name};component/app.ico"))?.Stream;
         _startStop = new Forms.ToolStripMenuItem("Empfang starten", null, (_, _) => startReceive());
         var menu = new Forms.ContextMenuStrip();
         menu.Items.Add(new Forms.ToolStripMenuItem("Öffnen", null, (_, _) => open()) { Font = new System.Drawing.Font(menu.Font, System.Drawing.FontStyle.Bold) });

@@ -67,6 +67,7 @@ public sealed partial class MainViewModel
     {
         if (message.Raw == "(Testnachricht)") return;
         _quality.Add(message);
+        OnPropertyChanged(nameof(QualitySummary));
         OnPropertyChanged(nameof(QualityLevel));
         OnPropertyChanged(nameof(QualityText));
         OnPropertyChanged(nameof(QualityToolTip));

@@ -4,12 +4,9 @@
         xmlns:vm="clr-namespace:PocsagDecoder.App.ViewModels"
         xmlns:local="clr-namespace:PocsagDecoder.App"
         xmlns:conv="clr-namespace:PocsagDecoder.App.Converters"
-        Title="POCSAG Decoder" Height="760" Width="1200" MinHeight="500" MinWidth="900"
+        Title="POCSAG Decoder" Height="860" Width="1440" MinHeight="700" MinWidth="1100"
         Icon="app.ico" Background="{DynamicResource PageBrush}" Foreground="{DynamicResource TextBrush}" FontFamily="Segoe UI" FontSize="12.5"
         TextOptions.TextFormattingMode="Display">
-    <Window.DataContext>
-        <vm:MainViewModel />
-    </Window.DataContext>
     <Window.Resources>
         <conv:FlexibleDoubleConverter x:Key="Double" />
         <conv:EnumEqualsConverter x:Key="EnumEquals" />
@@ -19,37 +16,17 @@
     </Window.Resources>
 
     <DockPanel>
-        <!-- Kopfzeile -->
-        <Border DockPanel.Dock="Top" Background="{DynamicResource HeaderBrush}" Padding="14,9">
+        <Border DockPanel.Dock="Top" Background="{DynamicResource HeaderBrush}" Padding="22,16">
             <DockPanel>
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
-                    <Image Source="app.ico" Width="22" Height="22" Margin="0,0,8,0" />
-                    <TextBlock Text="POCSAG Decoder" Foreground="White" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,22,0" />
-                    <Button Content="▶  Start" Command="{Binding StartCommand}" Style="{StaticResource GoButton}" />
-                    <Button Content="■  Stopp" Command="{Binding StopCommand}" Style="{StaticResource HeaderButton}" />
-                    <TextBlock Text="Frequenz" Foreground="{DynamicResource HeaderMutedBrush}" VerticalAlignment="Center" Margin="16,0,6,0" />
-                    <TextBox Width="80" Text="{Binding Decoder.FrequencyMHz, Converter={StaticResource Double}, UpdateSourceTrigger=LostFocus}"
-                             IsEnabled="{Binding IsRunning, Converter={StaticResource Not}}" />
-                    <TextBlock Text="MHz" Foreground="{DynamicResource HeaderMutedBrush}" VerticalAlignment="Center" Margin="6,0,16,0" />
-                    <Button Content="💾  Speichern" Command="{Binding SaveCommand}" Style="{StaticResource HeaderButton}" />
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="Einrichten" Click="Setup_Click" Style="{StaticResource HeaderButton}" Padding="14,8" />
+                    <Button Content="Speichern" Command="{Binding SaveCommand}" Style="{StaticResource HeaderButton}" Padding="14,8" />
+                    <Button Content="Empfang starten" Command="{Binding StartCommand}" Style="{StaticResource GoButton}" Padding="16,8" />
+                    <Button Content="Stopp" Command="{Binding StopCommand}" Style="{StaticResource HeaderButton}" Padding="14,8" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <Border CornerRadius="11" Padding="10,3">
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Setter Property="Background" Value="{DynamicResource HeaderButtonLineBrush}" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsRunning}" Value="True">
-                                        <Setter Property="Background" Value="#2E7D32" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
-                        <StackPanel Orientation="Horizontal">
-                            <Ellipse Width="8" Height="8" Fill="White" Margin="0,0,6,0" VerticalAlignment="Center" />
-                            <TextBlock Text="{Binding StatusText}" Foreground="White" />
-                        </StackPanel>
-                    </Border>
+                <StackPanel>
+                    <TextBlock Text="POCSAG DECODER" Foreground="White" FontSize="20" FontWeight="SemiBold" />
+                    <TextBlock Text="Empfangen. Überblick behalten. Gezielt weiterleiten." Foreground="{DynamicResource HeaderMutedBrush}" Margin="0,5,0,0" />
                 </StackPanel>
             </DockPanel>
         </Border>
@@ -160,153 +137,51 @@
             </DockPanel>
         </Border>
 
-        <TabControl x:Name="Tabs">
+        <TabControl x:Name="Tabs" TabStripPlacement="Left" Style="{StaticResource MainNavigation}">
             <!-- ============================ EMPFANG ============================ -->
-            <TabItem Header="Telegramme">
-                <DockPanel Margin="12,10">
-                    <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,4">
-                        <Button Content="Liste leeren" Command="{Binding ClearMessagesCommand}"
-                                ToolTip="Alle empfangenen Meldungen aus allen Fenstern entfernen" />
-                        <Button x:Name="PaneMenuButton" Content="Fenster ▾" Click="PaneMenu_Click"
-                                ToolTip="Fenster hinzufügen, anordnen, konfigurieren, verschieben oder löschen" />
-                    </WrapPanel>
-                    <ItemsControl ItemsSource="{Binding Panes}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <UniformGrid Columns="{Binding DataContext.PaneColumns, RelativeSource={RelativeSource AncestorType=Window}}" />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <local:MessagePaneView />
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
+            <TabItem Header="Empfang">
+                <Grid Margin="22,18">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="180" MinHeight="100"/></Grid.RowDefinitions>
+                    <UniformGrid Columns="4" Margin="0,0,0,18">
+                        <Border Style="{StaticResource DashboardCard}"><StackPanel><TextBlock Text="EMPFANG" Style="{StaticResource Eyebrow}"/><TextBlock Text="{Binding ReceiverSummary}" Style="{StaticResource Metric}"/><TextBlock Text="{Binding FrequencySummary}" Foreground="{DynamicResource MutedBrush}"/></StackPanel></Border>
+                        <Border Style="{StaticResource DashboardCard}"><StackPanel><TextBlock Text="LETZTE MELDUNG" Style="{StaticResource Eyebrow}"/><TextBlock Text="{Binding LastMessageTime}" Style="{StaticResource Metric}"/><TextBlock Text="{Binding LastReceivedText}" TextTrimming="CharacterEllipsis" ToolTip="{Binding LastReceivedText}" Foreground="{DynamicResource MutedBrush}"/></StackPanel></Border>
+                        <Border Style="{StaticResource DashboardCard}" ToolTip="{Binding QualityToolTip}"><StackPanel><TextBlock Text="EMPFANGSQUALITÄT" Style="{StaticResource Eyebrow}"/><TextBlock Text="{Binding QualitySummary}" Style="{StaticResource Metric}"/><TextBlock Text="Aus wiederholten Meldungen" Foreground="{DynamicResource MutedBrush}"/></StackPanel></Border>
+                        <Border Style="{StaticResource DashboardCard}" Margin="0,0,0,0"><StackPanel><TextBlock Text="VERSAND" Style="{StaticResource Eyebrow}"/><TextBlock Text="{Binding PendingSummary}" Style="{StaticResource Metric}"/><TextBlock Text="{Binding ForwardedSummary}" Foreground="{DynamicResource MutedBrush}"/></StackPanel></Border>
+                    </UniformGrid>
+                    <DockPanel Grid.Row="1" Margin="0,0,0,10">
+                        <WrapPanel DockPanel.Dock="Right"><Button Content="Liste leeren" Command="{Binding ClearMessagesCommand}"/><Button x:Name="PaneMenuButton" Content="Fenster ▾" Click="PaneMenu_Click" ToolTip="Fenster und Spalten konfigurieren"/></WrapPanel>
+                        <StackPanel><TextBlock Text="Aktuelle Meldungen" FontSize="22" FontWeight="SemiBold"/><TextBlock Text="RIC, Zuordnung und Weiterleitung auf einen Blick." Foreground="{DynamicResource MutedBrush}" Margin="0,4,0,0"/></StackPanel>
+                    </DockPanel>
+                    <ItemsControl Grid.Row="2" ItemsSource="{Binding Panes}">
+                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="{Binding DataContext.PaneColumns, RelativeSource={RelativeSource AncestorType=Window}}"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate><DataTemplate><local:MessagePaneView/></DataTemplate></ItemsControl.ItemTemplate>
                     </ItemsControl>
-                </DockPanel>
-            </TabItem>
-
-            <!-- ============================ VERLAUF ============================ -->
-            <TabItem Header="Verlauf">
-                <DockPanel Margin="12,10">
-                    <Border DockPanel.Dock="Top" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,0,0,8">
-                        <StackPanel>
-                            <WrapPanel>
-                                <TextBlock Text="Von" VerticalAlignment="Center" Margin="0,0,6,0" />
-                                <TextBox Width="90" Text="{Binding HistoryFrom, UpdateSourceTrigger=PropertyChanged}" ToolTip="TT.MM.JJJJ" />
-                                <TextBlock Text="bis" VerticalAlignment="Center" Margin="8,0,6,0" />
-                                <TextBox Width="90" Text="{Binding HistoryTo, UpdateSourceTrigger=PropertyChanged}" ToolTip="TT.MM.JJJJ" Margin="0,0,10,0" />
-                                <Button Content="Heute" Command="{Binding HistoryRangeCommand}" CommandParameter="0" MinWidth="0" />
-                                <Button Content="7 Tage" Command="{Binding HistoryRangeCommand}" CommandParameter="7" MinWidth="0" />
-                                <Button Content="30 Tage" Command="{Binding HistoryRangeCommand}" CommandParameter="30" MinWidth="0" />
-                                <Button Content="Alles" Command="{Binding HistoryRangeCommand}" CommandParameter="-1" MinWidth="0" Margin="0,0,14,0" />
-                                <TextBlock Text="SubRIC" VerticalAlignment="Center" Margin="0,0,6,0" />
-                                <ComboBox Width="65" ItemsSource="{Binding HistorySubRicChoices}" SelectedItem="{Binding HistorySubRic}" Margin="0,0,14,0" />
-                                <CheckBox Content="nur weitergeleitete" IsChecked="{Binding HistoryOnlyForwarded}" VerticalAlignment="Center" />
-                            </WrapPanel>
-                            <DockPanel Margin="0,8,0,0">
-                                <Button DockPanel.Dock="Right" Content="📊 Als Excel speichern…" Click="ExportHistory_Click" Margin="6,0,0,0" />
-                                <Button DockPanel.Dock="Right" Content="🔍 Suchen" Command="{Binding SearchHistoryCommand}" Style="{StaticResource PrimaryButton}" IsDefault="False" Margin="6,0,0,0" />
-                                <TextBlock DockPanel.Dock="Left" Text="Suche" VerticalAlignment="Center" Margin="0,0,6,0" />
-                                <TextBox x:Name="HistorySearchBox" Text="{Binding HistorySearch, UpdateSourceTrigger=PropertyChanged}" KeyDown="HistorySearch_KeyDown"
-                                         ToolTip="Mehrere Begriffe mit Leerzeichen: alle müssen vorkommen, z. B. „Kesten Einsatz“" />
-                            </DockPanel>
-                            <TextBlock Style="{StaticResource Hint}"
-                                       Text="Sucht in den gespeicherten CSV-Tagesdateien (Einstellungen → Aufzeichnung) nach RIC, Bezeichnung, Ort, Kurzbezeichnung, SubRIC-Bedeutung, Text und Weiterleitung. Bezeichnungen kommen aus der aktuellen RIC-Liste. Enter startet die Suche." />
-                        </StackPanel>
+                    <GridSplitter Grid.Row="3" Height="7" HorizontalAlignment="Stretch" Background="Transparent"/>
+                    <Border Grid.Row="4" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" CornerRadius="10" Padding="16">
+                        <Grid>
+                            <TextBlock Text="Noch keine Meldung ausgewählt.&#10;Nach dem Start erscheinen empfangene Meldungen in der Liste." Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" TextAlignment="Center">
+                                <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding SelectedMessage}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                            </TextBlock>
+                            <Grid DataContext="{Binding SelectedMessage}">
+                                <Grid.Style><Style TargetType="Grid"><Style.Triggers><DataTrigger Binding="{Binding}" Value="{x:Null}"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></Grid.Style>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="24"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <DockPanel>
+                                    <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,8"><TextBlock Text="{Binding Ric}" FontFamily="Consolas" FontSize="16" FontWeight="SemiBold"/><TextBlock Text="{Binding SubRic}" Margin="8,0,14,0" FontSize="16"/><TextBlock Text="{Binding Description}" VerticalAlignment="Center"/></WrapPanel>
+                                    <Expander DockPanel.Dock="Bottom" Header="Technische Details" Margin="0,6,0,0"><TextBlock Text="{Binding TechnicalDetails}" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/></Expander>
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel>
+                                        <WrapPanel Margin="0,0,0,8"><TextBlock Text="{Binding RicLocation}" Foreground="{DynamicResource MutedBrush}" Margin="0,0,16,0"/><TextBlock Text="{Binding SubRicDescription}" FontWeight="SemiBold"/><TextBlock Text="{Binding Timestamp, StringFormat='dd.MM.yyyy · HH:mm:ss'}" Foreground="{DynamicResource MutedBrush}" Margin="16,0,0,0"/></WrapPanel>
+                                        <Expander Header="Nachrichtentext anzeigen" IsExpanded="False"><TextBox Text="{Binding Text, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" MaxHeight="100" BorderThickness="0" Background="Transparent" Padding="0,8" AutomationProperties.Name="Nachrichtentext auf Anfrage"/></Expander>
+                                    </StackPanel></ScrollViewer>
+                                </DockPanel>
+                                <DockPanel Grid.Column="2"><TextBlock DockPanel.Dock="Top" Text="VERSAND UND VERARBEITUNG" Style="{StaticResource Eyebrow}" Margin="0,0,0,8"/><ScrollViewer VerticalScrollBarVisibility="Auto"><ItemsControl ItemsSource="{Binding DeliveryLines}"><ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,0,0,7"/></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></ScrollViewer></DockPanel>
+                            </Grid>
+                        </Grid>
                     </Border>
-                    <TextBlock DockPanel.Dock="Top" Text="{Binding HistoryStatus}" Margin="2,0,0,6" Foreground="{DynamicResource SecondaryTextBrush}" />
-                    <DataGrid ItemsSource="{Binding HistoryResults}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False"
-                              SelectionMode="Extended" EnableRowVirtualization="True" FontSize="{Binding ListFontSize}">
-                        <DataGrid.RowStyle>
-                            <Style TargetType="DataGridRow">
-                                <Setter Property="BorderThickness" Value="0" />
-                                <Style.Triggers>
-                                    <MultiDataTrigger>
-                                        <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding DataContext.SubRicColors, RelativeSource={RelativeSource AncestorType=Window}}" Value="True" />
-                                            <Condition Binding="{Binding Function}" Value="0" />
-                                        </MultiDataTrigger.Conditions>
-                                        <Setter Property="BorderThickness" Value="4,0,0,0" />
-                                        <Setter Property="BorderBrush" Value="{DynamicResource SubRicABrush}" />
-                                    </MultiDataTrigger>
-                                    <MultiDataTrigger>
-                                        <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding DataContext.SubRicColors, RelativeSource={RelativeSource AncestorType=Window}}" Value="True" />
-                                            <Condition Binding="{Binding Function}" Value="1" />
-                                        </MultiDataTrigger.Conditions>
-                                        <Setter Property="BorderThickness" Value="4,0,0,0" />
-                                        <Setter Property="BorderBrush" Value="{DynamicResource SubRicBBrush}" />
-                                    </MultiDataTrigger>
-                                    <MultiDataTrigger>
-                                        <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding DataContext.SubRicColors, RelativeSource={RelativeSource AncestorType=Window}}" Value="True" />
-                                            <Condition Binding="{Binding Function}" Value="2" />
-                                        </MultiDataTrigger.Conditions>
-                                        <Setter Property="BorderThickness" Value="4,0,0,0" />
-                                        <Setter Property="BorderBrush" Value="{DynamicResource SubRicCBrush}" />
-                                    </MultiDataTrigger>
-                                    <MultiDataTrigger>
-                                        <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding DataContext.SubRicColors, RelativeSource={RelativeSource AncestorType=Window}}" Value="True" />
-                                            <Condition Binding="{Binding Function}" Value="3" />
-                                        </MultiDataTrigger.Conditions>
-                                        <Setter Property="BorderThickness" Value="4,0,0,0" />
-                                        <Setter Property="BorderBrush" Value="{DynamicResource SubRicDBrush}" />
-                                    </MultiDataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </DataGrid.RowStyle>
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Zeit" Binding="{Binding Timestamp, StringFormat='dd.MM.yyyy HH:mm:ss'}" Width="135" />
-                            <DataGridTextColumn Header="RIC" Binding="{Binding Ric}" Width="80" FontFamily="Consolas" FontWeight="SemiBold" />
-                            <DataGridTemplateColumn Header="SubRIC" Width="55" SortMemberPath="SubRic">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Border Style="{StaticResource SubRicBadge}">
-                                            <TextBlock Text="{Binding SubRic}" FontFamily="Consolas" FontWeight="Bold" HorizontalAlignment="Center" />
-                                        </Border>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Bezeichnung" Binding="{Binding RicDescription}" Width="180">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="TextWrapping" Value="Wrap" />
-                                        <Setter Property="FontWeight" Value="SemiBold" />
-                                        <Setter Property="Foreground" Value="{DynamicResource InfoTextBrush}" />
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                            <DataGridTextColumn Header="Ort" Binding="{Binding RicLocation}" Width="120" />
-                            <DataGridTextColumn Header="SubRIC-Bedeutung" Binding="{Binding SubRicDescription}" Width="130">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Foreground" Value="{DynamicResource SubRicTextBrush}" />
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                            <DataGridTextColumn Header="Text" Binding="{Binding Text}" Width="*">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="TextWrapping" Value="Wrap" />
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                            <DataGridTextColumn Header="Weiterleitung" Binding="{Binding Forwarding}" Width="240">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="TextWrapping" Value="Wrap" />
-                                        <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}" />
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </DockPanel>
+                </Grid>
             </TabItem>
 
             <!-- ============================ REGELN ============================ -->
-            <TabItem x:Name="RulesTab" Header="Telegrammereignisse">
+            <TabItem x:Name="RulesTab" Header="Ereignisse">
                 <Grid Margin="12,10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="3*" />
@@ -434,7 +309,7 @@
             </TabItem>
 
             <!-- ============================ BESCHREIBUNGEN ============================ -->
-            <TabItem x:Name="DescriptionsTab" Header="RIC-Beschreibungen">
+            <TabItem x:Name="DescriptionsTab" Header="RIC-Verzeichnis">
                 <DockPanel Margin="12,10">
                     <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,6">
                         <Button Content="📂 Datei importieren…" Click="ImportDescriptions_Click" FontWeight="SemiBold" />
@@ -484,6 +359,126 @@
             </TabItem>
 
             <!-- ============================ EINSTELLUNGEN ============================ -->
+            <!-- ============================ VERLAUF ============================ -->
+            <TabItem Header="Verlauf">
+                <DockPanel Margin="12,10">
+                    <Border DockPanel.Dock="Top" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,0,0,8">
+                        <StackPanel>
+                            <WrapPanel>
+                                <TextBlock Text="Von" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                <TextBox Width="90" Text="{Binding HistoryFrom, UpdateSourceTrigger=PropertyChanged}" ToolTip="TT.MM.JJJJ" />
+                                <TextBlock Text="bis" VerticalAlignment="Center" Margin="8,0,6,0" />
+                                <TextBox Width="90" Text="{Binding HistoryTo, UpdateSourceTrigger=PropertyChanged}" ToolTip="TT.MM.JJJJ" Margin="0,0,10,0" />
+                                <Button Content="Heute" Command="{Binding HistoryRangeCommand}" CommandParameter="0" MinWidth="0" />
+                                <Button Content="7 Tage" Command="{Binding HistoryRangeCommand}" CommandParameter="7" MinWidth="0" />
+                                <Button Content="30 Tage" Command="{Binding HistoryRangeCommand}" CommandParameter="30" MinWidth="0" />
+                                <Button Content="Alles" Command="{Binding HistoryRangeCommand}" CommandParameter="-1" MinWidth="0" Margin="0,0,14,0" />
+                                <TextBlock Text="SubRIC" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                <ComboBox Width="65" ItemsSource="{Binding HistorySubRicChoices}" SelectedItem="{Binding HistorySubRic}" Margin="0,0,14,0" />
+                                <CheckBox Content="nur weitergeleitete" IsChecked="{Binding HistoryOnlyForwarded}" VerticalAlignment="Center" />
+                            </WrapPanel>
+                            <DockPanel Margin="0,8,0,0">
+                                <Button DockPanel.Dock="Right" Content="📊 Als Excel speichern…" Click="ExportHistory_Click" Margin="6,0,0,0" />
+                                <Button DockPanel.Dock="Right" Content="🔍 Suchen" Command="{Binding SearchHistoryCommand}" Style="{StaticResource PrimaryButton}" IsDefault="False" Margin="6,0,0,0" />
+                                <TextBlock DockPanel.Dock="Left" Text="Suche" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                <TextBox x:Name="HistorySearchBox" Text="{Binding HistorySearch, UpdateSourceTrigger=PropertyChanged}" KeyDown="HistorySearch_KeyDown"
+                                         ToolTip="Mehrere Begriffe mit Leerzeichen: alle müssen vorkommen, z. B. „Kesten Einsatz“" />
+                            </DockPanel>
+                            <TextBlock Style="{StaticResource Hint}"
+                                       Text="Sucht in den gespeicherten CSV-Tagesdateien (Einstellungen → Aufzeichnung) nach RIC, Bezeichnung, Ort, Kurzbezeichnung, SubRIC-Bedeutung, Text und Weiterleitung. Bezeichnungen kommen aus der aktuellen RIC-Liste. Enter startet die Suche." />
+                        </StackPanel>
+                    </Border>
+                    <TextBlock DockPanel.Dock="Top" Text="{Binding HistoryStatus}" Margin="2,0,0,6" Foreground="{DynamicResource SecondaryTextBrush}" />
+                    <DataGrid ItemsSource="{Binding HistoryResults}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False"
+                              SelectionMode="Extended" EnableRowVirtualization="True" FontSize="{Binding ListFontSize}">
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow">
+                                <Setter Property="BorderThickness" Value="0" />
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding DataContext.SubRicColors, RelativeSource={RelativeSource AncestorType=Window}}" Value="True" />
+                                            <Condition Binding="{Binding Function}" Value="0" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="BorderThickness" Value="4,0,0,0" />
+                                        <Setter Property="BorderBrush" Value="{DynamicResource SubRicABrush}" />
+                                    </MultiDataTrigger>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding DataContext.SubRicColors, RelativeSource={RelativeSource AncestorType=Window}}" Value="True" />
+                                            <Condition Binding="{Binding Function}" Value="1" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="BorderThickness" Value="4,0,0,0" />
+                                        <Setter Property="BorderBrush" Value="{DynamicResource SubRicBBrush}" />
+                                    </MultiDataTrigger>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding DataContext.SubRicColors, RelativeSource={RelativeSource AncestorType=Window}}" Value="True" />
+                                            <Condition Binding="{Binding Function}" Value="2" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="BorderThickness" Value="4,0,0,0" />
+                                        <Setter Property="BorderBrush" Value="{DynamicResource SubRicCBrush}" />
+                                    </MultiDataTrigger>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding DataContext.SubRicColors, RelativeSource={RelativeSource AncestorType=Window}}" Value="True" />
+                                            <Condition Binding="{Binding Function}" Value="3" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="BorderThickness" Value="4,0,0,0" />
+                                        <Setter Property="BorderBrush" Value="{DynamicResource SubRicDBrush}" />
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.RowStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Zeit" Binding="{Binding Timestamp, StringFormat='dd.MM.yyyy HH:mm:ss'}" Width="135" />
+                            <DataGridTextColumn Header="RIC" Binding="{Binding Ric}" Width="80" FontFamily="Consolas" FontWeight="SemiBold" />
+                            <DataGridTemplateColumn Header="SubRIC" Width="55" SortMemberPath="SubRic">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource SubRicBadge}">
+                                            <TextBlock Text="{Binding SubRic}" FontFamily="Consolas" FontWeight="Bold" HorizontalAlignment="Center" />
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Bezeichnung" Binding="{Binding RicDescription}" Width="180">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextWrapping" Value="Wrap" />
+                                        <Setter Property="FontWeight" Value="SemiBold" />
+                                        <Setter Property="Foreground" Value="{DynamicResource InfoTextBrush}" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Ort" Binding="{Binding RicLocation}" Width="120" />
+                            <DataGridTextColumn Header="SubRIC-Bedeutung" Binding="{Binding SubRicDescription}" Width="130">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{DynamicResource SubRicTextBrush}" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Text" Binding="{Binding Text}" Width="*">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextWrapping" Value="Wrap" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Weiterleitung" Binding="{Binding Forwarding}" Width="240">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextWrapping" Value="Wrap" />
+                                        <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </TabItem>
+
             <TabItem Header="Einstellungen">
                 <DockPanel>
                     <Border DockPanel.Dock="Bottom" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="12,8">

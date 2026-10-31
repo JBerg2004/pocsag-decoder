@@ -1,0 +1,34 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="Eyebrow" TargetType="TextBlock"><Setter Property="FontSize" Value="10.5"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/></Style>
+    <Style x:Key="Metric" TargetType="TextBlock"><Setter Property="FontSize" Value="20"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Margin" Value="0,9,0,6"/><Setter Property="TextTrimming" Value="CharacterEllipsis"/></Style>
+    <Style x:Key="DashboardCard" TargetType="Border"><Setter Property="Padding" Value="16"/><Setter Property="Margin" Value="0,0,10,0"/><Setter Property="CornerRadius" Value="10"/><Setter Property="Background" Value="{DynamicResource CardBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource LineBrush}"/><Setter Property="BorderThickness" Value="1"/></Style>
+    <Style x:Key="NavigationItem" TargetType="TabItem">
+        <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+        <Setter Property="FontSize" Value="13"/><Setter Property="Margin" Value="10,3"/>
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TabItem">
+            <Border x:Name="Tile" Background="Transparent" CornerRadius="6" BorderThickness="3,0,0,0" BorderBrush="Transparent" Padding="14,13">
+                <ContentPresenter ContentSource="Header" RecognizesAccessKey="True"/>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Tile" Property="Background" Value="{DynamicResource HoverBrush}"/></Trigger>
+                <Trigger Property="IsSelected" Value="True"><Setter TargetName="Tile" Property="Background" Value="{DynamicResource SelectBrush}"/><Setter TargetName="Tile" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/><Setter Property="Foreground" Value="{DynamicResource TextBrush}"/><Setter Property="FontWeight" Value="SemiBold"/></Trigger>
+                <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Tile" Property="BorderBrush" Value="{DynamicResource FocusBrush}"/></Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="MainNavigation" TargetType="TabControl">
+        <Setter Property="ItemContainerStyle" Value="{StaticResource NavigationItem}"/>
+        <Setter Property="ItemsPanel"><Setter.Value><ItemsPanelTemplate><StackPanel/></ItemsPanelTemplate></Setter.Value></Setter>
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TabControl">
+            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="185"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,0,1,0">
+                    <DockPanel><TextBlock DockPanel.Dock="Top" Text="ARBEITSBEREICH" Style="{StaticResource Eyebrow}" Margin="26,24,0,12"/>
+                        <TextBlock DockPanel.Dock="Bottom" Text="POCSAG Decoder" Foreground="{DynamicResource MutedBrush}" Margin="26,16" FontSize="11"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto"><ItemsPresenter KeyboardNavigation.TabNavigation="Once"/></ScrollViewer>
+                    </DockPanel>
+                </Border>
+                <ContentPresenter Grid.Column="1" x:Name="PART_SelectedContentHost" ContentSource="SelectedContent"/>
+            </Grid>
+        </ControlTemplate></Setter.Value></Setter>
+    </Style>
+</ResourceDictionary>

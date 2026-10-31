@@ -41,7 +41,7 @@ public static class ThemeManager
         var app = Application.Current;
         if (app is null) return;
         var dictionaries = app.Resources.MergedDictionaries;
-        var source = new Uri(dark ? "Themes/Dark.xaml" : "Themes/Light.xaml", UriKind.Relative);
+        var source = new Uri($"/{typeof(ThemeManager).Assembly.GetName().Name};component/Themes/{(dark ? "Dark" : "Light")}.xaml", UriKind.Relative);
         if (dictionaries.Count > 0 && dictionaries[0].Source == source && IsDark == dark) return;
         var theme = new ResourceDictionary { Source = source };
         if (dictionaries.Count > 0) dictionaries[0] = theme;
