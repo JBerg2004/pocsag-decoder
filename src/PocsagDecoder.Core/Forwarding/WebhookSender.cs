@@ -56,6 +56,10 @@ public sealed partial class WebhookSender
     {
         Interlocked.Increment(ref _pending);
         try { return await SendCoreAsync(target, message, ruleName, ct).ConfigureAwait(false); }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            return new SendResult(false, null, "abgebrochen", 0);
+        }
         finally { Interlocked.Decrement(ref _pending); }
     }
 

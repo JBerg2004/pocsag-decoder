@@ -89,7 +89,7 @@ public sealed partial class MainViewModel
                     MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
-            _ = SendHeartbeatAsync();
+            TrackWork(SendHeartbeatAsync());
         });
 
         // Alle 30 Sekunden prüfen, ob das nächste Lebenszeichen fällig ist.
@@ -106,17 +106,18 @@ public sealed partial class MainViewModel
         if (!Settings.HeartbeatEnabled || FindHeartbeatTarget() is null) return;
         if (Settings.HeartbeatOnlyWhileReceiving && !IsRunning) return;
         if (!Heartbeat.IsDue(_lastHeartbeatAt, DateTime.Now, Settings.HeartbeatMinutes)) return;
-        _ = SendHeartbeatAsync();
+        TrackWork(SendHeartbeatAsync());
     }
 
     private async Task SendHeartbeatAsync()
     {
+        if (_shuttingDown) return;
         var target = FindHeartbeatTarget();
         if (target is null) return;
         var now = DateTime.Now;
         _lastHeartbeatAt = now;
         var message = Heartbeat.CreateMessage(Settings, IsRunning, _lastReceivedAt, now, Environment.MachineName);
-        var result = await _sender.SendAsync(target, message, Heartbeat.RuleName);
+        var result = await _sender.SendAsync(target, message, Heartbeat.RuleName, _sendCancellation.Token);
         HeartbeatStatus = $"Letzter Heartbeat {now:HH:mm:ss} an „{target.Name}“: {(result.Success ? "OK" : "fehlgeschlagen")} ({result.Detail})";
         if (result.Success) AddLog($"Heartbeat an {target.Name}: {result.Detail}");
         else OnSendFailed(target, result.Detail);
@@ -181,7 +182,7 @@ public sealed partial class MainViewModel
     {
         if (!Settings.HeartbeatUrlEnabled || string.IsNullOrWhiteSpace(Settings.HeartbeatUrl)) return;
         if (!Heartbeat.IsDue(_lastPingAt, DateTime.Now, Settings.HeartbeatUrlMinutes)) return;
-        _ = SendHeartbeatUrlAsync();
+        TrackWork(SendHeartbeatUrlAsync());
     }
 
     private void TestHeartbeatUrl()
@@ -192,18 +193,18 @@ public sealed partial class MainViewModel
                 MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
-        _ = SendHeartbeatUrlAsync();
+        TrackWork(SendHeartbeatUrlAsync());
     }
 
     private async Task SendHeartbeatUrlAsync()
     {
-        if (_pingRunning) return;
+        if (_shuttingDown || _pingRunning) return;
         _pingRunning = true;
         _lastPingAt = DateTime.Now;
         try
         {
             var state = CurrentHeartbeatState();
-            var result = await _ping.SendAsync(Settings.HeartbeatUrl, Settings.HeartbeatFailUrl, state);
+            var result = await _ping.SendAsync(Settings.HeartbeatUrl, Settings.HeartbeatFailUrl, state, _sendCancellation.Token);
             var where = result.UsedFailUrl && result.Success ? "Fehler-URL" : "URL";
             HeartbeatUrlStatus = $"Letzter Heartbeat {state.Time:HH:mm:ss} an {where} (Stick {state.Stick}, Warteschlange {state.QueueLength}): "
                                  + $"{(result.Success ? "OK" : "fehlgeschlagen")} ({result.Detail})";

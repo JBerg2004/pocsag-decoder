@@ -16,6 +16,10 @@ namespace PocsagDecoder.App.ViewModels;
 public sealed partial class MainViewModel : ObservableObject
 {
     private readonly WebhookSender _sender = new();
+    private readonly HashSet<Task> _pendingWork = new();
+    private readonly CancellationTokenSource _sendCancellation = new();
+    private bool _shuttingDown;
+    private bool _settingsReadOnly;
     private readonly DuplicateFilter _duplicates = new();
 
     /// <summary>Markiert Wiederholungen für die Anzeige (unabhängig von Telegrammereignissen).</summary>
@@ -411,6 +415,7 @@ public sealed partial class MainViewModel : ObservableObject
     /// <summary>Speichert kurz verzögert (z.B. während im Filterfeld getippt wird).</summary>
     public void RequestSave()
     {
+        if (_shuttingDown) return;
         if (_saveTimer is null)
         {
             _saveTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1.5) };
@@ -446,6 +451,7 @@ public sealed partial class MainViewModel : ObservableObject
     private bool TryStart(out string error)
     {
         error = string.Empty;
+        if (_shuttingDown) return false;
         var pipeline = new DecoderPipeline(Settings.Decoder);
         try
         {
@@ -494,9 +500,57 @@ public sealed partial class MainViewModel : ObservableObject
 
     public async Task ShutdownAsync()
     {
+        _shuttingDown = true;
+        CancelRestart();
+        _watchdog?.Stop();
+        _heartbeatTimer?.Stop();
+        _redundancyTimer?.Stop();
+        _saveTimer?.Stop();
+        _tcpTimer?.Stop();
+        _updateTimer?.Stop();
+        _logTimer?.Stop();
         if (_pipeline is not null) await _pipeline.StopAsync();
+        IsRunning = false;
+        var elapsed = Stopwatch.StartNew();
+        try
+        {
+            // Abgleich mit dem Master kann weitere Sendungen erzeugen: bis zur vollständigen Leerung warten.
+            while (_pendingWork.Count > 0)
+            {
+                var remaining = TimeSpan.FromSeconds(30) - elapsed.Elapsed;
+                if (remaining <= TimeSpan.Zero) throw new TimeoutException();
+                await Task.WhenAll(_pendingWork.ToArray()).WaitAsync(remaining);
+            }
+        }
+        catch (TimeoutException)
+        {
+            AddLog("Beenden: Zeitlimit für offene Sendungen erreicht; verbleibende Sendungen werden abgebrochen.");
+            _sendCancellation.Cancel();
+            try { await Task.WhenAll(_pendingWork.ToArray()).WaitAsync(TimeSpan.FromSeconds(2)); }
+            catch (TimeoutException) { AddLog("Beenden: Nicht alle Hintergrundaufgaben konnten abgeschlossen werden."); }
+        }
         _sleep.Set(false);
         Save();
+    }
+
+    // Auf dem UI-Thread aufrufen, damit Abschluss und Protokolleintrag zusammen verfolgt werden.
+    private void TrackWork(Task task)
+    {
+        var observed = ObserveWorkAsync(task);
+        _pendingWork.Add(observed);
+        _ = RemoveWorkAsync(observed);
+    }
+
+    private async Task ObserveWorkAsync(Task task)
+    {
+        try { await task; }
+        catch (Exception ex) { AddLog("Hintergrundaufgabe fehlgeschlagen: " + ex.Message); }
+    }
+
+    private async Task RemoveWorkAsync(Task task)
+    {
+        try { await task; }
+        finally { _pendingWork.Remove(task); }
     }
 
     private void Simulate()
@@ -544,6 +598,7 @@ public sealed partial class MainViewModel : ObservableObject
 
     private void OnMessage(PocsagMessage message)
     {
+        if (_shuttingDown) return;
         _directory.Annotate(message);
         var item = new MessageItem(message);
         // Regeln vor dem Einfügen prüfen, damit Fensterfilter wie „nur Regeltreffer“ die Zeile richtig einsortieren.
@@ -607,13 +662,19 @@ public sealed partial class MainViewModel : ObservableObject
         }
 
         if (pending.Count == 0) WriteCsv(item);
-        else _ = Task.WhenAll(pending).ContinueWith(_ => Application.Current.Dispatcher.BeginInvoke(() => WriteCsv(item)));
+        else TrackWork(CompleteForwardingAsync(item, pending));
+    }
+
+    private async Task CompleteForwardingAsync(MessageItem item, List<Task> pending)
+    {
+        try { await Task.WhenAll(pending); }
+        finally { WriteCsv(item); }
     }
 
     private async Task ForwardAsync(MessageItem item, FilterRule rule, WebhookTarget target)
     {
         item.AppendForwarding($"{target.Name}: sende…");
-        var result = await _sender.SendAsync(target, item.Message, rule.Name);
+        var result = await _sender.SendAsync(target, item.Message, rule.Name, _sendCancellation.Token);
         var text = $"{target.Name}: {(result.Success ? "✓ " : "✗ ")}{result.Detail}";
         target.ReportResult(result.Success, result.Detail, DateTime.Now);
         item.Forwarding = item.Forwarding.Replace($"{target.Name}: sende…", text);
@@ -712,6 +773,7 @@ public sealed partial class MainViewModel : ObservableObject
 
     private async Task TestTargetAsync()
     {
+        if (_shuttingDown) return;
         if (SelectedTarget is null) return;
         if (!Confirm($"Testnachricht wirklich an „{SelectedTarget.Name}“ senden?")) return;
         PocsagMessage.TryParseSubRic(SimSubRic, out var func);
@@ -726,7 +788,9 @@ public sealed partial class MainViewModel : ObservableObject
         };
         _directory.Annotate(message);
         TargetTestResult = "Sende…";
-        var result = await _sender.SendAsync(SelectedTarget, message, "Test");
+        var send = _sender.SendAsync(SelectedTarget, message, "Test", _sendCancellation.Token);
+        TrackWork(send);
+        var result = await send;
         TargetTestResult = (result.Success ? "✓ Erfolgreich: " : "✗ Fehler: ") + result.Detail;
         SelectedTarget.ReportResult(result.Success, "Test: " + result.Detail, DateTime.Now);
         AddLog($"Test an {SelectedTarget.Name}: {result.Detail}");
@@ -884,18 +948,19 @@ public sealed partial class MainViewModel : ObservableObject
 
     // --- Einstellungen ----------------------------------------------------
 
-    private static AppSettings LoadSettings()
+    private AppSettings LoadSettings()
     {
-        try
+        var result = SettingsStore.LoadSafely();
+        _settingsReadOnly = !result.CanSave;
+        if (!result.CanSave)
         {
-            return SettingsStore.Load();
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show("Einstellungen konnten nicht gelesen werden, es werden Standardwerte verwendet.\n\n" + ex.Message,
+            var backup = result.BackupPath is null ? "Die Originaldatei bleibt unverändert." : "Sicherung: " + result.BackupPath;
+            MessageBox.Show("Einstellungen konnten nicht gelesen werden, es werden Standardwerte verwendet.\n"
+                + "Speichern ist für diese Sitzung gesperrt. Bitte die Einstellungsdatei wiederherstellen und das Programm neu starten.\n\n"
+                + backup + "\n\n" + result.Error,
                 "POCSAG Decoder", MessageBoxButton.OK, MessageBoxImage.Warning);
-            return AppSettings.CreateDefault();
         }
+        return result.Settings;
     }
 
     private void Save() => Save(quiet: false);
@@ -904,6 +969,11 @@ public sealed partial class MainViewModel : ObservableObject
     {
         // Nach dem Wiederherstellen einer Sicherung nichts mehr überschreiben.
         if (_skipSaveOnExit) return;
+        if (_settingsReadOnly)
+        {
+            if (!quiet) AddLog("Speichern gesperrt: Die ursprünglichen Einstellungen konnten nicht geladen werden.");
+            return;
+        }
         Settings.Rules = Rules.ToList();
         Settings.Targets = Targets.ToList();
         Settings.RicEntries = Descriptions.Where(d => !d.IsEmpty).ToList();
