@@ -360,13 +360,13 @@ public sealed partial class MainViewModel
             return true;
         }
         item.AppendForwarding("Slave: Abgleich mit dem Master …");
-        _ = CheckWithMasterAsync(item, hits);
+        TrackWork(CheckWithMasterAsync(item, hits));
         return true;
     }
 
     private async Task CheckWithMasterAsync(MessageItem item, IReadOnlyList<FilterRule> hits)
     {
-        await Task.Delay(MissedCheckDelay);
+        await Task.Delay(MissedCheckDelay, _sendCancellation.Token);
         var (status, error) = await QueryMasterAsync();
         var received = DateTime.Now;
         if (_failover.Report(received, status, error) && _failover.Active)

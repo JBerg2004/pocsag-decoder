@@ -150,8 +150,8 @@ public sealed partial class MainViewModel
         if (Settings.ErrorTray) SystemError?.Invoke(this, ("POCSAG Decoder – Fehler", text));
 
         var target = Targets.FirstOrDefault(t => string.Equals(t.Name, Settings.ErrorTargetName, StringComparison.OrdinalIgnoreCase));
-        if (target is null || kind == "send:" + target.Name) return; // keine Schleife, wenn genau diese Schnittstelle ausfällt
-        _ = SendErrorAsync(target, text);
+        if (_shuttingDown || target is null || kind == "send:" + target.Name) return; // keine Schleife, wenn genau diese Schnittstelle ausfällt
+        TrackWork(SendErrorAsync(target, text));
     }
 
     private async Task SendErrorAsync(WebhookTarget target, string text)
@@ -165,7 +165,7 @@ public sealed partial class MainViewModel
             Text = "Fehler: " + text,
             Raw = "(Systemfehler)",
         };
-        var result = await _sender.SendAsync(target, message, "Systemfehler");
+        var result = await _sender.SendAsync(target, message, "Systemfehler", _sendCancellation.Token);
         AddLog($"Fehlermeldung an {target.Name}: {result.Detail}");
     }
 }

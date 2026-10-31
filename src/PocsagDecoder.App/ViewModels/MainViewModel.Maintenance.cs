@@ -78,6 +78,14 @@ public sealed partial class MainViewModel
     /// <summary>Alle Einstellungen (Telegrammereignisse, Schnittstellen, RIC-Liste, Fenster …) in eine Datei.</summary>
     public void CreateBackup(string path)
     {
+        if (_settingsReadOnly)
+        {
+            MessageBox.Show(Application.Current.MainWindow,
+                "Die ursprünglichen Einstellungen konnten nicht geladen werden. Bitte zuerst eine gültige Sicherung wiederherstellen. "
+                + "Eine Sicherung der vorübergehenden Standardwerte wird nicht erstellt.",
+                "Sicherung erstellen", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
         try
         {
             Save(quiet: true);
