@@ -187,6 +187,11 @@ public sealed class AppSettings
     };
 }
 
+public sealed record SettingsLoadResult(AppSettings Settings, string? Error = null, string? BackupPath = null)
+{
+    public bool CanSave => Error is null;
+}
+
 public static class SettingsStore
 {
     private static readonly JsonSerializerOptions Options = new()
@@ -201,12 +206,41 @@ public static class SettingsStore
 
     public static string DefaultPath => Path.Combine(DefaultDirectory, "settings.json");
 
+    /// <summary>Bewahrt bei einem Ladefehler die Originaldatei; der Aufrufer darf Standardwerte nicht zurückschreiben.</summary>
+    public static SettingsLoadResult LoadSafely(string? path = null)
+    {
+        path ??= DefaultPath;
+        try { return new SettingsLoadResult(Load(path)); }
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException or NotSupportedException)
+        {
+            string? backup = null;
+            var error = ex.Message;
+            try
+            {
+                backup = path + $".unreadable-{Guid.NewGuid():N}.bak";
+                File.Copy(path, backup, overwrite: false);
+            }
+            catch (Exception backupError) when (backupError is IOException or UnauthorizedAccessException or NotSupportedException)
+            {
+                backup = null;
+                error += "\nSicherung fehlgeschlagen: " + backupError.Message;
+            }
+            return new SettingsLoadResult(AppSettings.CreateDefault(), error, backup);
+        }
+    }
+
     public static AppSettings Load(string? path = null)
     {
         path ??= DefaultPath;
         if (!File.Exists(path)) return AppSettings.CreateDefault();
         var json = File.ReadAllText(path);
-        var settings = JsonSerializer.Deserialize<AppSettings>(json, Options) ?? AppSettings.CreateDefault();
+        var settings = JsonSerializer.Deserialize<AppSettings>(json, Options)
+            ?? throw new JsonException("Die Einstellungsdatei enthält keine Einstellungen.");
+        if (settings.Decoder is null || settings.Rules is null || settings.Targets is null || settings.RicEntries is null
+            || settings.GlobalSubRics is null || settings.GlobalSubRicShorts is null || settings.ReceivePanes is null
+            || settings.HiddenColumns is null || settings.Rules.Any(x => x is null)
+            || settings.Targets.Any(x => x is null) || settings.RicEntries.Any(x => x is null))
+            throw new JsonException("Die Einstellungsdatei enthält ungültige leere Einträge.");
         if (settings.Descriptions is { Count: > 0 } && settings.RicEntries.Count == 0)
             settings.RicEntries = RicDirectory.FromLegacy(settings.Descriptions);
         settings.Descriptions = null;

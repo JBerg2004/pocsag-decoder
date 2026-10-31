@@ -38,6 +38,18 @@ RTL-SDR-Stick → rtl_fm.exe → (Audio 22050 Hz) → multimon-ng.exe → POCSAG
 - **Updates**: sucht beim Start und zweimal am Tag nach einem neuen Release auf GitHub, lädt es im Hintergrund herunter und prüft die Prüfsumme; ein Klick auf „Jetzt aktualisieren“ ersetzt die Exe und startet neu, die Einstellungen bleiben erhalten
 - Einstellungen unter `%APPDATA%\PocsagDecoder\settings.json`
 
+Kann die Einstellungsdatei nicht gelesen werden, bleibt sie unverändert. Das Programm versucht,
+eine zusätzliche Kopie `settings.json.unreadable-….bak` anzulegen, und startet mit Standardwerten.
+Speichern und das Erstellen neuer Sicherungen sind für diese Sitzung gesperrt. Eine gültige
+Sicherung kann weiterhin unter Einstellungen → Programm wiederhergestellt werden; alternativ
+die Einstellungsdatei reparieren und das Programm neu starten.
+
+Beim tatsächlichen Beenden (nicht beim Ausblenden in den Infobereich) wartet das Programm bis
+zu 30 Sekunden auf laufende Weiterleitungen einschließlich ihrer CSV-Protokolleinträge.
+Danach werden offene Sendungen abgebrochen; für deren Abschluss bleiben weitere zwei Sekunden.
+Das ersetzt keine dauerhafte Versandwarteschlange: Ein erzwungenes Beenden oder Stromausfall
+kann weiterhin offene Sendungen unterbrechen.
+
 ## Installation
 
 **Am schnellsten:** Beim neuesten Release `PocsagDecoder-komplett.zip` herunterladen und entpacken. Darin sind Programm,

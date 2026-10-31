@@ -11,6 +11,7 @@ namespace PocsagDecoder.App;
 public partial class MainWindow : Window
 {
     private bool _closingHandled;
+    private bool _shutdownCompleted;
 
     public MainWindow()
     {
@@ -94,11 +95,14 @@ public partial class MainWindow : Window
             }
             return;
         }
-        if (_closingHandled) { _tray.Dispose(); return; }
+        if (_shutdownCompleted) { _tray.Dispose(); return; }
         e.Cancel = true;
+        if (_closingHandled) return;
         _closingHandled = true;
+        IsEnabled = false;
         await Task.Yield(); // Close() darf nicht während OnClosing aufgerufen werden
         await Vm.ShutdownAsync();
+        _shutdownCompleted = true;
         Close();
     }
 
