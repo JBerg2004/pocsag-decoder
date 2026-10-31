@@ -78,8 +78,9 @@ Verlauf, Einstellungen und Protokoll. Unter **Empfang** zeigen vier Statusfelder
 Empfänger, den letzten Empfang, die Empfangsqualität und offene Sendungen.
 Die kompakte Liste konzentriert sich auf RIC, SubRIC, Bezeichnung, Ort und Verarbeitung.
 Nachrichtentexte sind standardmäßig ausgeblendet, da sie auch verschlüsselte Inhalte
-enthalten können. Bei Auswahl einer Meldung erscheinen Zuordnung und Versandziele
-darunter; Nachrichtentext und technische Details lassen sich bei Bedarf aufklappen.
+enthalten können. Ein zusätzlicher Detailbereich unter den Listen entfällt; der verfügbare
+Platz steht vollständig den Empfangsfenstern zur Verfügung. Versandstatus und Zuordnung
+bleiben in den Listenspalten sichtbar.
 Mit **Kompakte Ansicht** kann auf die vollständige Spaltenauswahl umgeschaltet werden.
 Die Suche je Fenster findet RICs, Bezeichnungen und Orte und ergänzt die bestehenden Filter.
 

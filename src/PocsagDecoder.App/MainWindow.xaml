@@ -141,7 +141,7 @@
             <!-- ============================ EMPFANG ============================ -->
             <TabItem Header="Empfang">
                 <Grid Margin="22,18">
-                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="180" MinHeight="100"/></Grid.RowDefinitions>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                     <UniformGrid Columns="4" Margin="0,0,0,18">
                         <Border Style="{StaticResource DashboardCard}"><StackPanel><TextBlock Text="EMPFANG" Style="{StaticResource Eyebrow}"/><TextBlock Text="{Binding ReceiverSummary}" Style="{StaticResource Metric}"/><TextBlock Text="{Binding FrequencySummary}" Foreground="{DynamicResource MutedBrush}"/></StackPanel></Border>
                         <Border Style="{StaticResource DashboardCard}"><StackPanel><TextBlock Text="LETZTE MELDUNG" Style="{StaticResource Eyebrow}"/><TextBlock Text="{Binding LastMessageTime}" Style="{StaticResource Metric}"/><TextBlock Text="{Binding LastReceivedText}" TextTrimming="CharacterEllipsis" ToolTip="{Binding LastReceivedText}" Foreground="{DynamicResource MutedBrush}"/></StackPanel></Border>
@@ -156,27 +156,7 @@
                         <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="{Binding DataContext.PaneColumns, RelativeSource={RelativeSource AncestorType=Window}}"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate><DataTemplate><local:MessagePaneView/></DataTemplate></ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <GridSplitter Grid.Row="3" Height="7" HorizontalAlignment="Stretch" Background="Transparent"/>
-                    <Border Grid.Row="4" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" CornerRadius="10" Padding="16">
-                        <Grid>
-                            <TextBlock Text="Noch keine Meldung ausgewählt.&#10;Nach dem Start erscheinen empfangene Meldungen in der Liste." Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" TextAlignment="Center">
-                                <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding SelectedMessage}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
-                            </TextBlock>
-                            <Grid DataContext="{Binding SelectedMessage}">
-                                <Grid.Style><Style TargetType="Grid"><Style.Triggers><DataTrigger Binding="{Binding}" Value="{x:Null}"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></Grid.Style>
-                                <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="24"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                <DockPanel>
-                                    <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,8"><TextBlock Text="{Binding Ric}" FontFamily="Consolas" FontSize="16" FontWeight="SemiBold"/><TextBlock Text="{Binding SubRic}" Margin="8,0,14,0" FontSize="16"/><TextBlock Text="{Binding Description}" VerticalAlignment="Center"/></WrapPanel>
-                                    <Expander DockPanel.Dock="Bottom" Header="Technische Details" Margin="0,6,0,0"><TextBlock Text="{Binding TechnicalDetails}" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/></Expander>
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel>
-                                        <WrapPanel Margin="0,0,0,8"><TextBlock Text="{Binding RicLocation}" Foreground="{DynamicResource MutedBrush}" Margin="0,0,16,0"/><TextBlock Text="{Binding SubRicDescription}" FontWeight="SemiBold"/><TextBlock Text="{Binding Timestamp, StringFormat='dd.MM.yyyy · HH:mm:ss'}" Foreground="{DynamicResource MutedBrush}" Margin="16,0,0,0"/></WrapPanel>
-                                        <Expander Header="Nachrichtentext anzeigen" IsExpanded="False"><TextBox Text="{Binding Text, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" MaxHeight="100" BorderThickness="0" Background="Transparent" Padding="0,8" AutomationProperties.Name="Nachrichtentext auf Anfrage"/></Expander>
-                                    </StackPanel></ScrollViewer>
-                                </DockPanel>
-                                <DockPanel Grid.Column="2"><TextBlock DockPanel.Dock="Top" Text="VERSAND UND VERARBEITUNG" Style="{StaticResource Eyebrow}" Margin="0,0,0,8"/><ScrollViewer VerticalScrollBarVisibility="Auto"><ItemsControl ItemsSource="{Binding DeliveryLines}"><ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,0,0,7"/></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></ScrollViewer></DockPanel>
-                            </Grid>
-                        </Grid>
-                    </Border>
+
                 </Grid>
             </TabItem>
 
