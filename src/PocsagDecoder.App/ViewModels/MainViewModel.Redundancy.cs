@@ -183,7 +183,39 @@ public sealed partial class MainViewModel
             try
             {
                 _masterServer = new MasterServer(Settings.RedundancyPort, Settings.RedundancyKey, BuildMasterStatus);
-                _masterServer.SlaveSeen += (peer, time) => Application.Current?…464 tokens truncated…    private void RaiseRedundancyChanged()
+                _masterServer.SlaveSeen += (peer, time) => Application.Current?.Dispatcher.BeginInvoke(() => OnSlaveSeen(peer, time));
+                _masterServer.Rejected += peer => Application.Current?.Dispatcher.BeginInvoke(() =>
+                    AddLog($"Master/Slave: Anfrage von {peer} abgelehnt, Kennwort falsch."));
+                _masterServer.Start();
+                RedundancyStatus = $"Master: wartet auf Port {Settings.RedundancyPort} auf den Slave."
+                    + (Settings.RedundancyKey.Length == 0 ? " Ohne Kennwort ist die Verbindung unverschlüsselt, über das Internet bitte unbedingt eins eintragen." : "");
+                AddLog($"Master/Slave: Master gestartet, Port {Settings.RedundancyPort}.");
+            }
+            catch (SocketException ex)
+            {
+                _masterServer = null;
+                RedundancyStatus = $"Master konnte Port {Settings.RedundancyPort} nicht öffnen: {ex.Message}";
+                ReportError("redundancy", RedundancyStatus);
+            }
+            _redundancyTimer?.Start();
+        }
+        else if (IsSlave)
+        {
+            RedundancyStatus = Settings.RedundancyMaster.Length == 0
+                ? "Slave: bitte Name oder IP-Adresse des Master-PCs eintragen. Bis dahin leitet dieser PC selbst weiter."
+                : $"Slave: verbinde mit {Settings.RedundancyMaster}:{Settings.RedundancyPort} …";
+            AddLog("Master/Slave: Slave gestartet" + (Settings.RedundancyMaster.Length > 0 ? $", Master {Settings.RedundancyMaster}." : "."));
+            _redundancyTimer?.Start();
+            _ = RedundancyTickAsync();
+        }
+        else
+        {
+            RedundancyStatus = "Aus: dieser PC leitet alle Treffer selbst weiter.";
+        }
+        RaiseRedundancyChanged();
+    }
+
+    private void RaiseRedundancyChanged()
     {
         OnPropertyChanged(nameof(RedundancyBarText));
         OnPropertyChanged(nameof(RedundancyLevel));
