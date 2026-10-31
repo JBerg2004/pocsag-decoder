@@ -61,6 +61,12 @@ public partial class MainWindow : Window
     private void Setup_Click(object sender, RoutedEventArgs e) => OpenSetup();
     private void OpenSetup()
     {
+        if (!Vm.CanSaveSettings)
+        {
+            MessageBox.Show(this, "Bitte zuerst eine gültige Sicherung wiederherstellen und das Programm neu starten. Die Einrichtung kann ohne lesbare Einstellungen nicht gespeichert werden.",
+                "Einrichtung", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
         if (Vm.IsRunning)
         {
             MessageBox.Show(this, "Bitte den Empfang stoppen, bevor du die Einrichtung änderst.", "Einrichtung", MessageBoxButton.OK, MessageBoxImage.Information);

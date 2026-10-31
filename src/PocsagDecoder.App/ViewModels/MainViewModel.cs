@@ -115,6 +115,7 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     public AppSettings Settings { get; }
+    public bool CanSaveSettings => !_settingsReadOnly && !_skipSaveOnExit;
     public DecoderOptions Decoder => Settings.Decoder;
 
     public ObservableCollection<MessageItem> Messages { get; } = new();
