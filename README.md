@@ -74,8 +74,9 @@ Test, ob der Stick funktioniert: `rtl_test.exe` in einer Eingabeaufforderung.
 ## Bedienung
 
 Die Seitennavigation führt zu Empfang, Ereignissen, RIC-Verzeichnis, Schnittstellen,
-Verlauf, Einstellungen und Protokoll. Unter **Empfang** zeigen vier Statusfelder den
-Empfänger, den letzten Empfang, die Empfangsqualität und offene Sendungen.
+Verlauf, Einstellungen und Protokoll. Eine schmale Kopfzeile hält die Bedienung bereit;
+unter **Empfang** beginnen die Meldungslisten direkt unter der Werkzeugleiste.
+Empfangsstatus, letzter Empfang und Empfangsqualität stehen in der unteren Statusleiste.
 Die kompakte Liste konzentriert sich auf RIC, SubRIC, Bezeichnung, Ort und Verarbeitung.
 Nachrichtentexte sind standardmäßig ausgeblendet, da sie auch verschlüsselte Inhalte
 enthalten können. Ein zusätzlicher Detailbereich unter den Listen entfällt; der verfügbare
